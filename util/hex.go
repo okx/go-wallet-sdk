@@ -7,8 +7,10 @@ import (
 
 // delete the 0x from the front
 func RemoveZeroHex(s string) []byte {
-	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
-		s = s[2:]
+	if len(s) > 1 {
+		if s[0:2] == "0x" || s[0:2] == "0X" {
+			s = s[2:]
+		}
 	}
 	if len(s)%2 == 1 {
 		s = "0" + s
@@ -30,6 +32,23 @@ func EncodeHexWith0x(bytes []byte) string {
 }
 
 func DecodeHexString(hexString string) ([]byte, error) {
+	if len(hexString) >= 2 {
+		if hexString[0:2] == "0x" || hexString[0:2] == "0X" {
+			hexString = hexString[2:]
+		}
+	}
+	if len(hexString)%2 != 0 {
+		hexString = "0" + hexString
+	}
+	return hex.DecodeString(hexString)
+}
+
+func DecodeHexStringBackup(hexString string) ([]byte, error) {
+	if len(hexString) >= 2 {
+		if hexString[0:2] == "0x" || hexString[0:2] == "0X" {
+			hexString = hexString[2:]
+		}
+	}
 	if strings.HasPrefix(hexString, "0x") || strings.HasPrefix(hexString, "0X") {
 		hexString = hexString[2:]
 	}

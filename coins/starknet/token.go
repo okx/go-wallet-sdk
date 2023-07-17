@@ -1,0 +1,7 @@
+package starknet
+
+const ETH = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+
+const USDT = "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"
+
+const ETHBridge = "0x073314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"

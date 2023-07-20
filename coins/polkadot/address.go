@@ -35,10 +35,13 @@ func PubKeyToAddress(publicKey []byte, prefix []byte) (address string, err error
 	return address, nil
 }
 
-func AddressToPublicKey(address string) string {
-	pub, _ := ss58.DecodeToPub(address)
+func AddressToPublicKey(address string) (string, error) {
+	pub, err := ss58.DecodeToPub(address)
+	if err != nil {
+		return "", err
+	}
 	pubHex := hex.EncodeToString(pub)
-	return pubHex
+	return pubHex, nil
 }
 
 func ValidateAddress(addr string) bool {

@@ -66,27 +66,40 @@ func (t *UnSignedTx) ToBytesString() string {
 	return hex.EncodeToString(payload)
 }
 
-func UnSignedTxFromTxStruct(tx TxStruct, txType int32) UnSignedTx {
+func UnSignedTxFromTxStruct(tx TxStruct, txType int32) (UnSignedTx, error) {
 	var tp UnSignedTx
+	var err error
 	if txType == Transfer {
-		tp.Method, _ = BalanceTransfer(tx.ModuleMethod, tx.To, tx.Amount)
+		tp.Method, err = BalanceTransfer(tx.ModuleMethod, tx.To, tx.Amount)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	} else if txType == TransferAll {
-		tp.Method, _ = BalanceTransferAll(tx.ModuleMethod, tx.To, tx.KeepAlive)
+		tp.Method, err = BalanceTransferAll(tx.ModuleMethod, tx.To, tx.KeepAlive)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	} else {
-		return UnSignedTx{}
+		return UnSignedTx{}, nil
 	}
 	tp.Era = GetEra(tx.BlockHeight, tx.EraHeight)
 	if tx.Nonce == 0 {
 		tp.Nonce = []byte{0}
 	} else {
 		nonce := Encode(uint64(tx.Nonce))
-		tp.Nonce, _ = hex.DecodeString(nonce)
+		tp.Nonce, err = hex.DecodeString(nonce)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	}
 	if tx.Tip == 0 {
 		tp.Tip = []byte{0}
 	} else {
 		fee := Encode(uint64(tx.Tip))
-		tp.Tip, _ = hex.DecodeString(fee)
+		tp.Tip, err = hex.DecodeString(fee)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	}
 
 	specv := make([]byte, 4)
@@ -101,49 +114,89 @@ func UnSignedTxFromTxStruct(tx TxStruct, txType int32) UnSignedTx {
 	tp.GenesisHash = genesis
 	block := util.RemoveZeroHex(tx.BlockHash)
 	tp.BlockHash = block
-	return tp
+	return tp, nil
 }
 
-func UnSignedTxFromTxStruct2(tx TxStruct2) UnSignedTx {
+func UnSignedTxFromTxStruct2(tx TxStruct2) (UnSignedTx, error) {
 	var tp UnSignedTx
-	tp.Method, _ = BalanceTransfer(tx.ModuleMethod, tx.To, tx.Amount)
-	tp.Era, _ = hex.DecodeString(tx.Era)
+	var err error
+	tp.Method, err = BalanceTransfer(tx.ModuleMethod, tx.To, tx.Amount)
+	if err != nil {
+		return UnSignedTx{}, err
+	}
+	tp.Era, err = hex.DecodeString(tx.Era)
+	if err != nil {
+		return UnSignedTx{}, err
+	}
 	if tx.Nonce == 0 {
 		tp.Nonce = []byte{0}
 	} else {
 		nonce := Encode(tx.Nonce)
-		tp.Nonce, _ = hex.DecodeString(nonce)
+		tp.Nonce, err = hex.DecodeString(nonce)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	}
 	if tx.Tip == 0 {
 		tp.Tip = []byte{0}
 	} else {
 		fee := Encode(tx.Tip)
-		tp.Tip, _ = hex.DecodeString(fee)
+		tp.Tip, err = hex.DecodeString(fee)
+		if err != nil {
+			return UnSignedTx{}, err
+		}
 	}
 
-	tp.SpecVersion, _ = hex.DecodeString(tx.SpecVersion)
-	tp.TxVersion, _ = hex.DecodeString(tx.TxVersion)
+	tp.SpecVersion, err = hex.DecodeString(tx.SpecVersion)
+	if err != nil {
+		return UnSignedTx{}, err
+	}
+	tp.TxVersion, err = hex.DecodeString(tx.TxVersion)
+	if err != nil {
+		return UnSignedTx{}, err
+	}
 
 	genesis := util.RemoveZeroHex(tx.GenesisHash)
 	tp.GenesisHash = genesis
 	block := util.RemoveZeroHex(tx.BlockHash)
 	tp.BlockHash = block
-	return tp
+	return tp, nil
 }
 
-func SignTx(tx TxStruct, txType int32, privateKey string) string {
-	unSignedTx := UnSignedTxFromTxStruct(tx, txType)
+func SignTx(tx TxStruct, txType int32, privateKey string) (string, error) {
+	unSignedTx, err := UnSignedTxFromTxStruct(tx, txType)
+	if err != nil {
+		return "", err
+	}
 	message := unSignedTx.ToBytesString()
-	payload, _ := hex.DecodeString(message)
-	prikey, _ := hex.DecodeString(privateKey)
+	payload, err := hex.DecodeString(message)
+	if err != nil {
+		return "", err
+	}
+	prikey, err := hex.DecodeString(privateKey)
+	if err != nil {
+		return "", err
+	}
 	key := ed25519.NewKeyFromSeed(prikey)
-	signature, _ := key.Sign(rand.Reader, payload, crypto.Hash(0))
-
+	signature, err := key.Sign(rand.Reader, payload, crypto.Hash(0))
+	if err != nil {
+		return "", err
+	}
 	signed := make([]byte, 0)
-	version, _ := hex.DecodeString(tx.Version)
+	version, err := hex.DecodeString(tx.Version)
+	if err != nil {
+		return "", err
+	}
 	signed = append(signed, version...)
 	signed = append(signed, 0x00)
-	from, _ := hex.DecodeString(AddressToPublicKey(tx.From))
+	pubKey, err := AddressToPublicKey(tx.From)
+	if err != nil {
+		return "", err
+	}
+	from, err := hex.DecodeString(pubKey)
+	if err != nil {
+		return "", err
+	}
 	signed = append(signed, from...)
 	signed = append(signed, 0x00) // signature type 00:ed25519  01:sr25519  02:ecdsa
 	signed = append(signed, signature...)
@@ -151,18 +204,34 @@ func SignTx(tx TxStruct, txType int32, privateKey string) string {
 	signed = append(signed, unSignedTx.Nonce...)
 	signed = append(signed, unSignedTx.Tip...)
 	signed = append(signed, unSignedTx.Method...)
-	lengthBytes, _ := hex.DecodeString(Encode(uint64(len(signed))))
-	return "0x" + hex.EncodeToString(lengthBytes) + hex.EncodeToString(signed)
+	lengthBytes, err := hex.DecodeString(Encode(uint64(len(signed))))
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(lengthBytes) + hex.EncodeToString(signed), nil
 }
 
-func SignTx2(tx TxStruct2, signature []byte) string {
-	unSignedTx := UnSignedTxFromTxStruct2(tx)
+func SignTx2(tx TxStruct2, signature []byte) (string, error) {
+	unSignedTx, err := UnSignedTxFromTxStruct2(tx)
+	if err != nil {
+		return "", err
+	}
 
 	signed := make([]byte, 0)
-	version, _ := hex.DecodeString(tx.Version)
+	version, err := hex.DecodeString(tx.Version)
+	if err != nil {
+		return "", err
+	}
 	signed = append(signed, version...)
 	signed = append(signed, 0x00)
-	from, _ := hex.DecodeString(AddressToPublicKey(tx.From))
+	pubKey, err := AddressToPublicKey(tx.From)
+	if err != nil {
+		return "", err
+	}
+	from, err := hex.DecodeString(pubKey)
+	if err != nil {
+		return "", err
+	}
 	signed = append(signed, from...)
 	signed = append(signed, 0x00) // signature type 00:ed25519  01:sr25519  02:ecdsa
 	signed = append(signed, signature...)
@@ -170,6 +239,9 @@ func SignTx2(tx TxStruct2, signature []byte) string {
 	signed = append(signed, unSignedTx.Nonce...)
 	signed = append(signed, unSignedTx.Tip...)
 	signed = append(signed, unSignedTx.Method...)
-	lengthBytes, _ := hex.DecodeString(Encode(uint64(len(signed))))
-	return "0x" + hex.EncodeToString(lengthBytes) + hex.EncodeToString(signed)
+	lengthBytes, err := hex.DecodeString(Encode(uint64(len(signed))))
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(lengthBytes) + hex.EncodeToString(signed), nil
 }

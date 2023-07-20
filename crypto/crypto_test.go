@@ -26,7 +26,7 @@ import (
 )
 
 func TestNewChildKeyByPathString(t *testing.T) {
-	seed := bip39.NewSeed("save latin you ill print flash dish begin radio fish canyon day", "")
+	seed := bip39.NewSeed("//todo please replace your mnemonic", "")
 	rp, _ := bip32.NewMasterKey(seed)
 
 	c, _ := rp.NewChildKeyByPathString("m/44'/118'/0'/0/0")
@@ -118,7 +118,7 @@ func TestSignMessage(t *testing.T) {
 			continue
 		}
 	}
-	fmt.Printf("校验成功，共%d条, 失败%d条\n", ic, fc)
+	fmt.Printf("The verification succeeds(%d) and fails (%d)\n", ic, fc)
 }
 
 func TestHash(t *testing.T) {
@@ -239,7 +239,8 @@ func TestHash(t *testing.T) {
 			continue
 		}
 	}
-	fmt.Printf("校验成功，共%d条, 失败%d条\n", ic, fc)
+
+	fmt.Printf("The verification succeeds(%d) and fails (%d)\n", ic, fc)
 }
 
 func keccak256(buf []byte) []byte {

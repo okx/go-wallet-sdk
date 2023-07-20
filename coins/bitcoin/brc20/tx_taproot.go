@@ -258,7 +258,10 @@ func (build *TransactionBuilder) Build() (string, error) {
 				sigHashes := txscript.NewTxSigHashes(tx, prevOuts)
 				//P2PKH
 				scriptStr := fmt.Sprintf("1976a914%s88ac", hex.EncodeToString(btcutil.Hash160(pubKey.SerializeCompressed())))
-				scriptCode, _ := hex.DecodeString(scriptStr)
+				scriptCode, err := hex.DecodeString(scriptStr)
+				if err != nil {
+					return "", err
+				}
 				hash := calSegWitHashNew(amount, tx, sigHashes, i, scriptCode)
 				// sign
 				signature := ecdsa.Sign(prvKey, hash)

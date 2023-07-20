@@ -8,7 +8,7 @@ import (
 )
 
 func TestAddress(t *testing.T) {
-	priKey, _ := hex.DecodeString("ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
+	priKey, _ := hex.DecodeString("//todo please replace your key")
 	p := ed25519.NewKeyFromSeed(priKey)
 	publicKey := p.Public().(ed25519.PublicKey)
 	fmt.Println("publicKey: ", hex.EncodeToString(publicKey))
@@ -19,7 +19,7 @@ func TestAddress(t *testing.T) {
 	validateAddress := ValidateAddress(address)
 	fmt.Println(validateAddress)
 
-	key := AddressToPublicKey("14JT42BmV4t7meRTq2Y7dfjx6uc5ATrhuAQTXFGMT5Pb8HsA")
+	key, _ := AddressToPublicKey("14JT42BmV4t7meRTq2Y7dfjx6uc5ATrhuAQTXFGMT5Pb8HsA")
 	fmt.Println(key)
 }
 
@@ -39,7 +39,7 @@ func TestTransfer(t *testing.T) {
 		Version:      "84",
 	}
 
-	signed := SignTx(tx, Transfer, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
+	signed, _ := SignTx(tx, Transfer, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
 	fmt.Println(signed)
 }
 
@@ -60,6 +60,6 @@ func TestTransferAll(t *testing.T) {
 		EraHeight:    512, // 512 blocks valid
 	}
 
-	signed := SignTx(tx, TransferAll, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
+	signed, _ := SignTx(tx, TransferAll, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
 	fmt.Println(signed)
 }

@@ -57,7 +57,10 @@ func NewSignatureData(msgHash []byte, publicKey string, r, s *big.Int) (string, 
 		return "", err
 	}
 
-	pubKey, _ := btcec.ParsePubKey(pubBytes)
+	pubKey, err := btcec.ParsePubKey(pubBytes)
+	if err != nil {
+		return "", err
+	}
 	sig, err := SignCompact(btcec.S256(), r, s, *pubKey, msgHash, false)
 	if err != nil {
 		return "", err

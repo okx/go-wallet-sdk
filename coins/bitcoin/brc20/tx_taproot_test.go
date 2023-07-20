@@ -16,7 +16,7 @@ func TestReveal(t *testing.T) {
 	inscription := NewInscription(contentType, body)
 	builder.AddInput("9f9ff5acc7b3966ccfc6acc77027209d62aab34e563a09180c58ef7296fca74b",
 		1,
-		"604a9c5b807b8ef912e7a02321a66be93df4e13c4c0ef4e3ad6d8fc590e4ccd7",
+		"//todo please replace your hex key",
 		"tb1pmwus5lpxnnet6wcyqtevls07y7u8h5wun7q7p9jglk707y2czfnsdlqqjw",
 		"1600",
 		inscription,

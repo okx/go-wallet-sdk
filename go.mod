@@ -13,6 +13,8 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/fxamacker/cbor v1.5.1
+	github.com/golang/protobuf v1.5.3
+	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.1
 	github.com/tyler-smith/go-bip32 v1.0.0
 	github.com/tyler-smith/go-bip39 v1.1.0
@@ -32,5 +34,6 @@ require (
 	github.com/holiman/uint256 v1.2.2-0.20230321075855-87b91420868c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

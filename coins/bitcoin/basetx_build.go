@@ -3,6 +3,7 @@ package bitcoin
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
@@ -56,9 +57,9 @@ func (build *TransactionBuilder) AddOutput(address string, amount int64) {
 	build.outputs = append(build.outputs, output)
 }
 
-func (build *TransactionBuilder) SingleBuild() string {
+func (build *TransactionBuilder) SingleBuild() (string, error) {
 	if len(build.inputs) == 0 || len(build.outputs) == 0 {
-		return ""
+		return "", errors.New("invalid inputs or outputs")
 	}
 
 	tx := build.tx
@@ -66,20 +67,38 @@ func (build *TransactionBuilder) SingleBuild() string {
 	var ecKeyArray []btcec.PrivateKey
 	for i := 0; i < len(build.inputs); i++ {
 		input := build.inputs[i]
-		privateBytes, _ := hex.DecodeString(input.privateKeyHex)
+		privateBytes, err := hex.DecodeString(input.privateKeyHex)
+		if err != nil {
+			return "", err
+		}
 		prvKey, publicKey := btcec.PrivKeyFromBytes(privateBytes)
 		var signatureScript []byte
 		if input.redeemScript == "" {
-			addPub, _ := btcutil.NewAddressPubKey(publicKey.SerializeCompressed(), &chaincfg.MainNetParams)
-			decodeAddress, _ := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
-			signatureScript, _ = txscript.PayToAddrScript(decodeAddress)
+			addPub, err := btcutil.NewAddressPubKey(publicKey.SerializeCompressed(), &chaincfg.MainNetParams)
+			if err != nil {
+				return "", err
+			}
+			decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
+			if err != nil {
+				return "", err
+			}
+			signatureScript, err = txscript.PayToAddrScript(decodeAddress)
+			if err != nil {
+				return "", err
+			}
 		} else {
-			signatureScript, _ = hex.DecodeString(input.redeemScript)
+			signatureScript, err = hex.DecodeString(input.redeemScript)
+			if err != nil {
+				return "", err
+			}
 		}
 		scriptArray = append(scriptArray, signatureScript)
 		ecKeyArray = append(ecKeyArray, *prvKey)
 
-		hash, _ := chainhash.NewHashFromStr(input.txId)
+		hash, err := chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return "", err
+		}
 		outPoint := wire.NewOutPoint(hash, input.vOut)
 		txIn := wire.NewTxIn(outPoint, signatureScript, nil)
 		tx.TxIn = append(tx.TxIn, txIn)
@@ -87,8 +106,14 @@ func (build *TransactionBuilder) SingleBuild() string {
 
 	for i := 0; i < len(build.outputs); i++ {
 		output := build.outputs[i]
-		address, _ := btcutil.DecodeAddress(output.address, build.netParams)
-		script, _ := txscript.PayToAddrScript(address)
+		address, err := btcutil.DecodeAddress(output.address, build.netParams)
+		if err != nil {
+			return "", err
+		}
+		script, err := txscript.PayToAddrScript(address)
+		if err != nil {
+			return "", err
+		}
 		txOut := wire.NewTxOut(output.amount, script)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
@@ -96,7 +121,10 @@ func (build *TransactionBuilder) SingleBuild() string {
 	for i := 0; i < len(build.inputs); i++ {
 		ecKey := ecKeyArray[i]
 		redeemScript := scriptArray[i]
-		sigHash, _ := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		sigHash, err := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		if err != nil {
+			return "", err
+		}
 		sign := ecdsa.Sign(&ecKey, sigHash)
 		builder := txscript.NewScriptBuilder()
 		if build.inputs[i].redeemScript != "" { // for multiple-sign
@@ -105,36 +133,55 @@ func (build *TransactionBuilder) SingleBuild() string {
 			redeemScript = ecKey.PubKey().SerializeCompressed()
 		}
 		sig1 := append(sign.Serialize(), byte(txscript.SigHashAll))
-		scriptBuilder, _ := builder.AddData(sig1).AddData(redeemScript).Script()
+		scriptBuilder, err := builder.AddData(sig1).AddData(redeemScript).Script()
+		if err != nil {
+			return "", err
+		}
 		tx.TxIn[i].SignatureScript = scriptBuilder
 	}
 	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
 	if err := tx.Serialize(buf); err != nil {
+		return "", err
 	}
-	return hex.EncodeToString(buf.Bytes())
+	return hex.EncodeToString(buf.Bytes()), nil
 }
 
 // Second signature
-func NewTxFromHex(txHex string) *wire.MsgTx {
-	txBytes, _ := hex.DecodeString(txHex)
+func NewTxFromHex(txHex string) (*wire.MsgTx, error) {
+	txBytes, err := hex.DecodeString(txHex)
+	if err != nil {
+		return nil, err
+	}
 	reader := bytes.NewReader(txBytes)
 	tx := &wire.MsgTx{}
-	_ = tx.Deserialize(reader)
-	return tx
+	err = tx.Deserialize(reader)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
 }
 
-func MultiSignBuild(tx *wire.MsgTx, priKeyList []string) string {
+func MultiSignBuild(tx *wire.MsgTx, priKeyList []string) (string, error) {
 	txIns := tx.TxIn
 	if len(txIns) != len(priKeyList) {
-		return ""
+		return "", errors.New("invalid prikey list")
 	}
 	for i := 0; i < len(txIns); i++ {
 		txIn := txIns[i]
-		scriptList, _ := txscript.PushedData(txIn.SignatureScript) // [][]  sign+script
+		scriptList, err := txscript.PushedData(txIn.SignatureScript) // [][]  sign+script
+		if err != nil {
+			return "", err
+		}
 		redeemScript := scriptList[len(scriptList)-1]
-		privateBytes, _ := hex.DecodeString(priKeyList[i])
+		privateBytes, err := hex.DecodeString(priKeyList[i])
+		if err != nil {
+			return "", err
+		}
 		ecKey, _ := btcec.PrivKeyFromBytes(privateBytes)
-		sigHash, _ := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		sigHash, err := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		if err != nil {
+			return "", err
+		}
 		sign := ecdsa.Sign(ecKey, sigHash)
 		sig2 := append(sign.Serialize(), byte(txscript.SigHashAll))
 
@@ -142,13 +189,17 @@ func MultiSignBuild(tx *wire.MsgTx, priKeyList []string) string {
 		for i := 0; i < len(scriptList)-1; i++ {
 			builder.AddData(scriptList[i])
 		}
-		scriptBuilder, _ := builder.AddData(sig2).AddData(redeemScript).Script()
+		scriptBuilder, err := builder.AddData(sig2).AddData(redeemScript).Script()
+		if err != nil {
+			return "", err
+		}
 		tx.TxIn[i].SignatureScript = scriptBuilder
 	}
 	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
 	if err := tx.Serialize(buf); err != nil {
+		return "", err
 	}
-	return hex.EncodeToString(buf.Bytes())
+	return hex.EncodeToString(buf.Bytes()), nil
 }
 
 func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, map[int]string, error) {
@@ -161,12 +212,24 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 	for i := 0; i < len(build.inputs); i++ {
 		input := build.inputs[i]
 		var signatureScript []byte
-		addPub, _ := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKeyMap[i]), &chaincfg.MainNetParams)
-		decodeAddress, _ := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
-		signatureScript, _ = txscript.PayToAddrScript(decodeAddress)
+		addPub, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKeyMap[i]), &chaincfg.MainNetParams)
+		if err != nil {
+			return "", nil, err
+		}
+		decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
+		if err != nil {
+			return "", nil, err
+		}
+		signatureScript, err = txscript.PayToAddrScript(decodeAddress)
+		if err != nil {
+			return "", nil, err
+		}
 		scriptArray = append(scriptArray, signatureScript)
 
-		hash, _ := chainhash.NewHashFromStr(input.txId)
+		hash, err := chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return "", nil, err
+		}
 		outPoint := wire.NewOutPoint(hash, input.vOut)
 		txIn := wire.NewTxIn(outPoint, signatureScript, nil)
 		tx.TxIn = append(tx.TxIn, txIn)
@@ -174,8 +237,14 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 
 	for i := 0; i < len(build.outputs); i++ {
 		output := build.outputs[i]
-		address, _ := btcutil.DecodeAddress(output.address, build.netParams)
-		script, _ := txscript.PayToAddrScript(address)
+		address, err := btcutil.DecodeAddress(output.address, build.netParams)
+		if err != nil {
+			return "", nil, err
+		}
+		script, err := txscript.PayToAddrScript(address)
+		if err != nil {
+			return "", nil, err
+		}
 		txOut := wire.NewTxOut(output.amount, script)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
@@ -183,12 +252,18 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 	hashes := make(map[int]string)
 	for i := 0; i < len(build.inputs); i++ {
 		redeemScript := scriptArray[i]
-		sigHash, _ := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		sigHash, err := txscript.CalcSignatureHash(redeemScript, txscript.SigHashAll, tx, i)
+		if err != nil {
+			return "", nil, err
+		}
 		hashes[i] = hex.EncodeToString(sigHash)
 
 		builder := txscript.NewScriptBuilder()
 		sig1 := append(make([]byte, 70), byte(txscript.SigHashAll))
-		scriptBuilder, _ := builder.AddData(sig1).AddData(redeemScript).Script()
+		scriptBuilder, err := builder.AddData(sig1).AddData(redeemScript).Script()
+		if err != nil {
+			return "", nil, err
+		}
 		tx.TxIn[i].SignatureScript = scriptBuilder
 	}
 	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
@@ -200,10 +275,13 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 }
 
 func SignTx(raw string, pubKeyMap map[int]string, signatureMap map[int]string) (string, error) {
-	txBytes, _ := hex.DecodeString(raw)
+	txBytes, err := hex.DecodeString(raw)
+	if err != nil {
+		return "", err
+	}
 	reader := bytes.NewReader(txBytes)
 	tx := &wire.MsgTx{}
-	err := tx.Deserialize(reader)
+	err = tx.Deserialize(reader)
 	if err != nil {
 		return "", err
 	}
@@ -214,10 +292,16 @@ func SignTx(raw string, pubKeyMap map[int]string, signatureMap map[int]string) (
 
 	for i := 0; i < len(tx.TxIn); i++ {
 		builder := txscript.NewScriptBuilder()
-		publicKey, _ := btcec.ParsePubKey(util.RemoveZeroHex(pubKeyMap[i]))
+		publicKey, err := btcec.ParsePubKey(util.RemoveZeroHex(pubKeyMap[i]))
+		if err != nil {
+			return "", err
+		}
 		redeemScript := publicKey.SerializeCompressed()
 		sig1 := append(util.RemoveZeroHex(signatureMap[i]), byte(txscript.SigHashAll))
-		scriptBuilder, _ := builder.AddData(sig1).AddData(redeemScript).Script()
+		scriptBuilder, err := builder.AddData(sig1).AddData(redeemScript).Script()
+		if err != nil {
+			return "", err
+		}
 		tx.TxIn[i].SignatureScript = scriptBuilder
 	}
 	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))

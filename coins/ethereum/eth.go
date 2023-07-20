@@ -3,12 +3,12 @@ package ethereum
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/crypto"
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/okx/go-wallet-sdk/crypto"
 	"github.com/okx/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
@@ -26,9 +26,9 @@ type EthTransaction struct {
 	S *big.Int `json:"s"`
 }
 
-func (tx *EthTransaction) SignTransaction(chainId *big.Int, prvKey *btcec.PrivateKey) string {
+func (tx *EthTransaction) SignTransaction(chainId *big.Int, prvKey *btcec.PrivateKey) (string, error) {
 	tx.V = chainId
-	rawTransaction, _ := rlp.EncodeToBytes([]interface{}{
+	rawTransaction, err := rlp.EncodeToBytes([]interface{}{
 		tx.Nonce,
 		tx.GasPrice,
 		tx.GasLimit,
@@ -37,17 +37,26 @@ func (tx *EthTransaction) SignTransaction(chainId *big.Int, prvKey *btcec.Privat
 		tx.Data,
 		chainId, uint(0), uint(0),
 	})
-	sig := SignMessage(rawTransaction, prvKey)
+	if err != nil {
+		return "", err
+	}
+	sig, err := SignMessage(rawTransaction, prvKey)
+	if err != nil {
+		return "", err
+	}
 	tx.V = big.NewInt(chainId.Int64()*2 + sig.V.Int64() + 8)
 	tx.R = sig.R
 	tx.S = sig.S
-	value, _ := rlp.EncodeToBytes(tx)
-	return "0x" + hex.EncodeToString(value)
+	value, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(value), nil
 }
 
-func (tx *EthTransaction) UnSignedTx(chainId *big.Int) string {
+func (tx *EthTransaction) UnSignedTx(chainId *big.Int) (string, error) {
 	tx.V = chainId
-	rawTransaction, _ := rlp.EncodeToBytes([]interface{}{
+	rawTransaction, err := rlp.EncodeToBytes([]interface{}{
 		tx.Nonce,
 		tx.GasPrice,
 		tx.GasLimit,
@@ -56,27 +65,39 @@ func (tx *EthTransaction) UnSignedTx(chainId *big.Int) string {
 		tx.Data,
 		chainId, uint(0), uint(0),
 	})
-	return hex.EncodeToString(rawTransaction)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(rawTransaction), nil
 }
 
 func (tx *EthTransaction) GetSigningHash(chainId *big.Int) (string, string, error) {
-	unSignedTx := tx.UnSignedTx(chainId)
-	raw, _ := hex.DecodeString(unSignedTx)
+	unSignedTx, err := tx.UnSignedTx(chainId)
+	if err != nil {
+		return "", "", err
+	}
+	raw, err := hex.DecodeString(unSignedTx)
+	if err != nil {
+		return "", "", err
+	}
 	h := sha3.NewLegacyKeccak256()
 	h.Write(raw)
 	msgHash := h.Sum(nil)
 	return hex.EncodeToString(msgHash), unSignedTx, nil
 }
 
-func (tx *EthTransaction) SignedTx(chainId *big.Int, sig *SignatureData) string {
+func (tx *EthTransaction) SignedTx(chainId *big.Int, sig *SignatureData) (string, error) {
 	tx.V = big.NewInt(chainId.Int64()*2 + sig.V.Int64() + 8)
 	tx.R = sig.R
 	tx.S = sig.S
-	value, _ := rlp.EncodeToBytes(tx)
-	return "0x" + hex.EncodeToString(value)
+	value, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(value), nil
 }
 
-func SignMessage(message []byte, prvKey *btcec.PrivateKey) *SignatureData {
+func SignMessage(message []byte, prvKey *btcec.PrivateKey) (*SignatureData, error) {
 	hash256 := sha3.NewLegacyKeccak256()
 	hash256.Write(message)
 	messageHash := hash256.Sum(nil)
@@ -107,8 +128,11 @@ func NewTransactionFromRaw(raw string) (*EthTransaction, error) {
 	return t, nil
 }
 
-func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) *SignatureData {
-	sig, _ := ecdsa.SignCompact(prvKey, value, false)
+func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) (*SignatureData, error) {
+	sig, err := ecdsa.SignCompact(prvKey, value, false)
+	if err != nil {
+		return nil, err
+	}
 	V := sig[0]
 	R := sig[1:33]
 	S := sig[33:65]
@@ -119,7 +143,7 @@ func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) *SignatureData {
 		ByteV: V,
 		ByteR: R,
 		ByteS: S,
-	}
+	}, nil
 }
 
 type SignatureData struct {
@@ -139,7 +163,10 @@ func NewSignatureData(msgHash []byte, publicKey string, r, s *big.Int) (*Signatu
 		return nil, err
 	}
 
-	pubKey, _ := btcec.ParsePubKey(pubBytes)
+	pubKey, err := btcec.ParsePubKey(pubBytes)
+	if err != nil {
+		return nil, err
+	}
 	sig, err := crypto.SignCompact(btcec.S256(), r, s, *pubKey, msgHash, false)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,10 @@ func Encode(input []byte) string {
 	return base58.Encode(input)
 }
 
+func Decode(b string) []byte {
+	return base58.Decode(b)
+}
+
 func CheckEncode(input []byte, version byte) string {
 	return base58.CheckEncode(input, version)
 }
@@ -26,4 +30,8 @@ func CheckEncodeRaw(input []byte) string {
 	cksum := checksum(b)
 	b = append(b, cksum[:]...)
 	return base58.Encode(b)
+}
+
+func CheckDecode(input string) (result []byte, version byte, err error) {
+	return base58.CheckDecode(input)
 }

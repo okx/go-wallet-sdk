@@ -12,8 +12,15 @@ import (
 func GetRedeemScript(pubKeys []string, minSignNum int) ([]byte, error) {
 	var allPubKeys []*btcutil.AddressPubKey
 	for _, v := range pubKeys {
-		pubKey, _ := hex.DecodeString(v)
-		addressPubKey, _ := btcutil.NewAddressPubKey(pubKey, &chaincfg.MainNetParams)
+		pubKey, err := hex.DecodeString(v)
+		if err != nil {
+			return nil, err
+		}
+		addressPubKey, err := btcutil.NewAddressPubKey(pubKey, &chaincfg.MainNetParams)
+
+		if err != nil {
+			return nil, err
+		}
 		allPubKeys = append(allPubKeys, addressPubKey)
 	}
 	return txscript.MultiSigScript(allPubKeys, minSignNum)

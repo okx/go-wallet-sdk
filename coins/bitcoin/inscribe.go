@@ -127,7 +127,7 @@ func (builder *InscriptionBuilder) initTool(network *chaincfg.Params, request *I
 	if err != nil {
 		return err
 	}
-	return err
+	return nil
 }
 
 func newInscriptionTxCtxData(network *chaincfg.Params, inscriptionRequest *InscriptionRequest, indexOfInscriptionDataList int) (*inscriptionTxCtxData, error) {
@@ -275,7 +275,7 @@ func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList []*PrevO
 	txForEstimate := wire.NewMsgTx(DefaultTxVersion)
 	txForEstimate.TxIn = tx.TxIn
 	txForEstimate.TxOut = tx.TxOut
-	if err := sign(txForEstimate, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher); err != nil {
+	if err = sign(txForEstimate, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher); err != nil {
 		return err
 	}
 

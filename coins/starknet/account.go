@@ -46,7 +46,10 @@ func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error
 	constructorCallData := []*big.Int{accountClassHash, GetSelectorFromName("initialize")}
 	constructorCallData = append(constructorCallData, calldate...)
 
-	constructorCalldataHash, _ := computeHashOnElements(constructorCallData)
+	constructorCalldataHash, err := computeHashOnElements(constructorCallData)
+	if err != nil {
+		return nil, err
+	}
 	ContractAddressPrefix := HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
 
 	ele := []*big.Int{

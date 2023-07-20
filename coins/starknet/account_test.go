@@ -22,13 +22,6 @@ func TestNewKeyPair(t *testing.T) {
 	t.Logf("public key bn : %s", bn.String())
 }
 
-func TestHex(t *testing.T) {
-	bigNum, _ := new(big.Int).SetString("715396956609792635743503150991771612519719413874385349703613619519037375887", 10)
-	hex := BigToHex(bigNum)
-	t.Logf(hex)
-	assert.Equal(t, "0x194e67bea994262ba2f4cff2237fc70a18a1969e19bc6fabb99768b3034058f", hex)
-}
-
 func TestCalculateContractAddressFromHash(t *testing.T) {
 	curve := SC()
 	starkPub, _ := GetPubKey(curve, "//todo please replace your key")

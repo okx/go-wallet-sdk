@@ -1,0 +1,60 @@
+package stargaze
+
+import (
+	"fmt"
+	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"testing"
+	"time"
+)
+
+/*
+https://api.stargaze.ezstaking.io/cosmos/auth/v1beta1/accounts/stars1rlvaqq27e4c5jcnghgvdnd3739w0vvt3jafls7
+curl -X POST -d '{"tx_bytes":"Cr8BCrwBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKOAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoQCgZ1c3RhcnMSBjEwMDAwMCIsc3RhcnMxcmx2YXFxMjdlNGM1amNuZ2hndmRuZDM3Mzl3MHZ2dDNqYWZsczcqK29zbW8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJrcjk1czcyADiAmKaauZrggRcSWApQCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAt0bZnnEU42FukQutkuKsLe5vZuuF5/zl1VG6bGu5it6EgQKAggBGAISBBCgjQYaQDkRCRKgJfb6it3sEskv6em75zlgZxBuAKre8CxkCABkQt3lrM1TcrNVCIn7ri4tcmWHv2MBFtf+fExlBe68Wsg=","mode":"BROADCAST_MODE_SYNC"}' https://api.stargaze.ezstaking.io/cosmos/tx/v1beta1/txs
+*/
+func TestTransfer(t *testing.T) {
+	privateKeyHex := "//todo please replace your hex key"
+	address, err := NewAddress(privateKeyHex)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// stars1rlvaqq27e4c5jcnghgvdnd3739w0vvt3jafls7
+	fmt.Println(address)
+
+	param := cosmos.TransferParam{}
+	param.FromAddress = address
+	param.ToAddress = address
+	param.Demon = "ustars"
+	param.Amount = "1000"
+	param.CommonParam.ChainId = "stargaze-1"
+	param.CommonParam.Sequence = 0
+	param.CommonParam.AccountNumber = 149288
+	param.CommonParam.FeeDemon = "ustars"
+	param.CommonParam.FeeAmount = "0"
+	param.CommonParam.GasLimit = 100000
+	param.CommonParam.Memo = ""
+	param.CommonParam.TimeoutHeight = 0
+	tt, _ := cosmos.Transfer(param, privateKeyHex)
+	t.Log(tt)
+}
+
+func TestIbcTransfer(t *testing.T) {
+	privateKeyHex := "//todo please replace your hex key"
+	p := cosmos.IbcTransferParam{}
+	p.CommonParam.ChainId = "stargaze-1"
+	p.CommonParam.Sequence = 2
+	p.CommonParam.AccountNumber = 149288
+	p.CommonParam.FeeDemon = "ustars"
+	p.CommonParam.FeeAmount = "0"
+	p.CommonParam.GasLimit = 100000
+	p.CommonParam.Memo = ""
+	p.CommonParam.TimeoutHeight = 0
+	p.FromAddress = "stars1rlvaqq27e4c5jcnghgvdnd3739w0vvt3jafls7"
+	p.ToAddress = "osmo1rvs5xph4l3px2efynqsthus8p6r4exyrkr95s7"
+	p.Demon = "ustars"
+	p.Amount = "100000"
+	p.SourcePort = "transfer"
+	p.SourceChannel = "channel-0"
+	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	t.Log(tt)
+}

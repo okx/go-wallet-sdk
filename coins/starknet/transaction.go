@@ -173,7 +173,10 @@ func (tx *Transaction) ToJsonRpcParams() string {
 		Version:            "0x0",
 	}
 
-	bytes, _ := json.Marshal(params)
+	bytes, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
 	return string(bytes)
 }
 

@@ -114,6 +114,9 @@ func SignedTx(message *Message, signHex string) (string, error) {
 		},
 	}
 
-	bytes, _ := json.Marshal(tx)
+	bytes, err := json.Marshal(tx)
+	if err != nil {
+		return "", err
+	}
 	return string(bytes), nil
 }

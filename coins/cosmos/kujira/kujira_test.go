@@ -12,7 +12,7 @@ https://rest.kujira.ccvalidators.com/cosmos/auth/v1beta1/accounts/kujira1rvs5xph
 curl -X POST -d '{"tx_bytes":"Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMxoOCgV1a3VqaRIFMTAwMDAiLWt1amlyYTFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjBzNXV0eCorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOID4/dvm1cKCFxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDnCTAPeltdUKTRGnHRm5QS12GCMOZ3du0gUsZYfj3OlMSBAoCCAEYARISCgwKBXVrdWppEgMyMDAQoI0GGkAXkTv/pTKApBpu19XKhQqMo9hlCSQqj8q5mId4xU727DlZDtlJLRaKJJ77UHuLUYUqkfRBZChpbjT0tuxhUcvK","mode":"BROADCAST_MODE_SYNC"}' https://rest.kujira.ccvalidators.com/cosmos/tx/v1beta1/txs
 */
 func TestKujira(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestKujira(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)

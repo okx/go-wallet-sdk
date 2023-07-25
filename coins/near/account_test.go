@@ -3,13 +3,15 @@ package near
 import (
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/hex"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewAccount(t *testing.T) {
-	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	t.Log(hex.EncodeToString(privateKey))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -23,10 +23,10 @@ func TestAddress2(t *testing.T) {
 }
 
 func TestAddress(t *testing.T) {
-	add2, _ := NewAddress("//todo please replace your key", false)
+	add2, _ := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
 	fmt.Println(add2)
 
-	add3, _ := NewAddress("//todo please replace your key", true)
+	add3, _ := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", true)
 	fmt.Println(add3)
 
 	ret := ValidateAddress(add3, false)
@@ -74,7 +74,7 @@ func TestSign(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		to, uint64(amount), seedHex)
 	fmt.Println(data)
@@ -93,7 +93,7 @@ func TestCoinTransfer(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	payload, _ := CoinTransferPayload(to, uint64(amount), "0xcb95e54bf4baa46bfc6748ef979edca6199a923df3d0757d896a7dc93514a19b::moon_coin::MoonCoin")
 	data, _ := BuildSignedTransaction(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId), payload, seedHex)
 	// 8e6d339ff6096080a4d91c291b297d3814ff9daa34e0f5562d4e7d442cafecdc0600000000000000030000000000000000000000000000000000000000000000000000000000000001076163636f756e74087472616e736665720002200163f9f9f773f3b0e788559d9efcbe547889500d0891fe024e782c7224defd0108e803000000000000102700000000000001000000000000000399f36200000000160020312a81c872aad3a910157ca7b05e70fe2e62aed55b4a14ad033db4556c1547dc405d6ee9fdaa7f6a91460f738771a673674cf31fa5ffeb440a0e50eb938f5a6d8fc2267a170b2958735c024cb4600f0d83b432c8acfdd5c58e769bfde51ddc0b05
@@ -109,7 +109,7 @@ func TestCoinRegister(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	payload, _ := CoinTransferPayload(to, uint64(amount), "0x3::moon_coin::MoonCoin")
 	data, _ := BuildSignedTransaction(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId), payload, seedHex)
 	// 8e6d339ff6096080a4d91c291b297d3814ff9daa34e0f5562d4e7d442cafecdc0600000000000000030000000000000000000000000000000000000000000000000000000000000001076163636f756e74087472616e736665720002200163f9f9f773f3b0e788559d9efcbe547889500d0891fe024e782c7224defd0108e803000000000000102700000000000001000000000000000399f36200000000160020312a81c872aad3a910157ca7b05e70fe2e62aed55b4a14ad033db4556c1547dc405d6ee9fdaa7f6a91460f738771a673674cf31fa5ffeb440a0e50eb938f5a6d8fc2267a170b2958735c024cb4600f0d83b432c8acfdd5c58e769bfde51ddc0b05
@@ -167,7 +167,7 @@ func TestRegisterCoin(t *testing.T) {
 	gasUnitPrice := uint64(100)
 	expirationTimestampSecs := uint64(time.Now().Unix() + 300)
 	chainId := uint8(2)
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 
 	tyArg := "0xcb95e54bf4baa46bfc6748ef979edca6199a923df3d0757d896a7dc93514a19b::moon_coin::MoonCoin"
 	payload := CoinRegisterPayload(tyArg)
@@ -201,7 +201,7 @@ func TestDex(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 
 	payload := "{\"function\":\"0x1::managed_coin::register\",\"arguments\":[],\"type\":\"entry_function_payload\",\"type_arguments\":[\"\"]}"
 	abi := "[{\"abi\":{\"address\":\"0x1\",\"name\":\"managed_coin\",\"friends\":[],\"exposed_functions\":[{\"name\":\"register\",\"visibility\":\"public\",\"is_entry\":true,\"generic_type_params\":[{\"constraints\":[]}],\"params\":[\"&signer\"],\"return\":[]}],\"structs\":[{\"name\":\"Capabilities\",\"is_native\":false,\"abilities\":[\"key\"],\"generic_type_params\":[{\"constraints\":[]}],\"fields\":[{\"name\":\"burn_cap\",\"type\":\"0x1::coin::BurnCapability<T0>\"},{\"name\":\"freeze_cap\",\"type\":\"0x1::coin::FreezeCapability<T0>\"},{\"name\":\"mint_cap\",\"type\":\"0x1::coin::MintCapability<T0>\"}]}]}}\n]"
@@ -311,7 +311,7 @@ func TestSimulate(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 
 	payload := "{\"arguments\":[100000,1148684056.1,[3],[1148684056],[false]],\"function\":\"0x909adaa9f5756559b789db81c9ae0553683c060ca3537cdcb8fd2e5629583491::aggregator::unxswap\",\"type\":\"entry_function_payload\",\"type_arguments\":[\"0x1::aptos_coin::AptosCoin\",\"0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDC\",\"0x1::aptos_coin::AptosCoin\",\"0x1::aptos_coin::AptosCoin\",\"0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12::curves::Uncorrelated\",\"0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12::curves::Uncorrelated\",\"0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12::curves::Uncorrelated\"]}"
 	abi := "[\n {\n \"abi\": {\n \"address\": \"0x909adaa9f5756559b789db81c9ae0553683c060ca3537cdcb8fd2e5629583491\",\n \"name\": \"aggregator\",\n \"friends\": [],\n \"exposed_functions\": [ \n {\n \"name\": \"unxswap\",\n \"visibility\": \"public\",\n \"is_entry\": true,\n \"generic_type_params\": [\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n },\n {\n \"constraints\": []\n }\n ],\n \"params\": [\n \"&signer\",\n \"u64\",\n \"u64\",\n \"vector<u8>\",\n \"vector<u64>\",\n \"vector<bool>\"\n ],\n \"return\": []\n }\n ],\n \"structs\": [\n ]\n }\n }\n]"
@@ -335,7 +335,7 @@ func TestTransferSign(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		to, uint64(amount), seedHex)
 	fmt.Println(data)
@@ -352,7 +352,7 @@ func TestAddStake(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := AddStake(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		poolAddress, uint64(amount), seedHex)
 	fmt.Println(data)
@@ -369,7 +369,7 @@ func TestUnlock(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := Unlock(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		poolAddress, uint64(amount), seedHex)
 	fmt.Println(data)
@@ -386,7 +386,7 @@ func TestReactivateStake(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := ReactivateStake(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		poolAddress, uint64(amount), seedHex)
 	fmt.Println(data)
@@ -403,7 +403,7 @@ func TestWithdraw(t *testing.T) {
 	gasUnitPrice := 100
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
-	seedHex := "//todo please replace your key"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	data, _ := Withdraw(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		poolAddress, uint64(amount), seedHex)
 	fmt.Println(data)

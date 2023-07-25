@@ -42,7 +42,7 @@ func TestAddress(t *testing.T) {
 }
 
 func TestOsmo(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = "osmo1rlvaqq27e4c5jcnghgvdnd3739w0vvt3w6djda"
@@ -65,8 +65,8 @@ func TestOsmo(t *testing.T) {
 
 // swap evmos to osmo
 func TestOsmoSwap(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
-	// //todo please replace your hex key osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	// 1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37 osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2
 
 	param := SwapExactAmountInParam{}
 	param.Sender = "osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2"
@@ -94,15 +94,15 @@ func TestOsmoSwap(t *testing.T) {
 }
 
 func TestSignMessage(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
-	// //todo please replace your hex key osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	// 1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37 osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2
 	data := "{\n  \"chain_id\": \"osmosis-1\",\n  \"account_number\": \"584406\",\n  \"sequence\": \"1\",\n  \"fee\": {\n    \"gas\": \"250000\",\n    \"amount\": [\n      {\n        \"denom\": \"uosmo\",\n        \"amount\": \"0\"\n      }\n    ]\n  },\n  \"msgs\": [\n    {\n      \"type\": \"osmosis/gamm/swap-exact-amount-in\",\n      \"value\": {\n        \"sender\": \"osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2\",\n        \"routes\": [\n          {\n            \"poolId\": \"722\",\n            \"tokenOutDenom\": \"ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A\"\n          }\n        ],\n        \"tokenIn\": {\n          \"denom\": \"uosmo\",\n          \"amount\": \"10000\"\n        },\n        \"tokenOutMinAmount\": \"3854154180813018\"\n      }\n    }\n  ],\n  \"memo\": \"\"\n}"
 	tt, _ := cosmos.SignMessage(data, privateKeyHex)
 	t.Log(tt)
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "osmosis-1"
 	p.CommonParam.Sequence = 6

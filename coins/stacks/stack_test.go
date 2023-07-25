@@ -12,8 +12,8 @@ import (
 
 // Deprecated
 func TestStack(t *testing.T) {
-	senderKey := "//todo please replace your hex key"
-	stack, err := Stack("SP000000000000000000002Q6VF78", "pox", "stack-stacks", "36Y1UJBWGGreKCKNYQPVPr41rgG2sQF7SC",
+	senderKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
+	stack, err := Stack("SP000000000000000000002Q6VF78", "pox", "stack-stx", "36Y1UJBWGGreKCKNYQPVPr41rgG2sQF7SC",
 		big.NewInt(420041303000), big.NewInt(668000), big.NewInt(6), senderKey, big.NewInt(1), big.NewInt(5000))
 	if err != nil {
 		return
@@ -22,7 +22,7 @@ func TestStack(t *testing.T) {
 }
 
 func TestContractCall(t *testing.T) {
-	key := "//todo please replace your hex key"
+	key := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	from := "SP1QCZZWWXT5CADKWGEPGG6F4RM0BDH3NTTNM86ZG"
 	to := "SP3HXJJMJQ06GNAZ8XWDN1QM48JEDC6PP6W3YZPZJ"
 	memo := "110317"
@@ -53,7 +53,7 @@ func TestAllowContractCaller(t *testing.T) {
 	functionName := "allow-contract-caller"
 	caller := "SP21YTSM60CAY6D011EZVEVNKXVW8FVZE198XEFFP.pox-fast-pool-v2"
 	untilBurnBlockHeight := big.NewInt(206600)
-	privateKey := "//todo please replace your hex key"
+	privateKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	fee := big.NewInt(3000)
 	nonce := big.NewInt(57)
 	addr, err := NewContractPrincipalCV(caller)
@@ -126,12 +126,12 @@ func TestAllowContractCaller(t *testing.T) {
 func TestDelegateStx(t *testing.T) {
 	contractAddress := "SP000000000000000000002Q6VF78"
 	contractName := "pox-3"
-	functionName := "delegate-stacks"
+	functionName := "delegate-stx"
 	delegateTo := "SP3TDKYYRTYFE32N19484838WEJ25GX40Z24GECPZ"
 	poxAddress := "36Y1UJBWGGreKCKNYQPVPr41rgG2sQF7SC"
 	amountMicroStx := big.NewInt(100000000000)
 	untilBurnBlockHeight := big.NewInt(2000)
-	privateKey := "//todo please replace your hex key"
+	privateKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	fee := big.NewInt(3000)
 	nonce := big.NewInt(58)
 
@@ -216,8 +216,8 @@ func TestDelegateStx(t *testing.T) {
 func TestRevokeDelegateStx(t *testing.T) {
 	contractAddress := "SP000000000000000000002Q6VF78"
 	contractName := "pox-3"
-	functionName := "revoke-delegate-stacks"
-	privateKey := "//todo please replace your hex key"
+	functionName := "revoke-delegate-stx"
+	privateKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	fee := big.NewInt(3000)
 	nonce := big.NewInt(59)
 	var functionArgs []ClarityValue

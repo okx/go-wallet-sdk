@@ -14,7 +14,7 @@ import (
 // https://mainnet.crypto.org:1317/cosmos/auth/v1beta1/accounts/cro1rvs5xph4l3px2efynqsthus8p6r4exyrxr7a6a
 // curl -X POST -d '{"tx_bytes":"Cr8BCrwBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKOAQoIdHJhbnNmZXISCmNoYW5uZWwtMTAaEQoHYmFzZWNybxIGMTAwMDAwIipjcm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJ4cjdhNmEqK29zbW8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJrcjk1czcyADiAxK/DjLPggRcSagpQCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohA5wkwD3pbXVCk0Rpx0ZuUEtdhgjDmd3btIFLGWH49zpTEgQKAggBGAESFgoQCgdiYXNlY3JvEgUyMDAwMBCgwh4aQLjCjqEX0jLLasNyVjWd4euYAlMFeC2mgKtFgQV4AXDKUOefdrBL9u2o2hJpdG28+aQZEjsenU7YPAIkG4r+of8=","mode":"BROADCAST_MODE_SYNC"}' https://mainnet.crypto.org:1317/cosmos/tx/v1beta1/txs
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -40,7 +40,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "crypto-org-chain-mainnet-1"
 	p.CommonParam.Sequence = 1

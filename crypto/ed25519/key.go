@@ -7,6 +7,11 @@ import (
 	"encoding/hex"
 )
 
+func GenerateKey() (ed25519.PrivateKey, error) {
+	_, prv, err := ed25519.GenerateKey(crypto_rand.Reader)
+	return prv, err
+}
+
 func PrivateKeyFromSeed(seedHex string) (ed25519.PrivateKey, error) {
 	seedBytes, err := hex.DecodeString(seedHex)
 	if err != nil {

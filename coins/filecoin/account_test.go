@@ -14,7 +14,7 @@ func TestNewPrivateKey(t *testing.T) {
 }
 
 func TestGetPublicKey(t *testing.T) {
-	privateKeyHex := "//todo please replace your key"
+	privateKeyHex := "0x7c6207c56b6aa5ed4345c5f662816408e273cbdf64e2f01d54ced0125d6172c2"
 	publicKeyHex, err := GetPublicKey(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -23,17 +23,17 @@ func TestGetPublicKey(t *testing.T) {
 }
 
 func TestGetAddressByPublicKey(t *testing.T) {
-	publicKeyHex := "0x04c7d2209a4b286046cdeaf457e499a40a9a1da5d7bc6e85c05e5ac9e6af9c7a35063c8a8efaa7cc4cd294c3b76dd4b0a3f5773cc421fef44e6a99914c8c85c971"
+	publicKeyHex := "0x04e4f0c46b3dd02bf1579c848decf9b4c8d8e92cb1583f9b866b7c59f2d0ccc7fb87e96d2be53b72fd2cee4a83f08af5bc36fa0e927e4de31e3d424e4cc1e17f69"
 	address, err := GetAddressByPublicKey(publicKeyHex, MainnetPrefix)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("address : %s", address)
-	assert.Equal(t, address, "f12cs7ppvnhwhma3xzhkm4pavq2q47blmprcxvg6i")
+	assert.Equal(t, "f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia", address)
 }
 
 func TestGetAddressByPrivateKey(t *testing.T) {
-	privateKeyHex := "//todo please replace your key"
+	privateKeyHex := "0x7c6207c56b6aa5ed4345c5f662816408e273cbdf64e2f01d54ced0125d6172c2"
 	address, err := GetAddressByPrivateKey(privateKeyHex, MainnetPrefix)
 	if err != nil {
 		t.Fatal(err)
@@ -42,15 +42,15 @@ func TestGetAddressByPrivateKey(t *testing.T) {
 }
 
 func TestAddressToBytes(t *testing.T) {
-	addr := "f12cs7ppvnhwhma3xzhkm4pavq2q47blmprcxvg6i"
+	addr := "f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia"
 	bytes := AddressToBytes(addr)
 	t.Logf(util.EncodeHexWith0x(bytes))
-	assert.Equal(t, util.EncodeHexWith0x(bytes), "0x01d0a5f7bead3d8ec06ef93a99c782b0d439f0ad8f")
+	assert.Equal(t, "0x0109f63d63d7bd0cf36f06cdda938a32e94b73f5b5", util.EncodeHexWith0x(bytes))
 }
 
 func TestSignTx(t *testing.T) {
-	from := "f12cs7ppvnhwhma3xzhkm4pavq2q47blmprcxvg6i"
-	to := "f1izmcd3o7pqiyob5yf3q3mat3w3rf5dzrccjhhhi"
+	from := "f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia"
+	to := "f1fvs2fjqr6ozk477zkwzvermhledmfkswt34cmhi"
 	nonce := 0
 	value := big.NewInt(20000000000000000)
 	gasLimit := 210000
@@ -60,7 +60,7 @@ func TestSignTx(t *testing.T) {
 
 	message := NewTx(from, to, nonce, method, gasLimit, value, gasFeeCap, gasPremium)
 
-	privateKeyHex := "//todo please replace your key"
+	privateKeyHex := "0x7c6207c56b6aa5ed4345c5f662816408e273cbdf64e2f01d54ced0125d6172c2"
 	tx, err := SignTx(message, privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -70,5 +70,5 @@ func TestSignTx(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf(string(bytes))
-	assert.Equal(t, string(bytes), "{\"Message\":{\"Version\":0,\"To\":\"f1izmcd3o7pqiyob5yf3q3mat3w3rf5dzrccjhhhi\",\"From\":\"f12cs7ppvnhwhma3xzhkm4pavq2q47blmprcxvg6i\",\"Nonce\":0,\"Value\":\"20000000000000000\",\"GasLimit\":210000,\"GasFeeCap\":\"9455791480\",\"GasPremium\":\"120242\",\"Method\":0,\"Params\":\"\"},\"Signature\":{\"Type\":1,\"Data\":\"3hsJRgdhmhLE5FyMPtVpW1DgikBKBdeW0JSt8z3iFeENJ8tO9+Yc4RNVEupGBSBVoSTz1H3Y5giFyhLLv3UbBgA=\"}}")
+	assert.Equal(t, "{\"Message\":{\"Version\":0,\"To\":\"f1fvs2fjqr6ozk477zkwzvermhledmfkswt34cmhi\",\"From\":\"f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia\",\"Nonce\":0,\"Value\":\"20000000000000000\",\"GasLimit\":210000,\"GasFeeCap\":\"9455791480\",\"GasPremium\":\"120242\",\"Method\":0,\"Params\":\"\"},\"Signature\":{\"Type\":1,\"Data\":\"/0tQo2pRIYeSax/nt/+Jvdovz2CQwctKvthqsQRHfDd3B6h69K0ayW6z9CriMRX93USZv0uPXDs5SxCNkCJpgwE=\"}}", string(bytes))
 }

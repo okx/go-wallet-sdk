@@ -27,6 +27,8 @@ type Input struct {
 	vOut          uint32
 	privateKeyHex string
 	redeemScript  string
+	address       string
+	amount        int64
 }
 
 type Output struct {
@@ -47,14 +49,66 @@ func NewTxBuild(version int32, netParams *chaincfg.Params) *TransactionBuilder {
 	return builder
 }
 
-func (build *TransactionBuilder) AddInput(txId string, vOut uint32, privateKeyHex string, redeemScript string) {
-	input := Input{txId: txId, vOut: vOut, privateKeyHex: privateKeyHex, redeemScript: redeemScript}
+func (build *TransactionBuilder) AddInput(txId string, vOut uint32, privateKeyHex string,
+	redeemScript string, address string, amount int64) {
+	input := Input{txId: txId, vOut: vOut, privateKeyHex: privateKeyHex,
+		redeemScript: redeemScript, address: address, amount: amount}
 	build.inputs = append(build.inputs, input)
 }
 
 func (build *TransactionBuilder) AddOutput(address string, amount int64) {
 	output := Output{address: address, amount: amount}
 	build.outputs = append(build.outputs, output)
+}
+
+func (build *TransactionBuilder) build() (string, error) {
+	if len(build.inputs) == 0 || len(build.outputs) == 0 {
+		return "", errors.New("invalid inputs or outputs")
+	}
+
+	tx := build.tx
+	prevOutFetcher := txscript.NewMultiPrevOutFetcher(nil)
+	var privateKeys []*btcec.PrivateKey
+	for i := 0; i < len(build.inputs); i++ {
+		input := build.inputs[i]
+		txHash, err := chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return "", err
+		}
+		outPoint := wire.NewOutPoint(txHash, input.vOut)
+		pkScript, err := AddrToPkScript(input.address, build.netParams)
+		if err != nil {
+			return "", err
+		}
+		txOut := wire.NewTxOut(input.amount, pkScript)
+		prevOutFetcher.AddPrevOut(*outPoint, txOut)
+		txIn := wire.NewTxIn(outPoint, nil, nil)
+		tx.TxIn = append(tx.TxIn, txIn)
+
+		privateKeyBytes, err := hex.DecodeString(input.privateKeyHex)
+		if err != nil {
+			return "", err
+		}
+		privateKey, _ := btcec.PrivKeyFromBytes(privateKeyBytes)
+		privateKeys = append(privateKeys, privateKey)
+	}
+
+	for i := 0; i < len(build.outputs); i++ {
+		output := build.outputs[i]
+
+		pkScript, err := AddrToPkScript(output.address, build.netParams)
+		if err != nil {
+			return "", err
+		}
+		txOut := wire.NewTxOut(output.amount, pkScript)
+		tx.TxOut = append(tx.TxOut, txOut)
+	}
+
+	if err := Sign(tx, privateKeys, prevOutFetcher); err != nil {
+		return "", err
+	}
+
+	return GetTxHex(tx)
 }
 
 func (build *TransactionBuilder) SingleBuild() (string, error) {

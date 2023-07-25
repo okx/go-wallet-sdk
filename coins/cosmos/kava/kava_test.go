@@ -12,13 +12,13 @@ import (
 // curl -X POST -d '{"tx_bytes":"Cr0BCroBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKMAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoNCgV1a2F2YRIEMTAwMCIra2F2YTFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cnpkemVzdCotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gJDco9HW34EXEmQKTgpGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQOcJMA96W11QpNEacdGblBLXYYIw5nd27SBSxlh+Pc6UxIECgIIARISCgwKBXVrYXZhEgM1MDAQ4MUIGkB9RYvHfuZ8t+2hXHEeMgWPoKPPny62KFuuedHOzCgYSE8yWEf3r5KwnkiIJZRD0cDcso4PZbEyiwgvkmdvrnLR","mode":"BROADCAST_MODE_SYNC"}' https://api.data.kava.io/cosmos/tx/v1beta1/txs
 
 func TestKava(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
-	privateKeyHex2 := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	privateKeyHex2 := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if address != "kava1jqyc3jw6hxr90hm575a8qvu2frwhe78rc66xcl" {
+	if address != "kava145q0tcdur4tcx2ya5cphqx96e54yflfyu8hsan" {
 		t.Fatal("NewAddress failed", address)
 	}
 
@@ -47,13 +47,13 @@ func TestKava(t *testing.T) {
 	tx, _ := cosmos.Transfer(param, privateKeyHex)
 	fmt.Println(tx)
 	// 94763169DDD220F2109AB4A5C619C60D583C33FD767BA9E413ED811ACA68AA48
-	if tx != "Co4BCosBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmsKK2thdmExanF5YzNqdzZoeHI5MGhtNTc1YThxdnUyZnJ3aGU3OHJjNjZ4Y2wSK2thdmExanF5YzNqdzZoeHI5MGhtNTc1YThxdnUyZnJ3aGU3OHJjNjZ4Y2waDwoFdWthdmESBjEwMDAwMBJlCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDbWLRw6gmTBzDs1v0v39VtJ59xIbccF0ROSGMukxr4JISBAoCCAESEwoNCgV1a2F2YRIENzAwMBDgxQgaQH/lyvDnUE5/bMuYb51ockfeS8wi8FUDecLcZVy7whfxM6AEISlRFP1yIT91Z/chGTiQin3kBwFyZr0DQCYx4+I=" {
+	if tx != "Co4BCosBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmsKK2thdmExNDVxMHRjZHVyNHRjeDJ5YTVjcGhxeDk2ZTU0eWZsZnl1OGhzYW4SK2thdmExNDVxMHRjZHVyNHRjeDJ5YTVjcGhxeDk2ZTU0eWZsZnl1OGhzYW4aDwoFdWthdmESBjEwMDAwMBJlCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAESEwoNCgV1a2F2YRIENzAwMBDgxQgaQPJCdq9SjuciSGv/yDfZEVXdHWuQeK6Eh0c7/7zcklN1Hh6z06bbtVtl/uByCdoTtUu+gYmZM+MuLqv9JPu3YAw=" {
 		t.Error("build transfer tx failed, tx: ", tx)
 	}
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)

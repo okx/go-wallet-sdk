@@ -8,7 +8,7 @@ import (
 )
 
 func TestAddress(t *testing.T) {
-	priKey, _ := hex.DecodeString("//todo please replace your key")
+	priKey, _ := hex.DecodeString("45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
 	p := ed25519.NewKeyFromSeed(priKey)
 	publicKey := p.Public().(ed25519.PublicKey)
 	fmt.Println("publicKey: ", hex.EncodeToString(publicKey))
@@ -19,14 +19,14 @@ func TestAddress(t *testing.T) {
 	validateAddress := ValidateAddress(address)
 	fmt.Println(validateAddress)
 
-	key, _ := AddressToPublicKey("14JT42BmV4t7meRTq2Y7dfjx6uc5ATrhuAQTXFGMT5Pb8HsA")
+	key, _ := AddressToPublicKey("1GycBnSYfhVWN8yRxmLxJ6CXyyZEHgVJyiF8MWZDsKTLfhs")
 	fmt.Println(key)
 }
 
 func TestTransfer(t *testing.T) {
 	tx := TxStruct{
-		From:         "12VS5aVsZp3qywuC6wjkhAJdkfNp2SC1WPNfoMFevpovCsxr",
-		To:           "12VS5aVsZp3qywuC6wjkhAJdkfNp2SC1WPNfoMFevpovCsxr",
+		From:         "1GycBnSYfhVWN8yRxmLxJ6CXyyZEHgVJyiF8MWZDsKTLfhs",
+		To:           "1GycBnSYfhVWN8yRxmLxJ6CXyyZEHgVJyiF8MWZDsKTLfhs",
 		Amount:       10000000000,
 		Nonce:        18,
 		Tip:          0,
@@ -39,14 +39,14 @@ func TestTransfer(t *testing.T) {
 		Version:      "84",
 	}
 
-	signed, _ := SignTx(tx, Transfer, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
+	signed, _ := SignTx(tx, Transfer, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
 	fmt.Println(signed)
 }
 
 func TestTransferAll(t *testing.T) {
 	tx := TxStruct{
-		From:         "12VS5aVsZp3qywuC6wjkhAJdkfNp2SC1WPNfoMFevpovCsxr",
-		To:           "12VS5aVsZp3qywuC6wjkhAJdkfNp2SC1WPNfoMFevpovCsxr",
+		From:         "1GycBnSYfhVWN8yRxmLxJ6CXyyZEHgVJyiF8MWZDsKTLfhs",
+		To:           "1GycBnSYfhVWN8yRxmLxJ6CXyyZEHgVJyiF8MWZDsKTLfhs",
 		KeepAlive:    "00", // destroy the account
 		Nonce:        18,
 		Tip:          0,
@@ -60,6 +60,6 @@ func TestTransferAll(t *testing.T) {
 		EraHeight:    512, // 512 blocks valid
 	}
 
-	signed, _ := SignTx(tx, TransferAll, "ea34767d73eefbd9aeca82f87cfa84e1d005e53246c5690e59c51ca323e072c5")
+	signed, _ := SignTx(tx, TransferAll, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
 	fmt.Println(signed)
 }

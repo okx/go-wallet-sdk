@@ -12,7 +12,7 @@ import (
 // curl -X POST -d '{"tx_bytes":"CsABCr0BCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKPAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoOCgV1c2NydBIFMTAwMDAiLXNlY3JldDFybHZhcXEyN2U0YzVqY25naGd2ZG5kMzczOXcwdnZ0M3l5MnR4biotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gIi76+T/34EXEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQLdG2Z5xFONhbpELrZLirC3ub2brhef85dVRumxruYrehIECgIIARgCEhMKDQoFdXNjcnQSBDIwMDAQoI0GGkBo2WG6Qt6Na+sM7grAPuQNQQwLuWt6640i+kynQXQdMVzC4TBB06As/G4RQjarK5NX9HVZo7H3W5GTQmvSdr58","mode":"BROADCAST_MODE_SYNC"}' https://api.roninventures.io/cosmos/tx/v1beta1/txs
 
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -37,7 +37,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "secret-4"
 	p.CommonParam.Sequence = 2

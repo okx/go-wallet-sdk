@@ -12,13 +12,14 @@ import (
 
 func Test_Addess(t *testing.T) {
 	pk, _ := base.NewRandomPrivateKey()
+	fmt.Println(hex.EncodeToString(pk.Bytes()))
 	address, _ := NewAddress(hex.EncodeToString(pk.Bytes()))
 	fmt.Println(address)
 	fmt.Println(ValidateAddress(address))
 }
 
 func Test_TransferTransaction(t *testing.T) {
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
 	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
@@ -35,7 +36,7 @@ func Test_TransferTransaction(t *testing.T) {
 func Test_TokenTransferTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
 
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	from := fromPrivate.PublicKey().String()
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 
@@ -55,7 +56,7 @@ func Test_TokenTransferTransaction(t *testing.T) {
 func Test_TokenApproveTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
 
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	from := fromPrivate.PublicKey().String()
 
 	mint := "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
@@ -73,7 +74,7 @@ func Test_TokenApproveTransaction(t *testing.T) {
 }
 
 func Test_UnMarshall(t *testing.T) {
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
 	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
@@ -93,7 +94,7 @@ func Test_UnMarshall(t *testing.T) {
 }
 
 func Test_UnMarshall2(t *testing.T) {
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
 
 	unsignedTx := "{\"bizType\":\"okxdex\",\"data\":\"DvRxX9KypbY3wo9CW9sDNwryG4vrHhMWEHr5n2uickAN9FHzUn2rgDRvDKvRa67zfLcoU9B7VYz2Lmw3rmFziKzuUNLKQPZGGEmKAnwYfuPf4SoEisUN8msqiHRjWeaWdFWer6V9DvJDSht8byGYp6LBV7VJK2J7YWbMM592pnodkvWH343R38BdxVBFE9SBjAr1vdnvrGRbHG5f5zrZbhoeAssHXSe2p2Sf8dsb6rRdMnTWPmK12e4rPx7PGCvGJzJ5iRmu7gKENE3HrE4pBuTTQqdq2UA2SRXXH3g8vZ8RQKg6spAYC2EU3Q5A9ehfr1mKAVxb2xmMeQ1zJ4uicHC6zbwYfi9BrvaCiScqJgJZLSpZAZXvHSeZUwcnvnhh3gJCQXN8hmmBJuToi5A1eYWUAALyLc3ZrPHDUD5iYwtXiLZ8RUhfhj9siJFSXFvdBJXnoHpwvaSAEYggjWrFCHob6di7zMC5s9pAHDALApc27yVgq5fR7Bq99QFTpXHCveHtEHycVV3Lfdu4UPyooemjGFLqmqd8aNND4SFraXoAwopPnocAfG7TStiq6jrfXdkvt8MN25D9ZxSjHMy6dCvgVgAtKD4kiMonPkEix4dTx3gBs3UqAo4GriZHKqjuUoBiHxiVhK1cnQGEvV9HFbvNXtUi2KRVa1i8ZzhfeNj7h6n4mtEchzGS9HYDZdUTNz1d5HcRifi9vD5Y7zgPkQx1aFjWFHJ8zZ5RNPshsxrwFSjbfEVM6p7o3iJwD5qKjsmmnMUMV77XkBNCBVkuW8wgeDsoYRCKRejUa13SKhAaWhhPfqnNW6GjmZfNG51RrEcMmN4BVTuk4nX2ApoeiL5WQjotzdTQHHBudpFTUv1MYkJXfigA8YWmxQQMgfwS29m9SHxGGS5VcN137aHFqgYdxt6oe6wXwQi5sEB2AK8LiZ3tXbB9Tf58kuPso5zdYxJaKfKT8S17ZzcpqPpmMAbmpbYcEzhr4ccc5fQxwMJRVWQWGjSeqsWvPPJwSWLoHWRu6U4qv\",\"bizId\":[\"1666182406446\"],\"from\":\"3cUbuUEJkcgtzGxvsukksNzmgqaUK9jwFS5pqRpoevtN\",\"to\":\"4itxBe4qBAwhB9zpEAw31d7w8o7gTQscYpxhRtUemjF9\",\"accountLength\":\"293\"}"
@@ -105,7 +106,7 @@ func Test_UnMarshall2(t *testing.T) {
 	fmt.Println(tx)
 }
 func Test_TransferTransaction1(t *testing.T) {
-	fromPrivate, _ := base.PrivateKeyFromBase58("//todo please replace your key")
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
 	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
@@ -118,14 +119,20 @@ func Test_TransferTransaction1(t *testing.T) {
 }
 func Test_TransferWithNoce(t *testing.T) {
 
-	private := "//todo please replace your key"
-	privateBytes, _ := hex.DecodeString(private)
-	key, _ := ed25519.PrivateKeyFromSeed(hex.EncodeToString(privateBytes))
+	private := "b90ae8f3c465425f561ebad958dd2e385ce9aeb95259f07af1550cfb6c7c90ec"
+	privateBytes, err := hex.DecodeString(private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := ed25519.PrivateKeyFromSeed(hex.EncodeToString(privateBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
 	nonceAddress := "29odEnJWGSCcWx3o7hoAPdpaDuZfyjFdDEs3q5WsfJVp"
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "8awFZzqF8KuYuXjRKWibsehoiJrt9qJXFXBNSDvkHyi8"
 	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
-	from := "8yYSNvcxVLqVjhHJvDSXpFndkqiKVpq6w1KKvkpZGzmM"
+	from := "5vWSQFWuHuwz3cCHY3MYXB3twp6w4UtXAFG2VeqALGUq"
 
 	// https://api.testnet.solana.com
 	rawTransaction := NewRawTransaction(hash, from)
@@ -133,6 +140,9 @@ func Test_TransferWithNoce(t *testing.T) {
 	rawTransaction.AppendTransferInstruction(10000000, from, to)
 	rawTransaction.AppendSigner(hex.EncodeToString(key[:]))
 	//rawTransaction.AppendAdvanceNonceInstruction()
-	tx, _ := rawTransaction.Sign(true)
+	tx, err := rawTransaction.Sign(true)
+	if err != nil {
+		t.Fatal(err)
+	}
 	fmt.Println(tx)
 }

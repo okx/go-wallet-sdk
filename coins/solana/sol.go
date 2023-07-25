@@ -5,12 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	associatedtokenaccount "github.com/okx/go-wallet-sdk/coins/solana/associated-token-account"
+	"github.com/tyler-smith/go-bip39"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/associated-token-account"
+	"github.com/okx/go-wallet-sdk/coins/solana/base"
 	"github.com/okx/go-wallet-sdk/coins/solana/system"
 	"github.com/okx/go-wallet-sdk/coins/solana/token"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
-	"github.com/tyler-smith/go-bip39"
 )
 
 type RawTransaction struct {

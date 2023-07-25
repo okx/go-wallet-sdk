@@ -12,7 +12,7 @@ https://rest.bd.evmos.org:1317/cosmos/auth/v1beta1/accounts/evmos1rvs5xph4l3px2e
 curl -X POST -d '{"tx_bytes":"CswBCskBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKbAQoIdHJhbnNmZXISCWNoYW5uZWwtMxobCgZhZXZtb3MSETEwMDAwMDAwMDAwMDAwMDAwIixldm1vczF5YzRxNnN2c2w5eHk5ZzJncGxnbmxweHdobnpyM3k3M3dmczB4aCotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gOCBuJnk3oEXEn0KWQpPCigvZXRoZXJtaW50LmNyeXB0by52MS5ldGhzZWNwMjU2azEuUHViS2V5EiMKIQOcJMA96W11QpNEacdGblBLXYYIw5nd27SBSxlh+Pc6UxIECgIIARgBEiAKGgoGYWV2bW9zEhA0MDAwMDAwMDAwMDAwMDAwEMCaDBpBxW58piSUv3r+MRmwIe3xllBkJxgF5I0QIlHLjym8amohsZWmyYCUzaux/pO2RNbB4K9VmJ2m8Y3/56w6Gpeh5wE=","mode":"BROADCAST_MODE_SYNC"}' https://rest.bd.evmos.org:1317/cosmos/tx/v1beta1/txs
 */
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "evmos_9001-2"
 	p.CommonParam.Sequence = 1

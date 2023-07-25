@@ -7,7 +7,7 @@ import (
 )
 
 func TestCreateAddress(t *testing.T) {
-	privatekey := "//todo please replace your hex key"
+	privatekey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	pubkey, err := GetPublicKey(privatekey)
 	if err != nil {
 		t.Fatal(err)
@@ -23,7 +23,7 @@ func TestCreateAddress(t *testing.T) {
 
 func TestPubKeyfromPrivKeyWithPKCompressed(t *testing.T) {
 	// Compressed
-	pub, err := GetPublicKey("//todo please replace your hex key")
+	pub, err := GetPublicKey("598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestValidAddress(t *testing.T) {
 }
 
 func TestNewAddress(t *testing.T) {
-	pri1 := "//todo please replace your hex key"
+	pri1 := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	address1, err := NewAddress(pri1)
 	if err != nil {
 		t.Fatal(err)

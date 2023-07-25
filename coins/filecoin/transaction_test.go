@@ -9,7 +9,7 @@ import (
 
 func TestNewTx(t *testing.T) {
 
-	from := "f1b3cn3x3uhyuqcgtjewjj3vpychvgztu3oxk36ta"
+	from := "f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia"
 	to := from
 	nonce := 1
 	value := big.NewInt(100)
@@ -21,5 +21,5 @@ func TestNewTx(t *testing.T) {
 	message := NewTx(from, to, nonce, method, gasLimit, value, gasFeeCap, gasPremium)
 	h := util.EncodeHexWith0x(message.Hash())
 	t.Logf(h)
-	assert.Equal(t, h, "0x69f8861931b0d568c238eee7615a22957c561bb34e0f31cf4885d981ac4bdc02")
+	assert.Equal(t, "0xe496300a898281703d377eaebe15b362571e813dc924d5a846815bda07c4b960", h)
 }

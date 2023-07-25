@@ -1,6 +1,7 @@
 package sui
 
 import (
+	crypto_ed25519 "crypto/ed25519"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -63,6 +64,10 @@ func Hash(txBytes string) (string, error) {
 	hash.Write(data)
 	result := hash.Sum(nil)
 	return base58.Encode(result), nil
+}
+
+func GenerateKey() (crypto_ed25519.PrivateKey, error) {
+	return ed25519.GenerateKey()
 }
 
 func NewAddress(seedHex string) string {

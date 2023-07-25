@@ -24,7 +24,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestTransfer_index_compressedAddress(t *testing.T) {
-	result, err := Transfer("//todo please replace your hex key", "SP2P58SJY1XH6GX4W3YGEPZ2058DD3JHBPJ8W843Q", "20", big.NewInt(3000), big.NewInt(8), big.NewInt(200))
+	result, err := Transfer("598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301", "SP2P58SJY1XH6GX4W3YGEPZ2058DD3JHBPJ8W843Q", "20", big.NewInt(3000), big.NewInt(8), big.NewInt(200))
 	fmt.Println(result)
 	if err != nil {
 		t.Fatal(err)

@@ -30,14 +30,14 @@ curl --location --request POST 'https://exchaintestrpc.okex.org/cosmos/tx/v1beta
 // Use ethsecp256k1 address (keccak256 for public key processing)
 // The ethsecp256k1 signature format is R+S+V
 func TestOkc(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	addressFrom, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(addressFrom)
 
-	addressTo, err := NewAddress("//todo please replace your hex cosmos key")
+	addressTo, err := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestOkc(t *testing.T) {
 // Use secp256k1 signature format R+S
 // The unit must be wei
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	addressFrom, err := cosmos.NewAddress(privateKeyHex, "ex")
 	if err != nil {
 		t.Fatal(err)

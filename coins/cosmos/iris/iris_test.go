@@ -12,7 +12,7 @@ https://lcd-iris.keplr.app/cosmos/auth/v1beta1/accounts/iaa1rvs5xph4l3px2efynqst
 curl -X POST -d '{"tx_bytes":"CrsBCrgBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKKAQoIdHJhbnNmZXISCWNoYW5uZWwtMxoOCgV1aXJpcxIFMTAwMDAiKmlhYTFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cnQ2azR5YSorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOICU1ansnMKCFxJoClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDnCTAPeltdUKTRGnHRm5QS12GCMOZ3du0gUsZYfj3OlMSBAoCCAEYAxIUCg4KBXVpcmlzEgUyNDAwMBCgjQYaQBz9RpSzDcFmuye06mbliAL/ieZL6MYxOk4g9+kxdxAuQfsHpFmyNvsUQZ6ybpkUN5zxt+/yUEiiw0VkZUZ9R1k=","mode":"BROADCAST_MODE_SYNC"}' https://lcd-iris.keplr.app/cosmos/tx/v1beta1/txs
 */
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "irishub-1"
 	p.CommonParam.Sequence = 3

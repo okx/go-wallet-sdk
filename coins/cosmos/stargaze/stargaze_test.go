@@ -12,7 +12,7 @@ https://api.stargaze.ezstaking.io/cosmos/auth/v1beta1/accounts/stars1rlvaqq27e4c
 curl -X POST -d '{"tx_bytes":"Cr8BCrwBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKOAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoQCgZ1c3RhcnMSBjEwMDAwMCIsc3RhcnMxcmx2YXFxMjdlNGM1amNuZ2hndmRuZDM3Mzl3MHZ2dDNqYWZsczcqK29zbW8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJrcjk1czcyADiAmKaauZrggRcSWApQCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAt0bZnnEU42FukQutkuKsLe5vZuuF5/zl1VG6bGu5it6EgQKAggBGAISBBCgjQYaQDkRCRKgJfb6it3sEskv6em75zlgZxBuAKre8CxkCABkQt3lrM1TcrNVCIn7ri4tcmWHv2MBFtf+fExlBe68Wsg=","mode":"BROADCAST_MODE_SYNC"}' https://api.stargaze.ezstaking.io/cosmos/tx/v1beta1/txs
 */
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "stargaze-1"
 	p.CommonParam.Sequence = 2

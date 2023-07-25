@@ -13,7 +13,7 @@ import (
 
 func TestCreateTransaction(t *testing.T) {
 
-	privateKey := "//todo please replace your hex key"
+	privateKey := "b9ec4d26ab5bec8df4314a9e3b8fc3f9c96d410b4cd13caa675018dcfc7916cceefbba85caaa14cb87b83314d5b86895f2d4b7633e29012e65bfb037c885c804"
 	val := 0.222
 	to := "ggasii.testnet"
 	blockHash := "D7CPxgTXyRKYTSYuwAiRwDJH5RdHz7DwPt4EViptAW4L"
@@ -59,12 +59,12 @@ func TestCreateTransaction(t *testing.T) {
 	}
 	b64Data := base64.StdEncoding.EncodeToString(stxData)
 	t.Logf("transaction data : %s", b64Data)
-	assert.Equal(t, "QAAAAGQyNWNmZGFlMGY5ODMyZTk4YmJkYzg3ZjNhMTU2YmI3NjVjZDk5NjRlMDA4NzhiZjY2ZGE3NDU5MTUzN2UwYTkA0lz9rg+YMumLvch/OhVrt2XNmWTgCHi/Ztp0WRU34KkBAAAAAAAAAA4AAABnZ2FzaWkudGVzdG5ldLPinQIWXUUnnN9Qmtou83BpsylI4Fb+ZStWsef3s/kNAQAAAAMAAMAOl7HkpAIvAAAAAAAAAOWsbqH7odK8g6Sw84lwbt6/xNNRCziw0mUpyvof/rcC9yCZ2ujjTVAeWIcKgSJ+CbzUmazccvBZ7YHjgdBstQc=", b64Data)
+	assert.Equal(t, "QAAAAGVlZmJiYTg1Y2FhYTE0Y2I4N2I4MzMxNGQ1Yjg2ODk1ZjJkNGI3NjMzZTI5MDEyZTY1YmZiMDM3Yzg4NWM4MDQA7vu6hcqqFMuHuDMU1bholfLUt2M+KQEuZb+wN8iFyAQBAAAAAAAAAA4AAABnZ2FzaWkudGVzdG5ldLPinQIWXUUnnN9Qmtou83BpsylI4Fb+ZStWsef3s/kNAQAAAAMAAMAOl7HkpAIvAAAAAAAAACE/E/jQF9vlZSvRNf3Dnrr9Tm+gPB4s4wvE46LM18lgPtighyOfczJQMwhTJjFBe5xzBWbq3CJVhUYK21a9nQ0=", b64Data)
 }
 
 func TestContactTransaction(t *testing.T) {
 
-	privateKey := "//todo please replace your hex key"
+	privateKey := "b9ec4d26ab5bec8df4314a9e3b8fc3f9c96d410b4cd13caa675018dcfc7916cceefbba85caaa14cb87b83314d5b86895f2d4b7633e29012e65bfb037c885c804"
 	val := 0.222
 	to := "ft.examples.testnet"
 	blockHash := "D7CPxgTXyRKYTSYuwAiRwDJH5RdHz7DwPt4EViptAW4L"
@@ -115,5 +115,5 @@ func TestContactTransaction(t *testing.T) {
 
 	b64Data := base64.StdEncoding.EncodeToString(stxData)
 	t.Logf("transaction data : %s", b64Data)
-
+	assert.Equal(t, "DgAAAGdnYXNpaS50ZXN0bmV0AO77uoXKqhTLh7gzFNW4aJXy1LdjPikBLmW/sDfIhcgEAQAAAAAAAAATAAAAZnQuZXhhbXBsZXMudGVzdG5ldLPinQIWXUUnnN9Qmtou83BpsylI4Fb+ZStWsef3s/kNAQAAAAISAAAAc3RvcmFnZV9iYWxhbmNlX29mIAAAAHsiYWNjb3VudF9pZCI6ICJzZXJoaWkudGVzdG5ldCJ9AQAAAAAAAAAAAMAOl7HkpAIvAAAAAAAAACvEiv+vj1JDfHnrGZZ9vQlVvKCb2Bqsqe2KBB3ZhyM1YcWRR6WvjWVWpBmiXHt48xUf8ePtVcKdc0BNau8bJQM=", b64Data)
 }

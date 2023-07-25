@@ -275,7 +275,7 @@ func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList []*PrevO
 	txForEstimate := wire.NewMsgTx(DefaultTxVersion)
 	txForEstimate.TxIn = tx.TxIn
 	txForEstimate.TxOut = tx.TxOut
-	if err = sign(txForEstimate, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher); err != nil {
+	if err = Sign(txForEstimate, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher); err != nil {
 		return err
 	}
 
@@ -331,10 +331,10 @@ func (builder *InscriptionBuilder) completeRevealTx() error {
 }
 
 func (builder *InscriptionBuilder) signCommitTx() error {
-	return sign(builder.CommitTx, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher)
+	return Sign(builder.CommitTx, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher)
 }
 
-func sign(tx *wire.MsgTx, privateKeys []*btcec.PrivateKey, prevOutFetcher *txscript.MultiPrevOutFetcher) error {
+func Sign(tx *wire.MsgTx, privateKeys []*btcec.PrivateKey, prevOutFetcher *txscript.MultiPrevOutFetcher) error {
 	for i, in := range tx.TxIn {
 		prevOut := prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint)
 		txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
@@ -377,7 +377,7 @@ func sign(tx *wire.MsgTx, privateKeys []*btcec.PrivateKey, prevOutFetcher *txscr
 	return nil
 }
 
-func getTxHex(tx *wire.MsgTx) (string, error) {
+func GetTxHex(tx *wire.MsgTx) (string, error) {
 	var buf bytes.Buffer
 	if err := tx.Serialize(&buf); err != nil {
 		return "", err
@@ -386,13 +386,13 @@ func getTxHex(tx *wire.MsgTx) (string, error) {
 }
 
 func (builder *InscriptionBuilder) GetCommitTxHex() (string, error) {
-	return getTxHex(builder.CommitTx)
+	return GetTxHex(builder.CommitTx)
 }
 
 func (builder *InscriptionBuilder) GetRevealTxHexList() ([]string, error) {
 	txHexList := make([]string, len(builder.RevealTx))
 	for i := range builder.RevealTx {
-		txHex, err := getTxHex(builder.RevealTx[i])
+		txHex, err := GetTxHex(builder.RevealTx[i])
 		if err != nil {
 			return nil, err
 		}

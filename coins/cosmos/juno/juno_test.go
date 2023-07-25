@@ -12,7 +12,7 @@ https://lcd-juno.itastakers.com/cosmos/auth/v1beta1/accounts/juno1rvs5xph4l3px2e
 curl -X POST -d '{"tx_bytes":"Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgV1anVubxIFMTAwMDAiK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMqLWNvc21vczFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjdja3l4djIAOICgo4iIo9+BFxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDnCTAPeltdUKTRGnHRm5QS12GCMOZ3du0gUsZYfj3OlMSBAoCCAEYAhISCgwKBXVqdW5vEgMyNTAQkKEPGkBl30ljLCTSBg3+yQF0s/4c8G9/8uXaplKoZsDCQdwh1Uv2NeRUjVqDB1knbP4FYpmMy7epqLlja6dsKYnjvR74","mode":"BROADCAST_MODE_SYNC"}' https://lcd-juno.itastakers.com/cosmos/tx/v1beta1/txs
 */
 func TestTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	if err != nil {
 		t.Fatal(err)
@@ -37,7 +37,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestIbcTransfer(t *testing.T) {
-	privateKeyHex := "//todo please replace your hex cosmos key"
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	p := cosmos.IbcTransferParam{}
 	p.CommonParam.ChainId = "juno-1"
 	p.CommonParam.Sequence = 2

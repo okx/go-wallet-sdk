@@ -20,7 +20,7 @@ func TestSignTx(t *testing.T) {
 	txBuild := NewTxBuild(1, &chaincfg.TestNet3Params)
 	txBuild.AddInput("c44a7f98434e5e875a573339f77d36022c79c525771fa88c72fa53f3a55eeaf7", 1, "41f6ddee917e8ed190f003374064ace7b21ec405964a9861b4c4a9d6ff69f920", "", "mouQtmBWDS7JnT65Grj2tPzdSmGKJgRMhE", 1488430)
 	txBuild.AddOutput("mouQtmBWDS7JnT65Grj2tPzdSmGKJgRMhE", 1488200)
-	txHex, err := txBuild.build()
+	txHex, err := txBuild.Build()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func TestSignTx(t *testing.T) {
 	txBuild.AddInput("ce69ca86b68708afc8484dacb7730006e7eff6d0c18b18a16a9e91abeefeb08a", 0, "41f6ddee917e8ed190f003374064ace7b21ec405964a9861b4c4a9d6ff69f920", "", "2NF33rckfiQTiE5Guk5ufUdwms8PgmtnEdc", 2000)
 	txBuild.AddOutput("2NF33rckfiQTiE5Guk5ufUdwms8PgmtnEdc", 900)
 	txBuild.AddOutput("2NF33rckfiQTiE5Guk5ufUdwms8PgmtnEdc", 850)
-	txHex, err = txBuild.build()
+	txHex, err = txBuild.Build()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestSignTx(t *testing.T) {
 	txBuild = NewTxBuild(1, &chaincfg.TestNet3Params)
 	txBuild.AddInput("0bc66f18fd95ca00b6569471aa2dcd47fe45d3446fbaeec9ced228b00713fe8c", 0, "41f6ddee917e8ed190f003374064ace7b21ec405964a9861b4c4a9d6ff69f920", "", "tb1qtsq9c4fje6qsmheql8gajwtrrdrs38kdzeersc", 200000)
 	txBuild.AddOutput("tb1qtsq9c4fje6qsmheql8gajwtrrdrs38kdzeersc", 199700)
-	txHex, err = txBuild.build()
+	txHex, err = txBuild.Build()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestSignTx(t *testing.T) {
 	txBuild = NewTxBuild(1, &chaincfg.TestNet3Params)
 	txBuild.AddInput("3cb62c77c5c3fc032100af4cae9eeb342829cbc5b49815f8db1bb8156314a784", 0, "41f6ddee917e8ed190f003374064ace7b21ec405964a9861b4c4a9d6ff69f920", "", "tb1pklh8lqax5l7m2ycypptv2emc4gata2dy28svnwcp9u32wlkenvsspcvhsr", 546)
 	txBuild.AddOutput("tb1pklh8lqax5l7m2ycypptv2emc4gata2dy28svnwcp9u32wlkenvsspcvhsr", 300)
-	txHex, err = txBuild.build()
+	txHex, err = txBuild.Build()
 	if err != nil {
 		t.Fatal(err)
 	}

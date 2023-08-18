@@ -8,7 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.12.2
 	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip39 v1.1.0
-	github.com/okx/go-wallet-sdk/crypto v0.0.2
+	github.com/okx/go-wallet-sdk/crypto v0.0.1
 	golang.org/x/crypto v0.12.0
 )
 

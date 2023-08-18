@@ -9,8 +9,8 @@ require (
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.8
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2
 	github.com/stretchr/testify v1.8.4
-	github.com/okx/go-wallet-sdk/crypto v0.0.2
-	github.com/okx/go-wallet-sdk/util v0.0.2
+	github.com/okx/go-wallet-sdk/crypto v0.0.1
+	github.com/okx/go-wallet-sdk/util v0.0.1
 )
 
 require (

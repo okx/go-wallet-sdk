@@ -3,8 +3,8 @@ module github.com/okx/go-wallet-sdk/coins/polkadot
 go 1.19
 
 require (
-	github.com/okx/go-wallet-sdk/crypto v0.0.2
-	github.com/okx/go-wallet-sdk/util v0.0.2
+	github.com/okx/go-wallet-sdk/crypto v0.0.1
+	github.com/okx/go-wallet-sdk/util v0.0.1
 )
 
 require (

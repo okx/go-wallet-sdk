@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/golang/protobuf v1.5.3
-	github.com/okx/go-wallet-sdk/crypto v0.0.2
-	github.com/okx/go-wallet-sdk/util v0.0.2
+	github.com/okx/go-wallet-sdk/crypto v0.0.1
+	github.com/okx/go-wallet-sdk/util v0.0.1
 	golang.org/x/crypto v0.12.0
 )
 

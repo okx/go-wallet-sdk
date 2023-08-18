@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.4
-	github.com/okx/go-wallet-sdk/crypto v0.0.2
-	github.com/okx/go-wallet-sdk/util v0.0.2
+	github.com/okx/go-wallet-sdk/crypto v0.0.1
+	github.com/okx/go-wallet-sdk/util v0.0.1
 )
 
 require (

@@ -3,7 +3,6 @@ package ethereum
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
 	"math/big"
 	"testing"
 

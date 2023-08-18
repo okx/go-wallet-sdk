@@ -7,8 +7,8 @@ require (
 	github.com/dchest/blake2b v1.0.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/fxamacker/cbor v1.5.1
-	github.com/stretchr/testify v1.8.4
 	github.com/okx/go-wallet-sdk/util v0.0.1
+	github.com/stretchr/testify v1.8.4
 )
 
 require (

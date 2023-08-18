@@ -3,7 +3,6 @@ package ethereum
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
@@ -51,7 +50,7 @@ func (tx *EthTransaction) SignTransaction(chainId *big.Int, prvKey *btcec.Privat
 	if err != nil {
 		return "", err
 	}
-	return "0x" + hex.EncodeToString(value), nil
+	return util.EncodeHexWith0x(value), nil
 }
 
 func (tx *EthTransaction) UnSignedTx(chainId *big.Int) (string, error) {
@@ -94,7 +93,7 @@ func (tx *EthTransaction) SignedTx(chainId *big.Int, sig *SignatureData) (string
 	if err != nil {
 		return "", err
 	}
-	return "0x" + hex.EncodeToString(value), nil
+	return util.EncodeHexWith0x(value), nil
 }
 
 func SignMessage(message []byte, prvKey *btcec.PrivateKey) (*SignatureData, error) {
@@ -115,7 +114,15 @@ func NewEthTransaction(nonce, gasLimit, gasPrice, value *big.Int, to, data strin
 		Value:    value,
 		Data:     dataBytes,
 	}
+}
 
+func NewUnsignedTx(nonce, gasLimit, gasPrice, value, chainId *big.Int, to, data string) (*UnsignedTx, error) {
+	tx := NewEthTransaction(nonce, gasLimit, gasPrice, value, to, data)
+	data, hash, err := tx.GetSigningHash(chainId)
+	if err != nil {
+		return nil, err
+	}
+	return &UnsignedTx{Tx: data, Hash: hash}, nil
 }
 
 func NewTransactionFromRaw(raw string) (*EthTransaction, error) {
@@ -202,7 +209,7 @@ func GetNewAddress(pubKey *btcec.PublicKey) string {
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(pubBytes[1:])
 	addressByte := hash.Sum(nil)
-	return "0x" + hex.EncodeToString(addressByte[12:])
+	return util.EncodeHexWith0x(addressByte[12:])
 }
 
 func GetEthereumMessagePrefix(message string) string {

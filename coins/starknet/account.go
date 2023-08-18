@@ -7,9 +7,9 @@ import (
 
 const (
 	//todo put your account class hash
-	AccountClassHash = "0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2"
+	AccountClassHash = "0x309c042d3729173c7f2f91a34f04d8c509c1b292d334679ef1aabf8da0899cc"
 	//todo put your proxy account class hash
-	ProxyAccountClassHash = "0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+	ProxyAccountClassHash = "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9"
 )
 
 func NewKeyPair(curve StarkCurve) (priv, pub string, err error) {

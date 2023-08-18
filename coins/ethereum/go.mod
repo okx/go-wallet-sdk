@@ -5,9 +5,9 @@ go 1.19
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/ethereum/go-ethereum v1.12.2
-	github.com/stretchr/testify v1.8.1
 	github.com/okx/go-wallet-sdk/crypto v0.0.1
 	github.com/okx/go-wallet-sdk/util v0.0.1
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.12.0
 )
 
@@ -20,5 +20,3 @@ require (
 	golang.org/x/sys v0.11.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/okx/go-wallet-sdk/util => ../../util

@@ -5,35 +5,36 @@ blockchains, and will gradually release the source codes for each blockchain.
 
 ## Supported chains
 
-|                       | Account Generation | Transaction Creation | Transaction Signing |
-| --------------------- |-------------------|----------------------|---------------------|
-| BTC | ✅                 | ✅                    | ✅                   | 
+|          | Account Generation | Transaction Creation | Transaction Signing |
+|----------|-------------------|----------------------|---------------------|
+| BTC      | ✅                 | ✅                    | ✅                   | 
 | Ethereum | ✅                 | ✅                    | ✅                   |
-| EOS | ✅                 | ✅                    | ✅                   |
+| EOS      | ✅                 | ✅                    | ✅                   |
 | Filecoin | ✅                 | ✅                    | ✅                   |
 | Polkadot | ✅                 | ✅                    | ✅                   |
 | Starknet | ✅                 | ✅                    | ✅                   |
-| Aptos | ✅                 | ✅                    | ✅                   |
-| Near | ✅                 | ✅                    | ✅                   |
+| Aptos    | ✅                 | ✅                    | ✅                   |
+| Near     | ✅                 | ✅                    | ✅                   |
 | Polkadot | ✅                 | ✅                    | ✅                   |
-| Solana | ✅                 | ✅                    | ✅                   |
-| Stacks | ✅                 | ✅                    | ✅                   |
-| SUI | ✅                 | ✅                    | ✅                   |
-| Tron | ✅                 | ✅                    | ✅                   |
-| Cosmos | ✅                 | ✅                    | ✅                   |
-| Axelar | ✅                 | ✅                    | ✅                   |
-| Cronos | ✅                 | ✅                    | ✅                   |
-| Evmos | ✅                 | ✅                    | ✅                   |
-| Eris | ✅                 | ✅                    | ✅                   |
-| Juno | ✅                 | ✅                    | ✅                   |
-| Kava | ✅                 | ✅                    | ✅                   |
-| Kujira | ✅                 | ✅                    | ✅                   |
-| Okc | ✅                 | ✅                    | ✅                   |
-| Osmosis | ✅                 | ✅                    | ✅                   |
-| Secret | ✅                 | ✅                    | ✅                   |
-| Sei | ✅                 | ✅                    | ✅                   |
+| Solana   | ✅                 | ✅                    | ✅                   |
+| Stacks   | ✅                 | ✅                    | ✅                   |
+| SUI      | ✅                 | ✅                    | ✅                   |
+| Tron     | ✅                 | ✅                    | ✅                   |
+| Cosmos   | ✅                 | ✅                    | ✅                   |
+| Axelar   | ✅                 | ✅                    | ✅                   |
+| Cronos   | ✅                 | ✅                    | ✅                   |
+| Evmos    | ✅                 | ✅                    | ✅                   |
+| Eris     | ✅                 | ✅                    | ✅                   |
+| Juno     | ✅                 | ✅                    | ✅                   |
+| Kava     | ✅                 | ✅                    | ✅                   |
+| Kujira   | ✅                 | ✅                    | ✅                   |
+| Okc      | ✅                 | ✅                    | ✅                   |
+| Osmosis  | ✅                 | ✅                    | ✅                   |
+| Secret   | ✅                 | ✅                    | ✅                   |
+| Sei      | ✅                 | ✅                    | ✅                   |
 | Stargaze | ✅                 | ✅                    | ✅                   |
-| Terra | ✅                 | ✅                    | ✅                   |
+| Terra    | ✅                 | ✅                    | ✅                   |
+| Avax     | ✅                 | ✅                    | ✅                   |
 
 *BTC: Supports Supports BRC20-related functions, including inscription creation, BRC20 buying and selling.
 

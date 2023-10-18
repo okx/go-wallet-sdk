@@ -335,9 +335,9 @@ func (builder *InscriptionBuilder) signCommitTx() error {
 }
 
 func Sign(tx *wire.MsgTx, privateKeys []*btcec.PrivateKey, prevOutFetcher *txscript.MultiPrevOutFetcher) error {
+	txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
 	for i, in := range tx.TxIn {
 		prevOut := prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint)
-		txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
 		privKey := privateKeys[i]
 		if txscript.IsPayToTaproot(prevOut.PkScript) {
 			witness, err := txscript.TaprootWitnessSignature(tx, txSigHashes, i, prevOut.Value, prevOut.PkScript, txscript.SigHashDefault, privKey)

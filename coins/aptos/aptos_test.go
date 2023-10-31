@@ -3,6 +3,7 @@ package aptos
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"math/big"
 	"strconv"
@@ -14,29 +15,37 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/aptos/types"
 )
 
-func TestAddress2(t *testing.T) {
+func TestShortenAddress(t *testing.T) {
 	add := ShortenAddress("0x00000000000000000123")
-	fmt.Println(add)
-
-	add = ExpandAddress(add)
-	fmt.Println(add)
+	expected := "0x123"
+	assert.Equal(t, expected, add)
 }
 
-func TestAddress(t *testing.T) {
-	add2, _ := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
-	fmt.Println(add2)
+func TestExpandAddress(t *testing.T) {
+	addr := ExpandAddress("0x123")
+	expected := "0x0000000000000000000000000000000000000000000000000000000000000123"
+	assert.Equal(t, expected, addr)
+}
 
-	add3, _ := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", true)
-	fmt.Println(add3)
+func TestNewAddress(t *testing.T) {
+	addr, err := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
+	assert.Nil(t, err)
+	expected := "0x62ce47951b114b3bf91e179a368763d99d1adc59a3b17aed65f245c5977dde82"
+	assert.Equal(t, expected, addr)
 
-	ret := ValidateAddress(add3, false)
-	fmt.Println(ret)
+	addr, err = NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", true)
+	assert.Nil(t, err)
+	expected = "0x62ce47951b114b3bf91e179a368763d99d1adc59a3b17aed65f245c5977dde82"
+	assert.Equal(t, expected, addr)
 
-	add2 = ExpandAddress(add2)
-	fmt.Println(add2)
+	ret := ValidateAddress(addr, false)
+	assert.True(t, ret)
 
-	ret = ValidateAddress(add2, false)
-	fmt.Println(ret)
+	addr = ExpandAddress(addr)
+	assert.Equal(t, expected, addr)
+
+	ret = ValidateAddress(addr, false)
+	assert.True(t, ret)
 }
 
 func TestValidateAddress(t *testing.T) {

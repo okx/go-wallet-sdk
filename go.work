@@ -6,4 +6,5 @@ use (
 	./util
 	coins/aptos
 	coins/cosmos
+	coins/avax
 )

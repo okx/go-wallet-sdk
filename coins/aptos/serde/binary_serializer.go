@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// `BinarySerializer` is a partial implementation of the `Serializer` interface.
+// BinarySerializer `BinarySerializer` is a partial implementation of the `Serializer` interface.
 // It is used as an embedded struct by the Bincode and BCS serializers.
 type BinarySerializer struct {
 	Buffer               bytes.Buffer
@@ -30,7 +30,7 @@ func (d *BinarySerializer) DecreaseContainerDepth() {
 	d.containerDepthBudget += 1
 }
 
-// `serializeLen` to be provided by the extending struct.
+// SerializeBytes `serializeLen` to be provided by the extending struct.
 func (s *BinarySerializer) SerializeBytes(value []byte, serializeLen func(uint64) error) error {
 	serializeLen(uint64(len(value)))
 	s.Buffer.Write(value)
@@ -42,7 +42,7 @@ func (s *BinarySerializer) SerializeFixedBytes(value []byte) error {
 	return nil
 }
 
-// `serializeLen` to be provided by the extending struct.
+// SerializeStr `serializeLen` to be provided by the extending struct.
 func (s *BinarySerializer) SerializeStr(value string, serializeLen func(uint64) error) error {
 	return s.SerializeBytes([]byte(value), serializeLen)
 }

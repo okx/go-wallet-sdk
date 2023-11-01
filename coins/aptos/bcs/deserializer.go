@@ -7,10 +7,10 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
 )
 
-// Maximum length allowed for sequences (vectors, bytes, strings) and maps.
+// MaxSequenceLength Maximum length allowed for sequences (vectors, bytes, strings) and maps.
 const MaxSequenceLength = (1 << 31) - 1
 
-// Maximum number of nested structs and enum variants.
+// MaxContainerDepth Maximum number of nested structs and enum variants.
 const MaxContainerDepth = 500
 
 const maxUint32 = uint64(^uint32(0))

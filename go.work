@@ -5,4 +5,5 @@ use (
 	./crypto
 	./util
 	coins/aptos
+	coins/cosmos
 )

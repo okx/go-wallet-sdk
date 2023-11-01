@@ -1,8 +1,13 @@
 package aptos
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestAptosWallet_GetRandomPrivateKey(t *testing.T) {
 	w := &AptosWallet{}
-	t.Log(w.GetRandomPrivateKey())
+	p, err := w.GetRandomPrivateKey()
+	assert.Nil(t, err)
+	t.Log("private key : ", p)
 }

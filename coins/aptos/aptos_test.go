@@ -1,19 +1,20 @@
 package aptos
 
 import (
+	cryptorand "crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+	"github.com/okx/go-wallet-sdk/coins/aptos/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"math"
 	"math/big"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
-	"github.com/okx/go-wallet-sdk/coins/aptos/types"
 )
 
 func TestShortenAddress(t *testing.T) {
@@ -29,6 +30,13 @@ func TestExpandAddress(t *testing.T) {
 }
 
 func TestNewAddress(t *testing.T) {
+
+	seed := make([]byte, 32)
+	_, err := io.ReadFull(cryptorand.Reader, seed)
+	assert.Nil(t, err)
+	seedHex := hex.EncodeToString(seed)
+	t.Log("seed hex : ", seedHex)
+
 	addr, err := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
 	assert.Nil(t, err)
 	expected := "0x62ce47951b114b3bf91e179a368763d99d1adc59a3b17aed65f245c5977dde82"

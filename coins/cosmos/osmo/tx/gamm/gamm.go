@@ -1,4 +1,4 @@
-package tx
+package gamm
 
 import (
 	"encoding/json"

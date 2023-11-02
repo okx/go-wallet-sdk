@@ -218,7 +218,7 @@ func GetRawTransaction(param interface{}, publicKeyCompressed string) (string, e
 		messages = append(messages, anySend)
 		return MakeTransactionWithMessage(p.CommonParam, publicKeyCompressed, messages)
 	default:
-		return "", fmt.Errorf("unspport param type")
+		return "", errors.New("unsupported param type")
 	}
 }
 

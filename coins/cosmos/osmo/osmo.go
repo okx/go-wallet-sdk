@@ -3,7 +3,7 @@ package osmo
 import (
 	"errors"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/osmo/tx"
+	"github.com/okx/go-wallet-sdk/coins/cosmos/osmo/tx/gamm"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
 )
 
@@ -41,9 +41,9 @@ func SwapExactAmountIn(param SwapExactAmountInParam, privateKeyHex string) (stri
 		return "", errors.New("invalid min to  amount")
 	}
 
-	routes := make([]tx.SwapAmountInRoute, 0)
-	routes = append(routes, tx.SwapAmountInRoute{PoolId: param.PoolId, TokenOutDenom: param.ToDemon})
-	sendMsg := tx.MsgSwapExactAmountIn{Sender: param.Sender, Routes: routes, TokenIn: inCoin, TokenOutMinAmount: tmo}
+	routes := make([]gamm.SwapAmountInRoute, 0)
+	routes = append(routes, gamm.SwapAmountInRoute{PoolId: param.PoolId, TokenOutDenom: param.ToDemon})
+	sendMsg := gamm.MsgSwapExactAmountIn{Sender: param.Sender, Routes: routes, TokenIn: inCoin, TokenOutMinAmount: tmo}
 
 	messages := make([]*types.Any, 0)
 	anySend, err := types.NewAnyWithValue(&sendMsg)

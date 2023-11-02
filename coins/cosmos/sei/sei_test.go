@@ -1,26 +1,21 @@
 package sei
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func TestAddress(t *testing.T) {
+func TestNewAddress(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if address != "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4" {
-		t.Errorf("NewAddress failed, want sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57, get %s", address)
-	}
+	require.Nil(t, err)
+	expected := "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4"
+	require.Equal(t, expected, address)
 
 	ret := ValidateAddress(address)
-	if !ret {
-		t.Fatal("ValidateAddress failed")
-	}
+	require.True(t, ret)
 }
 
 // txHash: https://sei.explorers.guru/transaction/08D076CFE1903AB697974E7CB756F5E9A3344FF07220892CE2A75EBB29494435
@@ -29,15 +24,13 @@ func TestAddress(t *testing.T) {
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
-	param.FromAddress = "sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57"
-	param.ToAddress = "sei1urdedeej0fd4kslzn3uq6s8mndh8wt7usk6a4z"
+	param.FromAddress = address
+	param.ToAddress = address
 	param.Demon = "usei"
 	param.Amount = "100000"
 	param.CommonParam.ChainId = "atlantic-2"
@@ -48,8 +41,10 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	expected = "CosBCogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKKnNlaTE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeWQ3am1kNBIqc2VpMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5ZDdqbWQ0Gg4KBHVzZWkSBjEwMDAwMBJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYARISCgwKBHVzZWkSBDEwMDAQoI0GGkDJivGlkzrZffAXInJAHY2QBOgD8QraVrDhLyX5yAjr+QLdwloCq5maBrniL3PmBrRUrPxFNC8Wt5QklQ70YYDF"
+	require.Equal(t, expected, signedTx)
 }
 
 // https://sei.explorers.guru/transaction/E07194819858ED6C8BF355AF55A1F57E6346C45E3A9C5CDEE2DFFDEA3992BE5B
@@ -72,6 +67,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-7"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

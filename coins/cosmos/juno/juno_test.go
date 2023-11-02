@@ -29,7 +29,7 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 250000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	signedTx, _ := cosmos.Transfer(param, privateKeyHex)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
 	require.Nil(t, err)
 	t.Log("signedTx : ", signedTx)
 }

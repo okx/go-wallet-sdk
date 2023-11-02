@@ -12,20 +12,17 @@ import (
 // curl -X POST -d '{"tx_bytes":"Cr0BCroBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKMAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoNCgV1a2F2YRIEMTAwMCIra2F2YTFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cnpkemVzdCotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gJDco9HW34EXEmQKTgpGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQOcJMA96W11QpNEacdGblBLXYYIw5nd27SBSxlh+Pc6UxIECgIIARISCgwKBXVrYXZhEgM1MDAQ4MUIGkB9RYvHfuZ8t+2hXHEeMgWPoKPPny62KFuuedHOzCgYSE8yWEf3r5KwnkiIJZRD0cDcso4PZbEyiwgvkmdvrnLR","mode":"BROADCAST_MODE_SYNC"}' https://api.data.kava.io/cosmos/tx/v1beta1/txs
 func TestKava(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
-	privateKeyHex2 := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
 	require.Nil(t, err)
 	expected := "kava145q0tcdur4tcx2ya5cphqx96e54yflfyu8hsan"
 	require.Equal(t, expected, address)
 
-	address2, err := NewAddress(privateKeyHex2)
-	require.Nil(t, err)
 	ret := ValidateAddress(address)
 	require.True(t, ret)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
-	param.ToAddress = address2
+	param.ToAddress = address
 	param.Demon = "ukava"
 	param.Amount = "100000"
 	param.CommonParam.ChainId = "kava_2222-10"

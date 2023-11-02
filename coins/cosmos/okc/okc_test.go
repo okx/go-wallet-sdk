@@ -67,7 +67,7 @@ func TestOkc(t *testing.T) {
 // The unit must be wei
 func TestIbcTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
-	addressFrom, err := cosmos.NewAddress(privateKeyHex, "ex")
+	addressFrom, err := cosmos.NewAddress(privateKeyHex, "ex", false)
 	if err != nil {
 		t.Fatal(err)
 	}

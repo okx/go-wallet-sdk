@@ -7,4 +7,6 @@ use (
 	coins/aptos
 	coins/cosmos
 	coins/avax
+	coins/bitcoin
+	coins/polkadot
 )

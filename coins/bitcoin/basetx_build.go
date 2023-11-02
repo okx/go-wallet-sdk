@@ -56,14 +56,19 @@ func (build *TransactionBuilder) AddInput(txId string, vOut uint32, privateKeyHe
 	build.inputs = append(build.inputs, input)
 }
 
+func (build *TransactionBuilder) AddInput2(txId string, vOut uint32, privateKey string, address string, amount int64) {
+	input := Input{txId: txId, vOut: vOut, privateKeyHex: privateKey, address: address, amount: amount}
+	build.inputs = append(build.inputs, input)
+}
+
 func (build *TransactionBuilder) AddOutput(address string, amount int64) {
 	output := Output{address: address, amount: amount}
 	build.outputs = append(build.outputs, output)
 }
 
-func (build *TransactionBuilder) Build() (string, error) {
+func (build *TransactionBuilder) Build() (*wire.MsgTx, error) {
 	if len(build.inputs) == 0 || len(build.outputs) == 0 {
-		return "", errors.New("invalid inputs or outputs")
+		return nil, errors.New("invalid inputs or outputs")
 	}
 
 	tx := build.tx
@@ -73,42 +78,44 @@ func (build *TransactionBuilder) Build() (string, error) {
 		input := build.inputs[i]
 		txHash, err := chainhash.NewHashFromStr(input.txId)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		outPoint := wire.NewOutPoint(txHash, input.vOut)
 		pkScript, err := AddrToPkScript(input.address, build.netParams)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		txOut := wire.NewTxOut(input.amount, pkScript)
 		prevOutFetcher.AddPrevOut(*outPoint, txOut)
 		txIn := wire.NewTxIn(outPoint, nil, nil)
 		tx.TxIn = append(tx.TxIn, txIn)
 
-		privateKeyBytes, err := hex.DecodeString(input.privateKeyHex)
+		/*privateKeyBytes, err := hex.DecodeString(input.privateKeyHex)
 		if err != nil {
 			return "", err
 		}
 		privateKey, _ := btcec.PrivKeyFromBytes(privateKeyBytes)
-		privateKeys = append(privateKeys, privateKey)
+		privateKeys = append(privateKeys, privateKey)*/
+		wif, err := btcutil.DecodeWIF(input.privateKeyHex)
+		if err != nil {
+			return nil, err
+		}
+		privateKeys = append(privateKeys, wif.PrivKey)
 	}
 
 	for i := 0; i < len(build.outputs); i++ {
 		output := build.outputs[i]
-
 		pkScript, err := AddrToPkScript(output.address, build.netParams)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		txOut := wire.NewTxOut(output.amount, pkScript)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
-
 	if err := Sign(tx, privateKeys, prevOutFetcher); err != nil {
-		return "", err
+		return nil, err
 	}
-
-	return GetTxHex(tx)
+	return tx, nil
 }
 
 func (build *TransactionBuilder) SingleBuild() (string, error) {
@@ -200,7 +207,7 @@ func (build *TransactionBuilder) SingleBuild() (string, error) {
 	return hex.EncodeToString(buf.Bytes()), nil
 }
 
-// Second signature
+// NewTxFromHex Second signature
 func NewTxFromHex(txHex string) (*wire.MsgTx, error) {
 	txBytes, err := hex.DecodeString(txHex)
 	if err != nil {
@@ -364,4 +371,36 @@ func SignTx(raw string, pubKeyMap map[int]string, signatureMap map[int]string) (
 		return "", err
 	}
 	return hex.EncodeToString(buf.Bytes()), nil
+}
+func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, changeAddress string, minChangeValue int64, network *chaincfg.Params) (int64, error) {
+	if network == nil {
+		network = &chaincfg.MainNetParams
+	}
+	txBuild := NewTxBuild(2, network)
+
+	var inAmount int64
+	for _, in := range inputs {
+		txBuild.AddInput2(in.TxId, in.VOut, in.PrivateKey, in.Address, in.Amount)
+		inAmount += in.Amount
+	}
+
+	var outAmount int64
+	for _, out := range outputs {
+		txBuild.AddOutput(out.Address, out.Amount)
+		outAmount += out.Amount
+	}
+
+	if minChangeValue == 0 {
+		minChangeValue = DefaultMinChangeValue
+	}
+	if inAmount-outAmount > minChangeValue {
+		txBuild.AddOutput(changeAddress, inAmount-outAmount)
+	}
+
+	tx, err := txBuild.Build()
+	if err != nil {
+		return 0, err
+	}
+
+	return GetTxVirtualSize(btcutil.NewTx(tx)), nil
 }

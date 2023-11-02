@@ -12,7 +12,7 @@ const (
 	HRP = "evmos"
 )
 
-// The address generation method of eth is used
+// NewAddress method of eth is used
 func NewAddress(privateKey string) (string, error) {
 	pkBytes, err := hex.DecodeString(privateKey)
 	if err != nil {

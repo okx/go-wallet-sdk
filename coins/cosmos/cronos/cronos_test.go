@@ -1,8 +1,8 @@
 package cronos
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
@@ -16,11 +16,9 @@ import (
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// cro1rvs5xph4l3px2efynqsthus8p6r4exyrxr7a6a
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "cro145q0tcdur4tcx2ya5cphqx96e54yflfycft5h9"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
@@ -35,8 +33,9 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 500000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedTx : ", signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -57,6 +56,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-10"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

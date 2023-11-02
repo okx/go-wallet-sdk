@@ -1,23 +1,20 @@
 package juno
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-/*
-https://lcd-juno.itastakers.com/cosmos/auth/v1beta1/accounts/juno1rvs5xph4l3px2efynqsthus8p6r4exyrg24lps
-curl -X POST -d '{"tx_bytes":"Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgV1anVubxIFMTAwMDAiK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMqLWNvc21vczFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjdja3l4djIAOICgo4iIo9+BFxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDnCTAPeltdUKTRGnHRm5QS12GCMOZ3du0gUsZYfj3OlMSBAoCCAEYAhISCgwKBXVqdW5vEgMyNTAQkKEPGkBl30ljLCTSBg3+yQF0s/4c8G9/8uXaplKoZsDCQdwh1Uv2NeRUjVqDB1knbP4FYpmMy7epqLlja6dsKYnjvR74","mode":"BROADCAST_MODE_SYNC"}' https://lcd-juno.itastakers.com/cosmos/tx/v1beta1/txs
-*/
+// https://lcd-juno.itastakers.com/cosmos/auth/v1beta1/accounts/juno1rvs5xph4l3px2efynqsthus8p6r4exyrg24lps
+// curl -X POST -d '{"tx_bytes":"Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgV1anVubxIFMTAwMDAiK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMqLWNvc21vczFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjdja3l4djIAOICgo4iIo9+BFxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDnCTAPeltdUKTRGnHRm5QS12GCMOZ3du0gUsZYfj3OlMSBAoCCAEYAhISCgwKBXVqdW5vEgMyNTAQkKEPGkBl30ljLCTSBg3+yQF0s/4c8G9/8uXaplKoZsDCQdwh1Uv2NeRUjVqDB1knbP4FYpmMy7epqLlja6dsKYnjvR74","mode":"BROADCAST_MODE_SYNC"}' https://lcd-juno.itastakers.com/cosmos/tx/v1beta1/txs
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "juno145q0tcdur4tcx2ya5cphqx96e54yflfykqqkvg"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = "juno1rvs5xph4l3px2efynqsthus8p6r4exyrg24lps"
@@ -32,8 +29,9 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 250000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, _ := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedTx : ", signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -54,6 +52,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-1"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

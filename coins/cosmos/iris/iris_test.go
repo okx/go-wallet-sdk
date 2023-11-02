@@ -12,9 +12,6 @@ import (
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
 	require.Nil(t, err)
 	expected := "iaa145q0tcdur4tcx2ya5cphqx96e54yflfy4sruf9"
 	require.Equal(t, expected, address)

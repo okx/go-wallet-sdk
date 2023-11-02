@@ -1,8 +1,8 @@
 package secret
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
@@ -14,10 +14,9 @@ import (
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "secret145q0tcdur4tcx2ya5cphqx96e54yflfyzhhykg"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
@@ -32,8 +31,10 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	expected = "CpABCo0BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEm0KLXNlY3JldDE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeXpoaHlrZxItc2VjcmV0MTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5emhoeWtnGg0KBXVzY3J0EgQxMDAwEmUKTgpGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMQU+nvApXTNLa7IuIMxxfrGhalRvaSVyyIMLS8FME2dhIECgIIARITCg0KBXVzY3J0EgQxMjUwEKCNBhpAcv1on1fdBc/nVnLBHGPVh7ydrHwnt/3JM0bv3qOnzAMAvwMcm/Fh4HEzfp+aQAJgvWZ97RQCnVRHeO4d8sCSHQ=="
+	require.Equal(t, expected, signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -54,6 +55,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

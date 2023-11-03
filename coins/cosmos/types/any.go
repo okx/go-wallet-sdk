@@ -64,3 +64,19 @@ func NewAnyWithValue(v Message) (*Any, error) {
 		Value:   bz,
 	}, nil
 }
+
+func NewAnyWithValueAndName(v Message) (*Any, error) {
+	if v == nil {
+		return nil, NewPackError("Expecting non nil value to create a new Any")
+	}
+
+	bz, err := v.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Any{
+		TypeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+		Value:   bz,
+	}, nil
+}

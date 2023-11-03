@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-var (
-	chainID = "mocha-4"
-)
-
 func TestNewAddress(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
@@ -46,7 +42,6 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.TimeoutHeight = 0
 	signedTx, err := cosmos.Transfer(param, privateKeyHex)
 	require.Nil(t, err)
-	t.Log(signedTx)
 	expected = "CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKL2NlbGVzdGlhMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5M2NqYTNlEi9jZWxlc3RpYTE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeTNjamEzZRoMCgR1dGlhEgQxMDAwEmUKTgpGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMQU+nvApXTNLa7IuIMxxfrGhalRvaSVyyIMLS8FME2dhIECgIIARITCg0KBHV0aWESBTIwMDAwEMCaDBpAH2vJG5BisaeW04Jrw/62m9UWo/Me5+abwdEoo9Z+gTwcvvPp7TPSzOewQq5s5neFY4mhV75Z4XEzZU0aIwZdVg=="
 	require.Equal(t, expected, signedTx)
 }

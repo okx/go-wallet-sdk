@@ -76,7 +76,7 @@ func GenerateTxWithJSON(message string, chainId *big.Int, isToken bool) (*Unsign
 	}
 }
 
-// Generate the transaction to be broadcast based on the unsigned transaction and the signature result
+// GenerateRawTransactionWithSignature Generate the transaction to be broadcast based on the unsigned transaction and the signature result
 func GenerateRawTransactionWithSignature(txType int, chainId, unsignedRawTx, r, s, v string) (string, error) {
 	unsignedRawTxByte := util.RemoveZeroHex(unsignedRawTx)
 	chainID, ok := new(big.Int).SetString(chainId, 10)
@@ -221,11 +221,11 @@ func GetAddress(pubkeyHex string) string {
 	if err != nil {
 		return ""
 	}
-	pubkey, err := btcec.ParsePubKey(p)
+	pubKey, err := btcec.ParsePubKey(p)
 	if err != nil {
 		return ""
 	}
-	return util.EncodeHexWith0x(getEthGroupPubHash(pubkey)[12:])
+	return util.EncodeHexWith0x(getEthGroupPubHash(pubKey)[12:])
 }
 
 func ValidateAddress(address string) bool {

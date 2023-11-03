@@ -10,4 +10,5 @@ use (
 	coins/bitcoin
 	coins/polkadot
 	coins/elrond
+	coins/ethereum
 )

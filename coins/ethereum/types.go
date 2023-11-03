@@ -46,8 +46,8 @@ func NewEip1559Transaction(
 
 type Eip1559Token struct {
 	EIP1559Transaction
-	ContractAddress string `json:"contract_address"` //合约地址
-	Amount          string `json:"amount"`           //金额
+	ContractAddress string `json:"contract_address"`
+	Amount          string `json:"amount"`
 }
 
 type Transaction struct {

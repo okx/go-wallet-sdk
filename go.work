@@ -9,4 +9,5 @@ use (
 	coins/avax
 	coins/bitcoin
 	coins/polkadot
+	coins/elrond
 )

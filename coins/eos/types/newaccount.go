@@ -1,6 +1,6 @@
 package types
 
-import "gitlab.okg.com/wallet-sign-core/go-parent-sdk/coin/eos/ecc"
+import "github.com/eoscanada/eos-go/ecc"
 
 // NewNewAccount returns a `newaccount` action that lives on the
 // `eosio.system` contract.

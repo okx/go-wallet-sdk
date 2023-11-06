@@ -6,7 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/coin/eos/ecc"
+	"github.com/eoscanada/eos-go/ecc"
+
 	"io"
 	"math"
 	"reflect"

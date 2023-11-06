@@ -1,12 +1,32 @@
+// Copyright 2018 EOS Canada <alex@eoscanada.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 package types
 
 import (
 	"encoding/hex"
 	"encoding/json"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/coin/eos/ecc"
+	"github.com/eoscanada/eos-go/ecc"
 )
 
-// Varuint32 这里因为 encoder 需要和官方保持一致，因此是新类型
 type Varuint32 uint32
 type Name string
 type AccountName Name
@@ -102,14 +122,12 @@ func StringToName(s string) (val uint64, err error) {
 		if i < sLen {
 			c = uint64(charToSymbol(s[i]))
 		}
-
 		if i < 12 {
 			c &= 0x1f
 			c <<= 64 - 5*(i+1)
 		} else {
 			c &= 0x0f
 		}
-
 		val |= c
 	}
 

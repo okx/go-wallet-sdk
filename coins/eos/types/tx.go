@@ -8,7 +8,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/eos/ecc"
+	"github.com/eoscanada/eos-go/ecc"
 	"time"
 )
 

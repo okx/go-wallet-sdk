@@ -7,7 +7,7 @@ blockchains, and will gradually release the source codes for each blockchain.
 
 |          | Account Generation | Transaction Creation | Transaction Signing |
 |----------|-------------------|----------------------|---------------------|
-| BTC      | ✅                 | ✅                    | ✅                   | 
+| BTC      | ✅                 | ✅                    | ✅                   |
 | Ethereum | ✅                 | ✅                    | ✅                   |
 | EOS      | ✅                 | ✅                    | ✅                   |
 | Filecoin | ✅                 | ✅                    | ✅                   |
@@ -36,7 +36,7 @@ blockchains, and will gradually release the source codes for each blockchain.
 | Terra    | ✅                 | ✅                    | ✅                   |
 | Avax     | ✅                 | ✅                    | ✅                   |
 
-*BTC: Supports Supports BRC20-related functions, including inscription creation, BRC20 buying and selling.
+*BTC: Supports brc-20 related functions, including inscription creation, brc-20 buying and selling.
 
 ## Main modules
 

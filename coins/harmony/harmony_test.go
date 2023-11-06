@@ -11,17 +11,17 @@ import (
 )
 
 func TestNewAddress(t *testing.T) {
-	seedHex := "3332391f0d09af398394bbd192bb0305e130f136da8db8da82e980b9aa849681"
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	addr, err := NewAddress(seedHex, true)
 	require.Nil(t, err)
-	expected := "0xfd01ba8507367c8a689913ea92a1526dd3893fc1"
+	expected := "0x97e2728c08bd0bfba631929e10bceaec8fc5c961"
 	require.Equal(t, expected, addr)
 
 	bytes, err := hex.DecodeString(addr[2:])
 	require.Nil(t, err)
 	bech32Address, err := bech32.EncodeFromBase256(HRP, bytes)
 	require.Nil(t, err)
-	expected = "one1l5qm4pg8xe7g56yez04f9g2jdhfcj07p4xcn0u"
+	expected = "one1jl389rqgh59lhf33j20pp082aj8utjtpuass6r"
 	require.Equal(t, expected, bech32Address)
 	hrp, addrBytes, err := bech32.DecodeToBase256(bech32Address)
 	require.Nil(t, err)
@@ -30,17 +30,17 @@ func TestNewAddress(t *testing.T) {
 }
 
 func TestTransfer(t *testing.T) {
-	p, _ := hex.DecodeString("3332391f0d09af398394bbd192bb0305e130f136da8db8da82e980b9aa849681")
+	p, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
 	prvKey, _ := btcec.PrivKeyFromBytes(p)
 	transaction := ethereum.NewEthTransaction(
 		big.NewInt(int64(00)),
 		big.NewInt(int64(420000)),
 		big.NewInt(int64(200000000000)),
 		big.NewInt(int64(100000000000)),
-		"fd01ba8507367c8a689913ea92a1526dd3893fc1", "",
+		"97e2728c08bd0bfba631929e10bceaec8fc5c961", "",
 	)
 	signedTx, err := Transfer(transaction, big.NewInt(int64(1666700000)), prvKey)
 	require.Nil(t, err)
-	expected := "0xf86e80852e90edd000830668a094fd01ba8507367c8a689913ea92a1526dd3893fc185174876e8008084c6afa5e4a07c3d623039edfa98327437170a3e087213dadc29d134b7151f37ff92267a04fba06ea511af335fba57bca3f4d900651459f1a292208d56088751148aa1f795bb72"
+	expected := "0xf86e80852e90edd000830668a09497e2728c08bd0bfba631929e10bceaec8fc5c96185174876e8008084c6afa5e4a00eff8095fbcdd29d7d3e26e211f345c6b7f26c66bba360dff936608c056ab786a00c86c1ebc0792fa2c0d326d3652a756813674f514db93278ebcd084663ba5422"
 	require.Equal(t, expected, signedTx)
 }

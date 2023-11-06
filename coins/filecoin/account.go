@@ -23,15 +23,13 @@ import (
 var (
 	payloadHashConfig  = &blake2b.Config{Size: 20}
 	checksumHashConfig = &blake2b.Config{Size: 4}
-
-	AddressEncoding = base32.NewEncoding(encodeStd)
+	AddressEncoding    = base32.NewEncoding(encodeStd)
 )
 
 const (
 	MainnetPrefix = "f"
 	TestnetPrefix = "t"
-
-	encodeStd = "abcdefghijklmnopqrstuvwxyz234567"
+	encodeStd     = "abcdefghijklmnopqrstuvwxyz234567"
 )
 
 const (

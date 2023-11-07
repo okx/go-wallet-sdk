@@ -1,6 +1,6 @@
 module github.com/okx/go-wallet-sdk/coins/eos
 
-go 1.21.3
+go 1.19
 
 require (
 	github.com/btcsuite/btcd/btcutil v1.1.3

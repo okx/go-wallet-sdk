@@ -2,6 +2,7 @@ package oasis
 
 import (
 	"encoding/base64"
+	"github.com/stretchr/testify/require"
 	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/bech32"
 	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/cbor"
 	"math/big"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestCreateTx(t *testing.T) {
-	pk := "fb181e94e95cc6bedd2da03e6c4aca9951053f3e9865945dbc8975a6afd217c3ad55bbb7c192b8ecfeb6ad18bbd7681c0923f472d5b0c212fbde33008005ad61"
+	pk := "a30a45ef8c019d22b7e8d18f11197677bff80ff4d2f23ab9ac14bdbac32c86e7baf40754ed3843e0464f814c3c605d8c36500cfb6892e2bd441839102f4200ed"
 	chainId := "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535"
 	toAddr := "oasis1qqx0wgxjwlw3jwatuwqj6582hdm9rjs4pcnvzz66"
 	amount := big.NewInt(100000000)
@@ -18,10 +19,7 @@ func TestCreateTx(t *testing.T) {
 	nonce := uint64(7)
 
 	_, toBytes, err := bech32.DecodeToBase256(toAddr)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
+	require.NoError(t, err)
 
 	to := [21]byte{}
 	copy(to[:], toBytes)
@@ -30,36 +28,25 @@ func TestCreateTx(t *testing.T) {
 		To:     to,
 		Amount: amount.Bytes(),
 	}
-
 	tx := NewTx(nonce, gas, feeAmount, transfer)
 	signedTx := SignTransaction(pk, chainId, tx)
-
 	signedTxBytes, err := cbor.Marshal(signedTx)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-
+	require.NoError(t, err)
 	t.Logf("signed tx : %s", base64.StdEncoding.EncodeToString(signedTxBytes))
 }
 
 func TestCreateTransferTx(t *testing.T) {
-	pk := "fb181e94e95cc6bedd2da03e6c4aca9951053f3e9865945dbc8975a6afd217c3ad55bbb7c192b8ecfeb6ad18bbd7681c0923f472d5b0c212fbde33008005ad61"
+	pk := "a30a45ef8c019d22b7e8d18f11197677bff80ff4d2f23ab9ac14bdbac32c86e7baf40754ed3843e0464f814c3c605d8c36500cfb6892e2bd441839102f4200ed"
 	chainId := "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535"
 	toAddr := "oasis1qqx0wgxjwlw3jwatuwqj6582hdm9rjs4pcnvzz66"
 	amount := big.NewInt(100000000)
 	feeAmount := big.NewInt(0)
 	gas := uint64(2000)
 	nonce := uint64(8)
-
 	tx := NewTransferTx(nonce, gas, feeAmount, toAddr, amount)
 	signedTx := SignTransaction(pk, chainId, tx)
 
 	signedTxBytes, err := cbor.Marshal(signedTx)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-
+	require.NoError(t, err)
 	t.Logf("signed tx : %s", base64.StdEncoding.EncodeToString(signedTxBytes))
 }

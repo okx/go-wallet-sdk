@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/btcsuite/btcd/btcutil/bech32"
-	"github.com/okx/go-wallet-sdk/crypto/cbor"
+	"github.com/okx/go-wallet-sdk/coins/oasis/cbor"
 )
 
 func NewAddress(privateKeyHex string) (string, error) {

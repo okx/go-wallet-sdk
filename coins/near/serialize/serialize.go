@@ -159,7 +159,6 @@ func (s *Transfer) Serialize() ([]byte, error) {
 	return data, nil
 }
 
-// FunctionCall
 type FunctionCall struct {
 	Action     uint8
 	MethodName String

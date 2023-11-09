@@ -41,7 +41,6 @@ func TestSerializeTupleCV(t *testing.T) {
 
 	tuple := &TupleCV{Tuple, test}
 	s := serializeCV(tuple)
-	fmt.Println(hex.EncodeToString(s))
 	assert.Equal(t, "0c0000000402616204026163030262610a01000000000000000000000000000000020263640100000000000000000000000000000001", hex.EncodeToString(s))
 }
 
@@ -56,12 +55,8 @@ func TestSerializeStringCV(t *testing.T) {
 
 func TestDeserializeCV1(t *testing.T) {
 	test := NewUintCV(big.NewInt(100))
-	fmt.Printf("pre:   %+v\n", test)
 	serialized := hex.EncodeToString(serializeCV(test))
-	fmt.Printf("serialized: %+v\n", serialized)
 	res := DeserializeCV(serialized).(UintCV)
-	fmt.Printf("after: %+v\n", res)
-
 	assert.Equal(t, true, reflect.DeepEqual(*test, res))
 }
 
@@ -90,37 +85,22 @@ func TestDeserializeCV5(t *testing.T) {
 
 func TestDeserializeCV6(t *testing.T) {
 	test, _ := NewContractPrincipalCV("SP001SFSMC2ZY76PD4M68P3WGX154XCH7NE3TYMX.pox-pools-1-cycle")
-	js, _ := json.Marshal(test)
-	fmt.Printf("pre:   %s\n", string(js))
 	serialized := hex.EncodeToString(serializeCV(test))
-	fmt.Printf("serialized: %+v\n", serialized)
 	res := DeserializeCV(serialized).(ContractPrincipalCV)
-	jsAfter, _ := json.Marshal(res)
-	fmt.Printf("after: %+v\n", string(jsAfter))
 	assert.Equal(t, true, reflect.DeepEqual(*test, res))
 }
 
 func TestDeserializeCV9(t *testing.T) {
 	test := NoneCV{OptionalNone}
-	js, _ := json.Marshal(test)
-	fmt.Printf("pre:   %s\n", string(js))
 	serialized := hex.EncodeToString(serializeCV(test))
-	fmt.Printf("serialized: %+v\n", serialized)
 	res := DeserializeCV(serialized).(NoneCV)
-	jsAfter, _ := json.Marshal(res)
-	fmt.Printf("after: %+v\n", string(jsAfter))
 	assert.Equal(t, true, reflect.DeepEqual(test, res))
 }
 
 func TestDeserializeCV10(t *testing.T) {
 	test := &SomeCV{OptionalSome, NewUintCV(big.NewInt(1))}
-	js, _ := json.Marshal(test)
-	fmt.Printf("pre:   %s\n", string(js))
 	serialized := hex.EncodeToString(serializeCV(test))
-	fmt.Printf("serialized: %+v\n", serialized)
 	res := DeserializeCV(serialized).(SomeCV)
-	jsAfter, _ := json.Marshal(res)
-	fmt.Printf("after: %+v\n", string(jsAfter))
 	reflect.DeepEqual(*test, res)
 }
 
@@ -249,8 +229,6 @@ func TestDeserializeCVWithJson(t *testing.T) {
 	test13 := &StringCV{IntASCII, "testStringAsciiCV"}
 	test14 := &StringCV{IntUTF8, "testStringUtf8CV"}
 	for i, j := range res {
-		jsonRes, _ := json.Marshal(j)
-		fmt.Println(string(jsonRes))
 		serializeCV(j)
 		if i == 0 {
 			assert.Equal(t, true, reflect.DeepEqual(j, test0))

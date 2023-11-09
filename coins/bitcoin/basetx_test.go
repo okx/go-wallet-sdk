@@ -107,7 +107,7 @@ func TestAddress(t *testing.T) {
 	assert.Equal(t, "mwHiLyYXKVbhN6zwJkenkPsydj9MBLXb1K", addressEncoded)
 }
 
-func TestUnsingedTx(t *testing.T) {
+func TestSingTx(t *testing.T) {
 	txBuild := NewTxBuild(1, &chaincfg.TestNet3Params)
 	txBuild.AddInput("0b2c23f5c2e6326c90cfa1d3925b0d83f4b08035ca6af8fd8f606385dfbc5822", 1, "", "", "", 0)
 	txBuild.AddOutput("mvNnCR7EJS4aUReLEw2sL2ZtTZh8CAP8Gp", 53000)

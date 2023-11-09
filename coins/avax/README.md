@@ -1,5 +1,5 @@
-# @okxweb3/coin-aptos
-Aptos SDK is used to interact with the Aptos blockchain, it contains various functions can be used to web3 wallet.
+# @okxweb3/coin-avax
+Avax SDK is used to interact with the Aptos blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation
 

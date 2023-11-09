@@ -193,7 +193,6 @@ type PackedTransaction struct {
 	PackedTransaction     HexBytes        `json:"packed_trx"`
 }
 
-// ID returns the hash of a transaction. 这里仅限于本地打包，构造的交易计算ID是错误的
 func (p *PackedTransaction) ID() (Checksum256, error) {
 	h := sha256.New()
 	_, _ = h.Write(p.PackedTransaction)

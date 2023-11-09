@@ -78,7 +78,6 @@ func NewTransactionByOperation(from, to string, amount int64, op *types.Op, opts
 	if err != nil || !recv.IsValid() {
 		return nil, fmt.Errorf("Invalid receiver %q: %v", to, err)
 	}
-	// construct batch operation 注：如果想要多加的话，多次调用 WithTransfer
 	op.WithTransfer(recv, amount)
 	return op, nil
 }

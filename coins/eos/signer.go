@@ -34,7 +34,6 @@ func (b *Signer) Add(wifKey string) error {
 		return err
 	}
 	if privateKey == nil {
-		// 目前理论走不到这里
 		return errors.New("appending a nil private key is forbidden")
 	}
 	b.Keys = append(b.Keys, privateKey)

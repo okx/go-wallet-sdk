@@ -32,7 +32,6 @@ func GetAddressByPrivateKey(privateKey string) (string, error) {
 	return key.Address().String(), nil
 }
 
-// GenerateKeyPair generates a new key pair.
 func GenerateKeyPair() (string, string, error) {
 	key, err := types.GenerateKey(types.KeyTypeSecp256k1)
 	if err != nil {

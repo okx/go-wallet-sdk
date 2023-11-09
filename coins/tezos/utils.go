@@ -5,7 +5,6 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/tezos/types"
 )
 
-// TODO: fetch dynamic from /chains/main/mempool/filter
 const (
 	minFeeFixedNanoTez int64 = 100_000
 	minFeeByteNanoTez  int64 = 1_000

@@ -16,7 +16,7 @@ type CallOptions struct {
 	// custom options
 	BlockHash  types.BlockHash
 	Counter    int64 // number of times counters
-	NeedReveal bool  // whether 公钥需要揭示，
+	NeedReveal bool
 }
 
 func NewCallOptions(blockHash string, counter int64, needReveal bool) *CallOptions {

@@ -218,3 +218,35 @@ func TestRevokeDelegateStx(t *testing.T) {
 	require.Equal(t, "000000000104006ecfff9cee8ac5367c83ad0819e4c500b6c475d6000000000000003b0000000000000bb80000836a3bb9ea65e4a725e2f09b73df8a2361542452e6b4bf033639668ff395f07f1bfa0a59b5737a9b26681cb2ab53982afe1ac6061e9b4e806f293314ab934b9a0302000000000216000000000000000000000000000000000000000005706f782d33137265766f6b652d64656c65676174652d73747800000000", txSerialized)
 	require.Equal(t, "ae33e6fb41975052b5ca59443cd393f667bbea1379f5c2fc7a65e7bfd6a30643", txId)
 }
+
+func TestContractCallWithPostConditions(t *testing.T) {
+	contractAddress := "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9"
+	contractName := "amm-swap-pool-v1-1"
+	functionName := "swap-helper"
+	privateKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
+	postConditionMode := 2
+	postConditions := []string{"000216c03b5520cf3a0bd270d8e41e5e19a464aef6294c010000000000002710", "010316e685b016b3b6cd9ebf35f38e5ae29392e2acd51d0f616c65782d7661756c742d76312d3116e685b016b3b6cd9ebf35f38e5ae29392e2acd51d176167653030302d676f7665726e616e63652d746f6b656e04616c657803000000000078b854"}
+	fee := big.NewInt(0)
+	nonce := big.NewInt(0)
+	var functionArgs []ClarityValue
+
+	txOption := &SignedContractCallOptions{
+		ContractAddress:         contractAddress,
+		ContractName:            contractName,
+		FunctionName:            functionName,
+		FunctionArgs:            functionArgs,
+		SendKey:                 privateKey,
+		ValidateWithAbi:         false,
+		Fee:                     *fee,
+		Nonce:                   *nonce,
+		AnchorMode:              3,
+		PostConditionMode:       postConditionMode,
+		SerializePostConditions: postConditions,
+	}
+
+	tx, _ := MakeContractCall(txOption)
+	txSerlize := hex.EncodeToString(Serialize(*tx))
+	txId := Txid(*tx)
+	fmt.Println(txSerlize)
+	fmt.Println(txId)
+}

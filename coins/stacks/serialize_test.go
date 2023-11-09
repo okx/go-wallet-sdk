@@ -263,3 +263,13 @@ func TestDeserializeCVWithJson(t *testing.T) {
 		}
 	}
 }
+
+func TestDeserializePostCondition(t *testing.T) {
+	str := []string{"000216c03b5520cf3a0bd270d8e41e5e19a464aef6294c010000000000002710", "010316e685b016b3b6cd9ebf35f38e5ae29392e2acd51d0f616c65782d7661756c742d76312d3116e685b016b3b6cd9ebf35f38e5ae29392e2acd51d176167653030302d676f7665726e616e63652d746f6b656e04616c657803000000000078b854"}
+	var res []PostConditionInterface
+	for _, s := range str {
+		v := DeserializePostCondition(s)
+		res = append(res, v)
+	}
+	fmt.Printf("%+v", res)
+}

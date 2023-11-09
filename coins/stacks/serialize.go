@@ -377,6 +377,77 @@ func serializeMessageSignature(messageSignature *MessageSignature) []byte {
 	return sliceByteBuffer(bufferArray)
 }
 
+func DeserializePostCondition(postCondition string) PostConditionInterface {
+	bytesReader := NewBytesReader(hexToBytes(postCondition))
+
+	postConditionType := bytesReader.ReadUInt8()
+	principal := deserializePrincipal(bytesReader)
+
+	switch postConditionType {
+	case STX:
+		conditionCode := bytesReader.ReadUInt8()
+		amount, _ := new(big.Int).SetString(hex.EncodeToString(bytesReader.ReadBytes(8)), 10)
+		return STXPostCondition{
+			PostCondition: PostCondition{
+				StacksMessage: StacksMessage{
+					Type: POSTCONDITION,
+				},
+				ConditionType: STX,
+				Principal:     principal,
+				ConditionCode: int(conditionCode),
+			},
+			amount: amount,
+		}
+	case Fungible:
+		assetInfo := deserializeAssetInfo(bytesReader)
+		conditionCode := bytesReader.ReadUInt8()
+		amount, _ := new(big.Int).SetString(hex.EncodeToString(bytesReader.ReadBytes(8)), 16)
+		return FungiblePostCondition{
+			PostCondition: PostCondition{
+				StacksMessage: StacksMessage{
+					Type: POSTCONDITION,
+				},
+				ConditionType: Fungible,
+				Principal:     principal,
+				ConditionCode: int(conditionCode),
+			},
+			assetInfo: *assetInfo,
+			amount:    amount,
+		}
+	}
+	return nil
+}
+
+func deserializeAssetInfo(bytesReader *BytesReader) *AssetInfo {
+	return &AssetInfo{
+		type_:        ASSETINFO,
+		address:      *deserializeAddress(bytesReader),
+		contractName: *deserializeLPString(bytesReader),
+		assetName:    *deserializeLPString(bytesReader),
+	}
+}
+
+func deserializePrincipal(bytesReader *BytesReader) PostConditionPrincipalInterface {
+	prefix := bytesReader.ReadUInt8()
+	address := deserializeAddress(bytesReader)
+
+	p := PostConditionPrincipal{
+		Type:    PRINCIPAL,
+		Prefix:  int(prefix),
+		Address: *address,
+	}
+
+	if prefix == Standard {
+		return p
+	}
+
+	contractName := deserializeLPString(bytesReader)
+	return ContractPrincipal{
+		PostConditionPrincipal: p,
+		contractName:           *contractName,
+	}
+}
+
 func DeserializeCV(serializedClarityValue string) ClarityValue {
 	if strings.HasPrefix(serializedClarityValue, "0x") {
 		serializedClarityValue = serializedClarityValue[:2]

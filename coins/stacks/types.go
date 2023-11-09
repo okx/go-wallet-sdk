@@ -106,6 +106,10 @@ type PostCondition struct {
 	ConditionCode int
 }
 
+func (p PostCondition) getConditionType() int {
+	return p.ConditionType
+}
+
 func (p PostCondition) GetType() int {
 	// return p.Type
 	return p.ConditionType
@@ -139,6 +143,19 @@ func (c ContractPrincipal) getPrefix() int {
 
 type PostConditionPrincipalInterface interface {
 	getPrefix() int
+}
+
+type STXPostCondition struct {
+	PostCondition
+	amount *big.Int
+}
+
+func (s STXPostCondition) getConditionType() int {
+	return s.ConditionType
+}
+
+func (s STXPostCondition) GetType() int {
+	return s.Type
 }
 
 type FungiblePostCondition struct {

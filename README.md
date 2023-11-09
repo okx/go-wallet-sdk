@@ -15,7 +15,6 @@ blockchains, and will gradually release the source codes for each blockchain.
 | Starknet | ✅                 | ✅                    | ✅                   |
 | Aptos    | ✅                 | ✅                    | ✅                   |
 | Near     | ✅                 | ✅                    | ✅                   |
-| Polkadot | ✅                 | ✅                    | ✅                   |
 | Solana   | ✅                 | ✅                    | ✅                   |
 | Stacks   | ✅                 | ✅                    | ✅                   |
 | SUI      | ✅                 | ✅                    | ✅                   |
@@ -24,7 +23,7 @@ blockchains, and will gradually release the source codes for each blockchain.
 | Axelar   | ✅                 | ✅                    | ✅                   |
 | Cronos   | ✅                 | ✅                    | ✅                   |
 | Evmos    | ✅                 | ✅                    | ✅                   |
-| Eris     | ✅                 | ✅                    | ✅                   |
+| Iris     | ✅                 | ✅                    | ✅                   |
 | Juno     | ✅                 | ✅                    | ✅                   |
 | Kava     | ✅                 | ✅                    | ✅                   |
 | Kujira   | ✅                 | ✅                    | ✅                   |
@@ -34,7 +33,20 @@ blockchains, and will gradually release the source codes for each blockchain.
 | Sei      | ✅                 | ✅                    | ✅                   |
 | Stargaze | ✅                 | ✅                    | ✅                   |
 | Terra    | ✅                 | ✅                    | ✅                   |
+| Tia      | ✅                 | ✅                    | ✅                   |
 | Avax     | ✅                 | ✅                    | ✅                   |
+| Elrond   | ✅                 | ✅                    | ✅                   |
+| Flow     | ✅                 | ✅                    | ✅                   |
+| Harmony  | ✅                 | ✅                    | ✅                   |
+| Helium   | ✅                 | ✅                    | ✅                   |
+| Kaspa    | ✅                 | ✅                    | ✅                   |
+| Nervos   | ✅                 | ✅                    | ✅                   |
+| Oasis    | ✅                 | ✅                    | ✅                   |
+| Tezos    | ✅                 | ✅                    | ✅                   |
+| Waves    | ✅                 | ✅                    | ✅                   |
+| Zil      | ✅                 | ✅                    | ✅                   |
+| Zkspace  | ✅                 | ✅                    | ✅                   |
+| Zksync   | ✅                 | ✅                    | ✅                   |
 
 *BTC: Supports Supports BRC20-related functions, including inscription creation, BRC20 buying and selling.
 

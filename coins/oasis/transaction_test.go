@@ -2,9 +2,9 @@ package oasis
 
 import (
 	"encoding/base64"
+	"github.com/okx/go-wallet-sdk/crypto/bech32"
+	"github.com/okx/go-wallet-sdk/crypto/cbor"
 	"github.com/stretchr/testify/require"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/bech32"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/cbor"
 	"math/big"
 	"testing"
 )

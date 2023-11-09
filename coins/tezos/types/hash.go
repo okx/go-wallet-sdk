@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/base58"
 	"strings"
 )
 
@@ -239,7 +238,7 @@ func decodeHash(hstr string) (Hash, error) {
 	}
 	decoded, version, err := CheckDecode(hstr, len(typ.PrefixBytes()), nil)
 	if err != nil {
-		if err == base58.ErrChecksum {
+		if err == ErrChecksum {
 			return Hash{}, ErrChecksumMismatch
 		}
 		return Hash{}, fmt.Errorf("tezos: unknown hash format: %w", err)

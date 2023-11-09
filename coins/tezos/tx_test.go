@@ -3,7 +3,7 @@ package tezos
 import (
 	"encoding/hex"
 	"encoding/json"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/coin/tezos/types"
+	"github.com/okx/go-wallet-sdk/coins/tezos/types"
 	"testing"
 )
 
@@ -20,8 +20,8 @@ const (
 
 func TestNewTransaction(t *testing.T) {
 	var amount int64 = 6000000
-	var fee int64 = 10000      // 0.010000 XTZ
-	var counter int64 = 339709 // 与 operation 有关
+	var fee int64 = 10000 // 0.010000 XTZ
+	var counter int64 = 339709
 	opt := NewCallOptions("BL74GqeaJ8tdFuBR2RhsGXET7MNonprQ49BBreZHE9yn9x85hJP", counter, false)
 	privateKey, err := types.ParsePrivateKey(p1)
 	if err != nil {
@@ -51,9 +51,9 @@ func TestNewTransaction(t *testing.T) {
 }
 
 func TestNewJakartanetDelegationTransaction(t *testing.T) {
-	var to string = "tz1foXHgRzdYdaLgX6XhpZGxbBv42LZ6ubvE" // 找一个面包师
-	var fee int64 = 10000                                  // 0.010000 XTZ
-	var counter int64 = 331345                             // 与 operation 有关
+	var to string = "tz1foXHgRzdYdaLgX6XhpZGxbBv42LZ6ubvE"
+	var fee int64 = 10000
+	var counter int64 = 331345
 	opt := NewCallOptions("BL7kQbhcCsMYB954n94XcSZmS1oTYcg8J7ut2wj6iZpL3fRBdM3", counter, false)
 	privateKey, err := types.ParsePrivateKey(p2)
 	if err != nil {
@@ -83,8 +83,8 @@ func TestNewJakartanetDelegationTransaction(t *testing.T) {
 }
 
 func TestNewJakartanetUnDelegationTransaction(t *testing.T) {
-	var fee int64 = 10000      // 0.010000 XTZ
-	var counter int64 = 339708 // 与 operation 有关
+	var fee int64 = 10000 // 0.010000 XTZ
+	var counter int64 = 339708
 
 	opt := NewCallOptions("BL7kQbhcCsMYB954n94XcSZmS1oTYcg8J7ut2wj6iZpL3fRBdM3", counter, false)
 	privateKey, err := types.ParsePrivateKey(p2)

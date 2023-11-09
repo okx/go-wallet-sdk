@@ -3,7 +3,7 @@ package types
 import (
 	"crypto/sha256"
 	"errors"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/base58"
+	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"sync"
 )
 

@@ -6,7 +6,6 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/okx/go-wallet-sdk/crypto v0.0.2-0.20231108145839-baf3654b981a
 	github.com/stretchr/testify v1.8.4
-	gitlab.okg.com/wallet-sign-core/go-parent-sdk v1.1.8
 )
 
 require (

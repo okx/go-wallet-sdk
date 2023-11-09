@@ -2,7 +2,7 @@ package tezos
 
 import (
 	"encoding/json"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/coin/tezos/types"
+	"github.com/okx/go-wallet-sdk/coins/tezos/types"
 	"strconv"
 )
 

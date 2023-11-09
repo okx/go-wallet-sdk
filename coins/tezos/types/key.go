@@ -8,8 +8,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/base58"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/dcrec/secp256k1"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"golang.org/x/crypto/blake2b"
 	"strings"
 )
@@ -184,8 +183,8 @@ func ParseKey(s string) (Key, error) {
 	}
 	decoded, version, err := CheckDecode(s, 4, nil)
 	if err != nil {
-		if err == base58.ErrChecksum {
-			return k, base58.ErrChecksum
+		if err == ErrChecksum {
+			return k, ErrChecksum
 		}
 		return k, fmt.Errorf("tezos: unknown format for key %s: %w", s, err)
 	}
@@ -356,7 +355,7 @@ func ParseEncryptedPrivateKey(s string, fn PassphraseFunc) (k PrivateKey, err er
 	// decode base58, version length differs between encrypted and non-encrypted keys
 	decoded, version, err := CheckDecode(s, prefixLen, nil)
 	if err != nil {
-		if err == base58.ErrChecksum {
+		if err == ErrChecksum {
 			err = ErrChecksumMismatch
 			return
 		}

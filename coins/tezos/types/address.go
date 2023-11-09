@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/base58"
 	"strings"
 )
 
@@ -164,7 +163,7 @@ func ParseAddress(addr string) (Address, error) {
 	}
 	decoded, version, err := CheckDecode(addr, sz, nil)
 	if err != nil {
-		if err == base58.ErrChecksum {
+		if err == ErrChecksum {
 			return a, ErrChecksumMismatch
 		}
 		return a, fmt.Errorf("tezos: decoded address is of unknown format: %w", err)

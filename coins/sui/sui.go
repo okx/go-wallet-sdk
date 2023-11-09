@@ -87,12 +87,59 @@ func NewAddress(seedHex string) string {
 	return address
 }
 
+func GetAddressByPubKey(publicKeyHex string) (string, error) {
+	publicKey, err := hex.DecodeString(publicKeyHex)
+	if err != nil {
+		return "", err
+	}
+	if len(publicKey) != PUBLIC_KEY_SIZE {
+		return "", nil
+	}
+	k := make([]byte, PUBLIC_KEY_SIZE+1)
+	copy(k[1:], publicKey)
+	hash := blake2b.New256()
+	hash.Write(k)
+	h := hash.Sum(nil)
+	address := "0x" + hex.EncodeToString(h)[0:64]
+	return address, nil
+}
+
 type Request struct {
 	Data string `json:"data"`
 	Type Type   `json:"type"`
 }
 
-func prepareTx(r *Request, to string, gasBudget uint64, gasPrice uint64, addr string) (string, error) {
+func GetTxHash(r *Request, to string, gasBudget uint64, gasPrice uint64, addr string) (string, error) {
+	txBytes, err := PrepareTx(r, to, gasBudget, gasPrice, addr)
+	if err != nil {
+		return "", err
+	}
+
+	if len(txBytes) == 0 {
+		return "", errors.New("err txBytes")
+	}
+
+	b, err := GetRawTx(txBytes)
+	if err != nil {
+		return "", errors.New("get raw tx err")
+	}
+	return b, nil
+}
+
+func GetRawTx(txBytes string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(txBytes)
+	if err != nil {
+		return "", errors.New("decode txBytes error")
+	}
+	signDo := make([]byte, len(data)+3)
+	copy(signDo[3:], data)
+	hash := blake2b.New256()
+	hash.Write(signDo)
+	b := hash.Sum(nil)
+	return hex.EncodeToString(b), err
+}
+
+func PrepareTx(r *Request, to string, gasBudget uint64, gasPrice uint64, addr string) (string, error) {
 	var s []byte
 	var err error
 	switch {
@@ -181,7 +228,7 @@ func Execute(r *Request, from, to string, gasBudget uint64, gasPrice uint64, see
 	if gasPrice == 0 {
 		return "", errors.New("invalid sui gasPrice")
 	}
-	raw, err := prepareTx(r, to, gasBudget, gasPrice, addr)
+	raw, err := PrepareTx(r, to, gasBudget, gasPrice, addr)
 	if err != nil {
 		return "", err
 	}

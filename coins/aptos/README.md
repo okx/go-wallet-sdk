@@ -34,6 +34,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/aptos
 	data, err := aptos.Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		to, uint64(amount), seedHex)
 	if err != nil {
+		// todo
 		fmt.Println(err)
 	}
 	fmt.Println(data)

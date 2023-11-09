@@ -109,7 +109,6 @@ func ConvertScriptToAddress(mode Mode, script *types.Script) (string, error) {
 }
 
 // ConvertScriptToBech32mFullAddress converts a script to a bech32m full address.
-// 生成 bech32m 地址
 func ConvertScriptToBech32mFullAddress(mode Mode, script *types.Script) (string, error) {
 	hashType, err := types.SerializeHashType(script.HashType)
 	if err != nil {
@@ -136,7 +135,6 @@ type ParsedAddress struct {
 	Script *types.Script
 }
 
-// Parse 解码地址
 func Parse(address string) (*ParsedAddress, error) {
 	encoding, hrp, decoded, err := crypto.Bech32Decode(address)
 	if err != nil {

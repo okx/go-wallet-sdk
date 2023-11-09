@@ -35,8 +35,6 @@ func NewTxBuildWithTx(tx *types.Transaction, chain string) *TransactionBuilder {
 }
 
 // AddInput adds an input to the transaction.
-// prevhash 为前置 hash
-// index 为前置的 index
 // The field since prevents a transaction been mined before a specific time. It already has its own RFC.
 func (t *TransactionBuilder) AddInput(prevhash string, index uint, since uint64) error {
 	if prevhash == "" {

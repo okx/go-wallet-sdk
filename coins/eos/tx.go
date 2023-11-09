@@ -17,9 +17,6 @@ func NewTransaction(actions []*types.Action, opts *types.TxOptions) *types.Trans
 	return tx
 }
 
-// NewTransactionWithParams creates a new EOS Transaction object, ready to sign.
-// from, to 不得大于 12 个字符，memo 没有限制
-// quantity 需要合规
 func NewTransactionWithParams(from, to, memo string, quantity types.Asset, opts *types.TxOptions) *types.Transaction {
 	if len(from) > 12 || len(to) > 12 {
 		return nil
@@ -27,9 +24,6 @@ func NewTransactionWithParams(from, to, memo string, quantity types.Asset, opts 
 	return NewTransaction([]*types.Action{types.NewTransfer(from, to, quantity, memo)}, opts)
 }
 
-// NewContractTransaction creates a new EOS Transaction object, ready to sign.
-// from, to 不得大于 12 个字符，memo 没有限制
-// quantity 需要合规
 func NewContractTransaction(name, from, to, memo string, quantity types.Asset, opts *types.TxOptions) *types.Transaction {
 	if len(from) > 12 || len(to) > 12 || len(name) > 12 {
 		return nil

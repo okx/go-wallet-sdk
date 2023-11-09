@@ -17,7 +17,6 @@ func GenerateWavesKey(rand io.Reader) (publicKey *[PublicKeySize]byte, privateKe
 	//h := sha512.New()
 	//h.Write(privateKey[:32])
 	//digest := h.Sum(nil)
-	// 这里不进行 sha512 加密，直接使用 privateKey 的前 32 位
 	digest := privateKey[:32]
 
 	digest[0] &= 248

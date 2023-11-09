@@ -6,7 +6,6 @@ import (
 	"math/big"
 )
 
-// GetPubKeyHash 获取zkSync pubKey
 func GetPubKeyHash(ethPrivKeyHex string, chainId int) (string, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -16,7 +15,6 @@ func GetPubKeyHash(ethPrivKeyHex string, chainId int) (string, error) {
 	return signer.getPublicKeyHash(), nil
 }
 
-// GetAddress 获取地址
 func GetAddress(ethPrivKeyHex string) (string, error) {
 	privKeyBytes, err := hex.DecodeString(ethPrivKeyHex)
 	if err != nil {
@@ -30,7 +28,6 @@ func GetAddress(ethPrivKeyHex string) (string, error) {
 	return ethSigner.GetAddress(), nil
 }
 
-// SignWithdraw 给 Withdraw 签名，可指定交易费的 token
 func SignWithdraw(withdraw *core.Withdraw, feeToken *core.Token, ethPrivKeyHex string, chainId int) (*core.SignedTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -55,7 +52,6 @@ func SignWithdraw(withdraw *core.Withdraw, feeToken *core.Token, ethPrivKeyHex s
 	return signedTransaction, nil
 }
 
-// SignTransfer 给 Transfer 签名，交易费与交易 token 相同
 func SignTransfer(transfer *core.Transfer, ethPrivKeyHex string, chainId int) (*core.SignedTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -81,7 +77,6 @@ func SignTransfer(transfer *core.Transfer, ethPrivKeyHex string, chainId int) (*
 
 }
 
-// SignBatchTransfer 给多个 Transfer 签名，交易费包含在其中一个交易中
 func SignBatchTransfer(transfers []*core.Transfer, ethPrivKeyHex string, chainId int) (*BatchTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -128,7 +123,6 @@ func SignBatchTransfer(transfers []*core.Transfer, ethPrivKeyHex string, chainId
 	return signedTransaction, nil
 }
 
-// SignChangePubKey 签名设置公钥
 func SignChangePubKey(changePubKey *core.ChangePubKey, ethPrivKeyHex string, chainId int) (*core.SignedTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -150,7 +144,6 @@ func SignChangePubKey(changePubKey *core.ChangePubKey, ethPrivKeyHex string, cha
 	return signedTransaction, nil
 }
 
-// SignMintNFT 签名铸NFT，可指定交易费的token
 func SignMintNFT(mintNFT *core.MintNFT, feeToken *core.Token, ethPrivKeyHex string, chainId int) (*core.SignedTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {
@@ -175,7 +168,6 @@ func SignMintNFT(mintNFT *core.MintNFT, feeToken *core.Token, ethPrivKeyHex stri
 	return signedTransaction, nil
 }
 
-// SignWithdrawNFT 签名提取NFT
 func SignWithdrawNFT(withdrawNft *core.WithdrawNFT, feeToken *core.Token, ethPrivKeyHex string, chainId int) (*core.SignedTransaction, error) {
 	signer, err := newSigner(ethPrivKeyHex, chainId)
 	if err != nil {

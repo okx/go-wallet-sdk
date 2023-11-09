@@ -185,7 +185,6 @@ func (t HashType) PrefixBytes() []byte {
 	}
 }
 
-// ChainIdHash
 type ChainIdHash struct {
 	Hash
 }
@@ -230,7 +229,6 @@ func (h Hash) Clone() Hash {
 	}
 }
 
-// internal decoders
 func decodeHash(hstr string) (Hash, error) {
 	typ := ParseHashType(hstr)
 	if typ == HashTypeInvalid {
@@ -491,7 +489,6 @@ func ParseHashType(s string) HashType {
 	return HashTypeInvalid
 }
 
-// ProtocolHash
 type ProtocolHash struct {
 	Hash
 }

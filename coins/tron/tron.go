@@ -123,13 +123,12 @@ func SignEnd(txStr string, txSignStr string) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-// create a TRC transfer transaction
-//
-//		refBlockBytes - transaction reference block height (take 6-7 2 bytes)
-//	 refBlockHash - block hash referenced by the transaction (take 8-15 8 bytes)
-//	 expiration - transaction expiration time, beyond this time the transaction will not be packed
-//	 timestamp - transaction creation time
-//	 fee_limit - the maximum energy consumption of smart contract transactions, only need to be set when deploying or calling smart contracts
+//	  create a TRC transfer transaction
+//		 refBlockBytes - transaction reference block height (take 6-7 2 bytes)
+//		 refBlockHash - block hash referenced by the transaction (take 8-15 8 bytes)
+//		 expiration - transaction expiration time, beyond this time the transaction will not be packed
+//		 timestamp - transaction creation time
+//		 fee_limit - the maximum energy consumption of smart contract transactions, only need to be set when deploying or calling smart contracts
 func newTransfer(fromAddress string, toAddress string, amount int64, refBlockBytes string, refBlockHash string, expiration int64, timestamp int64) (string, error) {
 	owner, err := GetAddressHash(fromAddress)
 	if err != nil {

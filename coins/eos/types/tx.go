@@ -64,9 +64,7 @@ func (tx *Transaction) Fill(headBlockID Checksum256, delaySecs, maxNetUsageWords
 	tx.MaxCPUUsageMS = maxCPUUsageMS
 	tx.DelaySec = Varuint32(delaySecs)
 
-	// 默认 30 s 过期时间
 	tx.SetExpiration(30 * time.Second)
-	// 设置过期时间
 	if expiration > 30*time.Second && expiration < 3*time.Minute {
 		tx.SetExpiration(expiration)
 	}

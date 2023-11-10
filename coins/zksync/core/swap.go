@@ -4,6 +4,10 @@ import (
 	"math/big"
 )
 
+const (
+	TransactionTypeSwap = "Swap"
+)
+
 type Order struct {
 	AccountId         uint32        `json:"accountId"`
 	RecipientAddress  string        `json:"recipient"`
@@ -16,10 +20,6 @@ type Order struct {
 	EthereumSignature *EthSignature `json:"ethereumSignature"`
 	*TimeRange
 }
-
-const (
-	TransactionTypeSwap TransactionType = "Swap"
-)
 
 type Swap struct {
 	Type             string     `json:"type"`
@@ -35,5 +35,5 @@ type Swap struct {
 }
 
 func (t *Swap) getType() string {
-	return "Swap"
+	return TransactionTypeSwap
 }

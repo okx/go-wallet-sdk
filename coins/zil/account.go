@@ -10,52 +10,56 @@ import (
 
 const hrp = "zil"
 
-func GetAddressFromPrivateKey(privKeyHex string) string {
-	privBytes, _ := hex.DecodeString(privKeyHex)
+func GetAddressFromPrivateKey(privKeyHex string) (string, error) {
+	privBytes, err := hex.DecodeString(privKeyHex)
+	if err != nil {
+		return "", err
+	}
 	privateKey := secp256k1.PrivKeyFromBytes(privBytes)
 	pubBytes := privateKey.PubKey().SerializeCompressed()
 	hash := sha256.New()
 	hash.Write(pubBytes)
 	pubHash := hash.Sum(nil)[12:]
-
-	conv, _ := bech32.ConvertBits(pubHash, 8, 5, false)
-	address, _ := bech32.Encode(hrp, conv)
-	return address
+	conv, err := bech32.ConvertBits(pubHash, 8, 5, false)
+	if err != nil {
+		return "", err
+	}
+	address, err := bech32.Encode(hrp, conv)
+	if err != nil {
+		return "", err
+	}
+	return address, nil
 }
 
-func GetPublicKeyFromPrivateKey(privKeyHex string) string {
-	privBytes, _ := hex.DecodeString(privKeyHex)
+func GetPublicKeyFromPrivateKey(privKeyHex string) (string, error) {
+	privBytes, err := hex.DecodeString(privKeyHex)
+	if err != nil {
+		return "", err
+	}
 	privateKey := secp256k1.PrivKeyFromBytes(privBytes)
 	pubBytes := privateKey.PubKey().SerializeCompressed()
-	return hex.EncodeToString(pubBytes)
+	return hex.EncodeToString(pubBytes), nil
 }
 
 func FromBech32Addr(address string) (string, error) {
 	h, data, err := bech32.Decode(address)
-
 	if err != nil {
 		return "", err
 	}
-
 	if h != hrp {
 		return "", errors.New("expected hrp to be zil")
 	}
-
 	conv, err := bech32.ConvertBits(data, 5, 8, false)
-
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-
 	buf := make([]byte, len(conv))
 	for i := 0; i < len(conv); i++ {
 		buf[i] = conv[i]
 	}
-
-	if nil == buf || len(buf) == 0 {
+	if len(buf) == 0 {
 		return "", errors.New("could not convert buffer to bytes")
 	}
-
 	return hex.EncodeToString(buf), nil
 }
 
@@ -68,7 +72,6 @@ func ToBech32Address(address string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	addr, err := bech32.Encode(hrp, conv)
 	if err != nil {
 		return "", err

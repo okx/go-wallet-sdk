@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	TransactionTypeWithdraw   TransactionType = "Withdraw"
-	TransactionTypeForcedExit TransactionType = "ForcedExit"
+	TransactionTypeWithdraw   = "Withdraw"
+	TransactionTypeForcedExit = "ForcedExit"
 )
 
 type Withdraw struct {
@@ -23,7 +23,7 @@ type Withdraw struct {
 }
 
 func (t *Withdraw) getType() string {
-	return "Withdraw"
+	return TransactionTypeWithdraw
 }
 
 type ForcedExit struct {
@@ -39,5 +39,5 @@ type ForcedExit struct {
 }
 
 func (t *ForcedExit) getType() string {
-	return "ForcedExit"
+	return TransactionTypeForcedExit
 }

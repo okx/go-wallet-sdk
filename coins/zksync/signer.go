@@ -20,7 +20,6 @@ func newSigner(ethPrivKeyHex string, chainId int) (*signer, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	zkSigner, err := core.NewZkSignerFromEthSigner(ethSigner, core.ChainId(chainId))
 	if err != nil {
 		return nil, err

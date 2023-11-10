@@ -13,12 +13,14 @@ import (
 const (
 	Message                 = "Access zkSync account.\n\nOnly sign this message for a trusted client!"
 	TransactionVersion byte = 0x01
+	PUBLICK_KEY_PREFIX      = "sync:"
+	HEX_PREFIX              = "0x"
 )
 
 func NewZkSignerFromSeed(seed []byte) (*ZkSigner, error) {
 	privateKey, err := zkscrypto.NewPrivateKey(seed)
 	if err != nil {
-		return nil, errors.New("failed to create private key")
+		return nil, err
 	}
 	return newZkSignerFromPrivateKey(privateKey)
 }
@@ -30,7 +32,7 @@ func NewZkSignerFromEthSigner(es EthSigner, cid ChainId) (*ZkSigner, error) {
 	}
 	sig, err := es.SignMessage([]byte(signMsg))
 	if err != nil {
-		return nil, errors.New("failed to sign special message")
+		return nil, err
 	}
 	return NewZkSignerFromSeed(sig)
 }
@@ -38,11 +40,11 @@ func NewZkSignerFromEthSigner(es EthSigner, cid ChainId) (*ZkSigner, error) {
 func newZkSignerFromPrivateKey(privateKey *zkscrypto.PrivateKey) (*ZkSigner, error) {
 	publicKey, err := privateKey.PublicKey()
 	if err != nil {
-		return nil, errors.New("failed to create public key")
+		return nil, err
 	}
 	publicKeyHash, err := publicKey.Hash()
 	if err != nil {
-		return nil, errors.New("failed to get public key hash")
+		return nil, err
 	}
 	return &ZkSigner{
 		privateKey:    privateKey,
@@ -60,7 +62,7 @@ type ZkSigner struct {
 func (s *ZkSigner) Sign(message []byte) (*zkscrypto.Signature, error) {
 	signature, err := s.privateKey.Sign(message)
 	if err != nil {
-		return nil, errors.New("failed to sign message")
+		return nil, err
 	}
 	return signature, nil
 }
@@ -73,7 +75,7 @@ func (s *ZkSigner) SignChangePubKey(txData *ChangePubKey) (*Signature, error) {
 	buf.Write(ParseAddress(txData.Account))
 	pkhBytes, err := pkhToBytes(txData.NewPkHash)
 	if err != nil {
-		return nil, errors.New("failed to get pkh bytes")
+		return nil, err
 	}
 	buf.Write(pkhBytes)
 	buf.Write(Uint32ToBytes(txData.FeeToken))
@@ -83,7 +85,7 @@ func (s *ZkSigner) SignChangePubKey(txData *ChangePubKey) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -91,7 +93,7 @@ func (s *ZkSigner) SignChangePubKey(txData *ChangePubKey) (*Signature, error) {
 	buf.Write(Uint64ToBytes(txData.TimeRange.ValidUntil))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign ChangePubKey tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -110,7 +112,7 @@ func (s *ZkSigner) SignTransfer(txData *Transfer) (*Signature, error) {
 	buf.Write(Uint32ToBytes(txData.Token.Id))
 	packedAmount, err := packAmount(txData.Amount)
 	if err != nil {
-		return nil, errors.New("failed to pack amount")
+		return nil, err
 	}
 	buf.Write(packedAmount)
 	fee, ok := big.NewInt(0).SetString(txData.Fee, 10)
@@ -119,7 +121,7 @@ func (s *ZkSigner) SignTransfer(txData *Transfer) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -127,7 +129,7 @@ func (s *ZkSigner) SignTransfer(txData *Transfer) (*Signature, error) {
 	buf.Write(Uint64ToBytes(txData.TimeRange.ValidUntil))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign Transfer tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -153,7 +155,7 @@ func (s *ZkSigner) SignWithdraw(txData *Withdraw) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -161,7 +163,7 @@ func (s *ZkSigner) SignWithdraw(txData *Withdraw) (*Signature, error) {
 	buf.Write(Uint64ToBytes(txData.TimeRange.ValidUntil))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign Withdraw tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -183,7 +185,7 @@ func (s *ZkSigner) SignForcedExit(txData *ForcedExit) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -191,7 +193,7 @@ func (s *ZkSigner) SignForcedExit(txData *ForcedExit) (*Signature, error) {
 	buf.Write(Uint64ToBytes(txData.TimeRange.ValidUntil))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign ForcedExit tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -215,13 +217,13 @@ func (s *ZkSigner) SignMintNFT(txData *MintNFT) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign MintNFT tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -245,7 +247,7 @@ func (s *ZkSigner) SignWithdrawNFT(txData *WithdrawNFT) (*Signature, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -253,7 +255,7 @@ func (s *ZkSigner) SignWithdrawNFT(txData *WithdrawNFT) (*Signature, error) {
 	buf.Write(Uint64ToBytes(txData.TimeRange.ValidUntil))
 	sig, err := s.Sign(buf.Bytes())
 	if err != nil {
-		return nil, errors.New("failed to sign WithdrawNFT tx data")
+		return nil, err
 	}
 	res := &Signature{
 		PubKey:    s.GetPublicKey(),
@@ -263,7 +265,7 @@ func (s *ZkSigner) SignWithdrawNFT(txData *WithdrawNFT) (*Signature, error) {
 }
 
 func (s *ZkSigner) GetPublicKeyHash() string {
-	return "sync:" + s.publicKeyHash.HexString()
+	return PUBLICK_KEY_PREFIX + s.publicKeyHash.HexString()
 }
 
 func (s *ZkSigner) GetPublicKey() string {
@@ -272,7 +274,7 @@ func (s *ZkSigner) GetPublicKey() string {
 
 func ParseAddress(address string) []byte {
 	var minAddress = address
-	if strings.HasPrefix(address, "0x") {
+	if strings.HasPrefix(address, HEX_PREFIX) {
 		minAddress = minAddress[2:]
 	}
 

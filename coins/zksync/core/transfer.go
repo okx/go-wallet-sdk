@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TransactionTypeTransfer TransactionType = "Transfer"
+	TransactionTypeTransfer = "Transfer"
 )
 
 type Transfer struct {
@@ -27,7 +27,7 @@ type Transfer struct {
 }
 
 func (t *Transfer) getType() string {
-	return "Transfer"
+	return TransactionTypeTransfer
 }
 
 func (t *Transfer) GetTxHash() (string, error) {
@@ -45,11 +45,11 @@ func (t *Transfer) GetTxHash() (string, error) {
 	buf.Write(packedAmount)
 	fee, ok := big.NewInt(0).SetString(t.Fee, 10)
 	if !ok {
-		return "", errors.New("failed to convert string fee to big.Int")
+		return "", ErrConvertBigInt
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return "", errors.New("failed to pack fee")
+		return "", err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(t.Nonce))
@@ -57,6 +57,6 @@ func (t *Transfer) GetTxHash() (string, error) {
 	buf.Write(Uint64ToBytes(t.TimeRange.ValidUntil))
 	hash := sha256.New()
 	hash.Write(buf.Bytes())
-	txHash := "0x" + hex.EncodeToString(hash.Sum(nil))
+	txHash := HEX_PREFIX + hex.EncodeToString(hash.Sum(nil))
 	return txHash, nil
 }

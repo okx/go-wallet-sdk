@@ -7,13 +7,15 @@ import (
 
 func TestGetAddressFromPrivateKey(t *testing.T) {
 	privHex := "c0dc46b9f9d6ef1c88dff3f1e82adc61cb11d77ab76a8d66338f14c2711cb4d8"
-	address := GetAddressFromPrivateKey(privHex)
+	address, err := GetAddressFromPrivateKey(privHex)
+	require.NoError(t, err)
 	require.Equal(t, "zil1uxcaatglxsgm9rluagx0yc65cuzj7nmhaw7l4u", address)
 }
 
 func TestGetPublicKeyFromPrivateKey(t *testing.T) {
 	privKeyHex := "c0dc46b9f9d6ef1c88dff3f1e82adc61cb11d77ab76a8d66338f14c2711cb4d8"
-	publicKey := GetPublicKeyFromPrivateKey(privKeyHex)
+	publicKey, err := GetPublicKeyFromPrivateKey(privKeyHex)
+	require.NoError(t, err)
 	require.Equal(t, "0374d4a96ac2f5f87ff6cb1687d330badea4988615ade53100653c85d69b1f40e9", publicKey)
 
 }

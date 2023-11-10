@@ -13,6 +13,7 @@ type TransactionTypeChangePubKey struct {
 }
 
 const (
+	TransactionTypeChangePubKey_                       = "ChangePubKey"
 	TransactionTypeChangePubKeyOnchain TransactionType = "Onchain"
 	TransactionTypeChangePubKeyECDSA   TransactionType = "ECDSA"
 	TransactionTypeChangePubKeyCREATE2 TransactionType = "CREATE2"
@@ -32,7 +33,7 @@ type ChangePubKey struct {
 }
 
 func (t *ChangePubKey) getType() string {
-	return "ChangePubKey"
+	return TransactionTypeChangePubKey_
 }
 
 type ChangePubKeyAuthType string
@@ -103,7 +104,7 @@ func (t *ChangePubKey) GetTxHash() (string, error) {
 	buf.Write(ParseAddress(t.Account))
 	pkhBytes, err := pkhToBytes(t.NewPkHash)
 	if err != nil {
-		return "", errors.New("failed to get pkh bytes")
+		return "", err
 	}
 	buf.Write(pkhBytes)
 	buf.Write(Uint32ToBytes(t.FeeToken))
@@ -113,7 +114,7 @@ func (t *ChangePubKey) GetTxHash() (string, error) {
 	}
 	packedFee, err := packFee(fee)
 	if err != nil {
-		return "", errors.New("failed to pack fee")
+		return "", err
 	}
 	buf.Write(packedFee)
 	buf.Write(Uint32ToBytes(t.Nonce))
@@ -121,6 +122,6 @@ func (t *ChangePubKey) GetTxHash() (string, error) {
 	buf.Write(Uint64ToBytes(t.TimeRange.ValidUntil))
 	hash := sha256.New()
 	hash.Write(buf.Bytes())
-	txHash := "0x" + hex.EncodeToString(hash.Sum(nil))
+	txHash := HEX_PREFIX + hex.EncodeToString(hash.Sum(nil))
 	return txHash, nil
 }

@@ -6,6 +6,14 @@ import (
 	"strconv"
 )
 
+const (
+	WITHDRAW       = "Withdraw"
+	TRANSFER       = "Transfer"
+	CHANGE_PUB_KEY = "ChangePubKey"
+	MINT_NFT       = "MintNFT"
+	WITHDRAW_NFT   = "WithdrawNFT"
+)
+
 type BatchTransaction struct {
 	Txs       []core.SignedTransaction `json:"txs"`
 	Signature *core.EthSignature       `json:"signature"`
@@ -13,7 +21,7 @@ type BatchTransaction struct {
 
 func CreateWithdrawTx(accountId uint32, address string, amount *big.Int, fee *big.Int, token *core.Token, nonce uint32, validFrom, validUntil uint64) *core.Withdraw {
 	tx := &core.Withdraw{
-		Type:      "Withdraw",
+		Type:      WITHDRAW,
 		AccountId: accountId,
 		From:      address,
 		To:        address,
@@ -32,7 +40,7 @@ func CreateWithdrawTx(accountId uint32, address string, amount *big.Int, fee *bi
 
 func CreateTransferTx(accountId uint32, fromAddress, toAddress string, amount *big.Int, fee *big.Int, token *core.Token, nonce uint32, validFrom, validUntil uint64) *core.Transfer {
 	tx := &core.Transfer{
-		Type:      "Transfer",
+		Type:      TRANSFER,
 		AccountId: accountId,
 		From:      fromAddress,
 		To:        toAddress,
@@ -52,7 +60,7 @@ func CreateTransferTx(accountId uint32, fromAddress, toAddress string, amount *b
 
 func CreateTransferWithFeeTokenTx(accountId uint32, fromAddress, toAddress string, amount *big.Int, token *core.Token, fee *big.Int, feeToken *core.Token, nonce uint32, validFrom, validUntil uint64) []*core.Transfer {
 	tx := &core.Transfer{
-		Type:      "Transfer",
+		Type:      TRANSFER,
 		AccountId: accountId,
 		From:      fromAddress,
 		To:        toAddress,
@@ -68,7 +76,7 @@ func CreateTransferWithFeeTokenTx(accountId uint32, fromAddress, toAddress strin
 	}
 
 	feeTx := &core.Transfer{
-		Type:      "Transfer",
+		Type:      TRANSFER,
 		AccountId: accountId,
 		From:      fromAddress,
 		To:        fromAddress,
@@ -88,7 +96,7 @@ func CreateTransferWithFeeTokenTx(accountId uint32, fromAddress, toAddress strin
 
 func CreateChangePubKeyTx(accountId uint32, fromAddress, pubKeyHash string, feeToken *core.Token, fee *big.Int, nonce uint32, validFrom, validUntil uint64) *core.ChangePubKey {
 	tx := &core.ChangePubKey{
-		Type:        "ChangePubKey",
+		Type:        CHANGE_PUB_KEY,
 		AccountId:   accountId,
 		Account:     fromAddress,
 		NewPkHash:   pubKeyHash,
@@ -108,7 +116,7 @@ func CreateMintNFTTx(accountId uint32, creator, recipient, contentHash string, f
 	hash := core.HexToHash(contentHash)
 
 	tx := &core.MintNFT{
-		Type:           "MintNFT",
+		Type:           MINT_NFT,
 		CreatorId:      accountId,
 		CreatorAddress: creator,
 		ContentHash:    hash,
@@ -126,14 +134,12 @@ func CreateTransferNFTTx(accountId uint32, fromAddress, toAddress, nftSymbol str
 	if err != nil {
 		return nil, err
 	}
-
 	nft := core.NFT{
 		Id:     uint32(nftId),
 		Symbol: nftSymbol,
 	}
-
 	nftTx := &core.Transfer{
-		Type:      "Transfer",
+		Type:      TRANSFER,
 		AccountId: accountId,
 		From:      fromAddress,
 		To:        toAddress,
@@ -147,9 +153,8 @@ func CreateTransferNFTTx(accountId uint32, fromAddress, toAddress, nftSymbol str
 			ValidUntil: validUntil,
 		},
 	}
-
 	feeTx := &core.Transfer{
-		Type:      "Transfer",
+		Type:      TRANSFER,
 		AccountId: accountId,
 		From:      fromAddress,
 		To:        fromAddress,
@@ -168,7 +173,7 @@ func CreateTransferNFTTx(accountId uint32, fromAddress, toAddress, nftSymbol str
 
 func CreateWithdrawNFTTx(accountId uint32, addr string, nftId uint32, feeToken *core.Token, fee *big.Int, nonce uint32, validFrom, validUntil uint64) *core.WithdrawNFT {
 	tx := &core.WithdrawNFT{
-		Type:      "WithdrawNFT",
+		Type:      WITHDRAW_NFT,
 		AccountId: accountId,
 		From:      addr,
 		To:        addr,

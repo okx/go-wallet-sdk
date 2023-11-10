@@ -28,6 +28,11 @@ const (
 	EthSignatureTypeEIP1271 EthSignatureType = "EIP1271Signature"
 )
 
+var (
+	ErrUnknownTxTYPE = errors.New("unknown tx type")
+	ErrConvertBigInt = errors.New("failed to convert string fee to big.Int")
+)
+
 type EthSignature struct {
 	Type      EthSignatureType `json:"type"`
 	Signature string           `json:"signature"`
@@ -48,7 +53,7 @@ func (s *OkEthSigner) GetAddress() string {
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(pubBytes[1:])
 	addressByte := hash.Sum(nil)
-	return "0x" + hex.EncodeToString(addressByte)[24:]
+	return HEX_PREFIX + hex.EncodeToString(addressByte)[24:]
 
 }
 
@@ -76,39 +81,40 @@ func (s *OkEthSigner) SignAuth(txData *ChangePubKey) (*ChangePubKeyECDSA, error)
 	auth := &ChangePubKeyECDSA{
 		Type:         ChangePubKeyAuthTypeECDSA,
 		EthSignature: "",
-		BatchHash:    "0x" + hex.EncodeToString(make([]byte, 32)),
+		BatchHash:    HEX_PREFIX + hex.EncodeToString(make([]byte, 32)),
 	}
 	txData.EthAuthData = auth
 	msg, err := getChangePubKeyData(txData)
 	if err != nil {
-		return nil, errors.New("failed to get ChangePubKey data for sign")
+		return nil, err
 	}
 	sig, err := s.SignMessage(msg)
 	if err != nil {
-		return nil, errors.New("failed to sign ChangePubKeyECDSA msg")
+		return nil, err
 	}
-	auth.EthSignature = "0x" + hex.EncodeToString(sig)
+	auth.EthSignature = HEX_PREFIX + hex.EncodeToString(sig)
 	return auth, nil
 }
 
 func (s *OkEthSigner) SignTransaction(tx ZksTransaction, nonce uint32, token *Token, fee *big.Int) (*EthSignature, error) {
 	switch tx.getType() {
-	case "ChangePubKey":
+	// case "ChangePubKey":
+	case TransactionTypeChangePubKey_:
 		if txData, ok := tx.(*ChangePubKey); ok {
 			msg, err := getChangePubKeyData(txData)
 			if err != nil {
-				return nil, errors.New("failed to get ChangePubKey data for sign")
+				return nil, err
 			}
 			sig, err := s.SignMessage(msg)
 			if err != nil {
-				return nil, errors.New("failed to sign ChangePubKey tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "Transfer":
+	case TransactionTypeTransfer:
 		if txData, ok := tx.(*Transfer); ok {
 			var tokenToUse *Token
 			if txData.Token != nil {
@@ -118,99 +124,99 @@ func (s *OkEthSigner) SignTransaction(tx ZksTransaction, nonce uint32, token *To
 			}
 			fee, ok := big.NewInt(0).SetString(txData.Fee, 10)
 			if !ok {
-				return nil, errors.New("failed to convert string fee to big.Int")
+				return nil, ErrConvertBigInt
 			}
 			msg, err := getTransferMessagePart(txData.To, txData.Amount, fee, tokenToUse)
 			if err != nil {
-				return nil, errors.New("failed to get Transfer message part")
+				return nil, err
 			}
 			msg += "\n" + getNonceMessagePart(nonce)
 			sig, err := s.SignMessage([]byte(msg))
 			if err != nil {
-				return nil, errors.New("failed to sign Transfer tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "Withdraw":
+	case TransactionTypeWithdraw:
 		if txData, ok := tx.(*Withdraw); ok {
 			msg, err := getWithdrawMessagePart(txData.To, txData.Amount, fee, token)
 			if err != nil {
-				return nil, errors.New("failed to get Withdraw message part")
+				return nil, err
 			}
 			msg += "\n" + getNonceMessagePart(nonce)
 			sig, err := s.SignMessage([]byte(msg))
 			if err != nil {
-				return nil, errors.New("failed to sign Withdraw tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "ForcedExit":
+	case TransactionTypeForcedExit:
 		if txData, ok := tx.(*ForcedExit); ok {
 			msg, err := getForcedExitMessagePart(txData.Target, fee, token)
 			if err != nil {
-				return nil, errors.New("failed to get ForcedExit message part")
+				return nil, err
 			}
 			msg += "\n" + getNonceMessagePart(nonce)
 			sig, err := s.SignMessage([]byte(msg))
 			if err != nil {
-				return nil, errors.New("failed to sign ForcedExit tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "MintNFT":
+	case TransactionTypeMintNFT:
 		if txData, ok := tx.(*MintNFT); ok {
 			msg, err := getMintNFTMessagePart(txData.ContentHash, txData.Recipient, fee, token)
 			if err != nil {
-				return nil, errors.New("failed to get MintNFT message part")
+				return nil, err
 			}
 			msg += "\n" + getNonceMessagePart(nonce)
 			sig, err := s.SignMessage([]byte(msg))
 			if err != nil {
-				return nil, errors.New("failed to sign MintNFT tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "WithdrawNFT":
+	case TransactionTypeWithdrawNFT:
 		if txData, ok := tx.(*WithdrawNFT); ok {
 			msg, err := getWithdrawNFTMessagePart(txData.To, txData.Token, fee, token)
 			if err != nil {
-				return nil, errors.New("failed to get WithdrawNFT message part")
+				return nil, err
 			}
 			msg += "\n" + getNonceMessagePart(nonce)
 			sig, err := s.SignMessage([]byte(msg))
 			if err != nil {
-				return nil, errors.New("failed to sign WithdrawNFT tx")
+				return nil, err
 			}
 			return &EthSignature{
 				Type:      EthSignatureTypeEth,
-				Signature: "0x" + hex.EncodeToString(sig),
+				Signature: HEX_PREFIX + hex.EncodeToString(sig),
 			}, nil
 		}
-	case "Swap":
+	case TransactionTypeSwap:
 		msg := getSwapMessagePart(token, fee)
 		msg += "\n" + getNonceMessagePart(nonce)
 		sig, err := s.SignMessage([]byte(msg))
 		if err != nil {
-			return nil, errors.New("failed to sign Swap tx")
+			return nil, err
 		}
 		return &EthSignature{
 			Type:      EthSignatureTypeEth,
-			Signature: "0x" + hex.EncodeToString(sig),
+			Signature: HEX_PREFIX + hex.EncodeToString(sig),
 		}, nil
 	}
-	return nil, errors.New("unknown tx type")
+	return nil, ErrUnknownTxTYPE
 }
 
 func (s *OkEthSigner) SignBatch(txs []ZksTransaction, nonce uint32, token *Token, fee *big.Int) (*EthSignature, error) {
@@ -218,7 +224,7 @@ func (s *OkEthSigner) SignBatch(txs []ZksTransaction, nonce uint32, token *Token
 	for _, tx := range txs {
 
 		switch tx.getType() {
-		case "Transfer":
+		case TransactionTypeTransfer:
 			if txData, ok := tx.(*Transfer); ok {
 				var tokenToUse *Token
 				if txData.Token != nil {
@@ -228,74 +234,74 @@ func (s *OkEthSigner) SignBatch(txs []ZksTransaction, nonce uint32, token *Token
 				}
 				fee, ok := big.NewInt(0).SetString(txData.Fee, 10)
 				if !ok {
-					return nil, errors.New("failed to convert string fee to big.Int")
+					return nil, ErrConvertBigInt
 				}
 				msg, err := getTransferMessagePart(txData.To, txData.Amount, fee, tokenToUse)
 				if err != nil {
-					return nil, errors.New("failed to get Transfer message part")
+					return nil, err
 				}
 				batchMsgs = append(batchMsgs, msg)
 			}
-		case "Withdraw":
+		case TransactionTypeWithdraw:
 			if txData, ok := tx.(*Withdraw); ok {
 				msg, err := getWithdrawMessagePart(txData.To, txData.Amount, fee, token)
 				if err != nil {
-					return nil, errors.New("failed to get Withdraw message part")
+					return nil, err
 				}
 				batchMsgs = append(batchMsgs, msg)
 			}
-		case "ForcedExit":
+		case TransactionTypeForcedExit:
 			if txData, ok := tx.(*ForcedExit); ok {
 				msg, err := getForcedExitMessagePart(txData.Target, fee, token)
 				if err != nil {
-					return nil, errors.New("failed to get ForcedExit message part")
+					return nil, err
 				}
 				batchMsgs = append(batchMsgs, msg)
 			}
-		case "MintNFT":
+		case TransactionTypeMintNFT:
 			if txData, ok := tx.(*MintNFT); ok {
 				msg, err := getMintNFTMessagePart(txData.ContentHash, txData.Recipient, fee, token)
 				if err != nil {
-					return nil, errors.New("failed to get MintNFT message part")
+					return nil, err
 				}
 				batchMsgs = append(batchMsgs, msg)
 			}
-		case "WithdrawNFT":
+		case TransactionTypeWithdrawNFT:
 			if txData, ok := tx.(*WithdrawNFT); ok {
 				msg, err := getWithdrawNFTMessagePart(txData.To, txData.Token, fee, token)
 				if err != nil {
-					return nil, errors.New("failed to get WithdrawNFT message part")
+					return nil, err
 				}
 				batchMsgs = append(batchMsgs, msg)
 			}
 		default:
-			return nil, errors.New("unknown tx type")
+			return nil, ErrUnknownTxTYPE
 		}
 	}
 	batchMsg := strings.Join(batchMsgs, "\n")
 	batchMsg += "\n" + getNonceMessagePart(nonce)
 	sig, err := s.SignMessage([]byte(batchMsg))
 	if err != nil {
-		return nil, errors.New("failed to sign batch of txs")
+		return nil, err
 	}
 	return &EthSignature{
 		Type:      EthSignatureTypeEth,
-		Signature: "0x" + hex.EncodeToString(sig),
+		Signature: HEX_PREFIX + hex.EncodeToString(sig),
 	}, nil
 }
 
 func (s *OkEthSigner) SignOrder(order *Order, sell, buy *Token) (*EthSignature, error) {
 	msg, err := getOrderMessagePart(order.RecipientAddress, order.Amount, sell, buy, order.Ratio)
 	if err != nil {
-		return nil, errors.New("failed to get Order message part")
+		return nil, err
 	}
 	msg += "\n" + getNonceMessagePart(order.Nonce)
 	sig, err := s.SignMessage([]byte(msg))
 	if err != nil {
-		return nil, errors.New("failed to sign Order")
+		return nil, err
 	}
 	return &EthSignature{
 		Type:      EthSignatureTypeEth,
-		Signature: "0x" + hex.EncodeToString(sig),
+		Signature: HEX_PREFIX + hex.EncodeToString(sig),
 	}, nil
 }

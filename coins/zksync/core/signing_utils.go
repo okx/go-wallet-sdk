@@ -43,7 +43,7 @@ func BigIntToBytesBE(v *big.Int, numBytes int) []byte {
 
 func pkhToBytes(pkh string) ([]byte, error) {
 	if pkh[:5] != "sync:" {
-		return nil, errors.New("PubKeyHash must start with 'sync:'")
+		return nil, errors.New("pubKeyHash must start with 'sync:'")
 	}
 	res, err := hex.DecodeString(pkh[5:])
 	if err != nil {
@@ -66,13 +66,13 @@ func PackAmount(fee *big.Int) ([]byte, error) {
 func packFee(fee *big.Int) ([]byte, error) {
 	packedFee, err := integerToDecimalByteArray(fee, FeeExponentBitWidth, FeeMantissaBitWidth, 10)
 	if err != nil {
-		return nil, errors.New("failed to pack fee")
+		return nil, err
 	}
 	// check that unpacked fee still has same value
 	if unpackedFee, err := decimalByteArrayToInteger(packedFee, FeeExponentBitWidth, FeeMantissaBitWidth, 10); err != nil {
-		return nil, errors.New("failed to unpack fee")
+		return nil, err
 	} else if unpackedFee.Cmp(fee) != 0 {
-		return nil, errors.New("fee Amount is not packable")
+		return nil, errors.New("fee amount is not packable")
 	}
 	return packedFee, nil
 }
@@ -80,13 +80,13 @@ func packFee(fee *big.Int) ([]byte, error) {
 func packAmount(amount *big.Int) ([]byte, error) {
 	packedAmount, err := integerToDecimalByteArray(amount, AmountExponentBitWidth, AmountMantissaBitWidth, 10)
 	if err != nil {
-		return nil, errors.New("failed to pack amount")
+		return nil, err
 	}
 	// check that unpacked amount still has same value
 	if unpackedFee, err := decimalByteArrayToInteger(packedAmount, AmountExponentBitWidth, AmountMantissaBitWidth, 10); err != nil {
-		return nil, errors.New("failed to unpack amount")
+		return nil, err
 	} else if unpackedFee.Cmp(amount) != 0 {
-		return nil, errors.New("amount Amount is not packable")
+		return nil, errors.New("amount amount is not packable")
 	}
 	return packedAmount, nil
 }
@@ -100,7 +100,7 @@ func integerToDecimalByteArray(value *big.Int, expBits, mantissaBits, expBase in
 	maxMantissa := big.NewInt(0).Sub(big.NewInt(0).Exp(big.NewInt(2), big.NewInt(mantissaBits), nil), big.NewInt(1))
 	// check for max possible value
 	if value.Cmp(big.NewInt(0).Mul(maxMantissa, maxExponent)) > 0 {
-		return nil, errors.New("Integer is too big")
+		return nil, errors.New("integer is too big")
 	}
 	exponent := uint64(0)
 	mantissa := big.NewInt(0).Set(value)
@@ -115,14 +115,14 @@ func integerToDecimalByteArray(value *big.Int, expBits, mantissaBits, expBase in
 	reversed := combined.Reverse()
 	bytes, err := reversed.ToBytesBE()
 	if err != nil {
-		return nil, errors.New("failed to convert bits to bytes BE")
+		return nil, err
 	}
 	return bytes, nil
 }
 
 func decimalByteArrayToInteger(value []byte, expBits, mantissaBits, expBase int64) (*big.Int, error) {
 	if int64(len(value)*8) != expBits+mantissaBits {
-		return nil, errors.New("Decimal unpacking, incorrect input length")
+		return nil, errors.New("decimal unpacking, incorrect input length")
 	}
 	bits := NewBits(uint(expBits + mantissaBits))
 	bits.FromBytesBE(value).Reverse()
@@ -160,7 +160,7 @@ func getChangePubKeyData(txData *ChangePubKey) ([]byte, error) {
 	buf := bytes.Buffer{}
 	pkhBytes, err := pkhToBytes(txData.NewPkHash)
 	if err != nil {
-		return nil, errors.New("failed to get pkh bytes")
+		return nil, err
 	}
 	buf.Write(pkhBytes)
 	buf.Write(Uint32ToBytes(txData.Nonce))
@@ -208,7 +208,7 @@ func getForcedExitMessagePart(to string, fee *big.Int, token *Token) (string, er
 
 func getMintNFTMessagePart(contentHash [32]byte, to string, fee *big.Int, token *Token) (string, error) {
 	var res string
-	contentHashStr := "0x" + hex.EncodeToString(contentHash[:])
+	contentHashStr := HEX_PREFIX + hex.EncodeToString(contentHash[:])
 	res = fmt.Sprintf("MintNFT %s for: %s", contentHashStr, strings.ToLower(to))
 	if fee.Cmp(big.NewInt(0)) > 0 {
 		res += fmt.Sprintf("\nFee: %s %s", token.ToDecimalString(fee), token.Symbol)

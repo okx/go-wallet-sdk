@@ -1,8 +1,8 @@
 package core
 
 const (
-	TransactionTypeMintNFT     TransactionType = "MintNFT"
-	TransactionTypeWithdrawNFT TransactionType = "WithdrawNFT"
+	TransactionTypeMintNFT     = "MintNFT"
+	TransactionTypeWithdrawNFT = "WithdrawNFT"
 )
 
 type NFT struct {
@@ -38,7 +38,7 @@ type MintNFT struct {
 }
 
 func (t *MintNFT) getType() string {
-	return "MintNFT"
+	return TransactionTypeMintNFT
 }
 
 type WithdrawNFT struct {
@@ -55,5 +55,5 @@ type WithdrawNFT struct {
 }
 
 func (t *WithdrawNFT) getType() string {
-	return "WithdrawNFT"
+	return TransactionTypeWithdrawNFT
 }

@@ -25,11 +25,10 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 ```golang
 // PubKeyToAddr
 // GetAddressByPublicKey
-// GetRawTransaction
-// SignRawTransaction
-// SignMessage
-// Transfer
-// IbcTransfer
+// GenerateAddress
+// SignTx
+// // pbst
+// GenerateSignedListingPSBTBase64
 ```
 
 ```golang

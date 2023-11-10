@@ -8,6 +8,8 @@ require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/tyler-smith/go-bip32 v1.0.0
 	github.com/tyler-smith/go-bip39 v1.1.0
+	gitlab.okg.com/wallet-sign-core/go-parent-sdk v1.1.8
+	go.dedis.ch/kyber/v3 v3.1.0
 	golang.org/x/crypto v0.12.0
 )
 

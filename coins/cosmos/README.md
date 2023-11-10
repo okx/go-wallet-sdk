@@ -32,27 +32,41 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 ### Supported Functions
 
 ```golang
-- getDerivedPath
-- getNewAddress
-- getAddressByPublicKey
-- validAddress
-- caclTxHash
-- signTransaction
-- signMessage
-- validSignedTransaction
+// NewAddress
+// GetAddressByPublicKey
+// ValidateAddress
+// GetRawTransaction
+// SignRawTransaction
+// SignMessage
+// Transfer
+// IbcTransfer
 ```
 
 ```golang
 	// address
+	hrp := "cosmos"
 	pri := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
-	address, err := cosmos.NewAddress(pri, "cosmos", false)
+	address, err := cosmos.NewAddress(pri, hrp, false)
 	if err != nil {
 		// todo
 		fmt.Println(err)
 	}
 	fmt.Println(address)
+	p, _ := hex.DecodeString(pri)
+	_, pub := btcec.PrivKeyFromBytes(p)
+	a, err := cosmos.GetAddressByPublicKey(hex.EncodeToString(pub.SerializeCompressed()), hrp)
+	if err != nil {
+		// todo
+		fmt.Println(err)
+	}
+	fmt.Println(a == address)
 
-	// transfer
+	// ValidateAddress
+	valid := cosmos.ValidateAddress(address, hrp)
+	fmt.Println(valid)
+
+	// GetRawTransaction and SignRawTransaction
+	// Transfer
 	pk, err := hex.DecodeString(pri)
 	k, _ := btcec.PrivKeyFromBytes(pk)
 	param := cosmos.TransferParam{}
@@ -76,6 +90,39 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 		fmt.Println(err)
 	}
 	fmt.Println(signedTransaction)
+
+	// SignMessage
+	data := "{\n  \"chain_id\": \"cosmoshub-4\",\n  \"account_number\": \"584406\",\n  \"sequence\": \"1\",\n  \"fee\": {\n    \"gas\": \"250000\",\n    \"amount\": [\n      {\n        \"denom\": \"uatom\",\n        \"amount\": \"0\"\n      }\n    ]\n  },\n  \"msgs\": [\n    {\n      \"type\": \"atom/gamm/swap-exact-amount-in\",\n      \"value\": {\n        \"sender\": \"cosmos145q0tcdur4tcx2ya5cphqx96e54yflfyqjrdt5\",\n        \"routes\": [\n          {\n            \"poolId\": \"722\",\n            \"tokenOutDenom\": \"ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A\"\n          }\n        ],\n        \"tokenIn\": {\n          \"denom\": \"uatom\",\n          \"amount\": \"10000\"\n        },\n        \"tokenOutMinAmount\": \"3854154180813018\"\n      }\n    }\n  ],\n  \"memo\": \"\"\n}"
+	signedMessage, _, err := cosmos.SignMessage(data, pri)
+	if err != nil {
+		// todo
+		fmt.Println(err)
+	}
+	fmt.Println(signedMessage)
+
+	// IbcTransfer
+	paramIbc := cosmos.IbcTransferParam{}
+	paramIbc.CommonParam.ChainId = "evmos_9001-2"
+	paramIbc.CommonParam.Sequence = 1
+	paramIbc.CommonParam.AccountNumber = 2091572
+	paramIbc.CommonParam.FeeDemon = "aevmos"
+	paramIbc.CommonParam.FeeAmount = "4000000000000000"
+	paramIbc.CommonParam.GasLimit = 200000
+	paramIbc.CommonParam.Memo = ""
+	paramIbc.CommonParam.TimeoutHeight = 0
+	paramIbc.FromAddress = "evmos1yc4q6svsl9xy9g2gplgnlpxwhnzr3y73wfs0xh"
+	paramIbc.ToAddress = "cosmos1rvs5xph4l3px2efynqsthus8p6r4exyr7ckyxv"
+	paramIbc.Demon = "aevmos"
+	paramIbc.Amount = "10000000000000000"
+	paramIbc.SourcePort = "transfer"
+	paramIbc.SourceChannel = "channel-3"
+	paramIbc.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
+	signedIBCTx, err := cosmos.IbcTransferAction(paramIbc, pri, true)
+	if err != nil {
+		// todo
+		fmt.Println(err)
+	}
+	fmt.Println(signedIBCTx)
 ```
 
 ## License

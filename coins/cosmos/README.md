@@ -1,5 +1,21 @@
 # @okxweb3/coin-cosmos
-Cosmos SDK is used to interact with the Aptos blockchain, it contains various functions can be used to web3 wallet.
+Cosmos SDK is used to interact with the Cosmos blockchain, it contains various functions can be used to web3 wallet.
+The SDK not only support Atom, it also supports following chains:
+- Atom
+- Axelar
+- Cronos
+- Evmos
+- Iris
+- Juno
+- Kava
+- Kujira
+- Okc
+- Osmos
+- Secret
+- Sei
+- Stargaze
+- Terra
+- Tia
 
 ## Installation
 
@@ -12,6 +28,19 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 ```
 
 ## Usage
+
+### Supported Functions
+
+```golang
+- getDerivedPath
+- getNewAddress
+- getAddressByPublicKey
+- validAddress
+- caclTxHash
+- signTransaction
+- signMessage
+- validSignedTransaction
+```
 
 ```golang
 	// address

@@ -3,8 +3,8 @@ package utils
 
 import (
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/abi"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/util/abi"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 )

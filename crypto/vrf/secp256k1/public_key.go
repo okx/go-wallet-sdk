@@ -3,12 +3,10 @@ package secp256k1
 import (
 	"database/sql/driver"
 	"fmt"
-
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"go.dedis.ch/kyber/v3"
-
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/vrf/utils"
 )
 
 // PublicKey is a secp256k1 point in compressed format

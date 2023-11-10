@@ -5,10 +5,10 @@ package proof
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/secp256k1"
 	"math/big"
 
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/vrf/secp256k1"
 	"go.dedis.ch/kyber/v3"
 )
 

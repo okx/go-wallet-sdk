@@ -1,10 +1,9 @@
 package proof
 
 import (
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"math/big"
-
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/vrf/utils"
 )
 
 // Seed represents a VRF seed as a serialized uint256

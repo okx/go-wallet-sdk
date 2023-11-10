@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	vrfProof "github.com/okx/go-wallet-sdk/coins/oracle/vrf/proof"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/secp256k1"
 	"github.com/shopspring/decimal"
-	"github.com/vordev/VOR/core/services/signatures/secp256k1"
 	"math/big"
 )
 

@@ -4,41 +4,30 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/hex"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/vrf/secp256k1"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/secp256k1"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
-
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/curve"
 )
 
 func TestVRFKeys_KeyV2_Raw(t *testing.T) {
-	privK, err := ecdsa.GenerateKey(curve.S256(), rand.Reader)
-	if err != nil {
-		t.Error("generate vrf key failed")
-	}
+	privK, err := ecdsa.GenerateKey(btcec.S256(), rand.Reader)
+	require.NoError(t, err)
 	t.Logf("VRF Private Key: %s", hex.EncodeToString(privK.D.Bytes()))
-
 	r := Raw(privK.D.Bytes())
 	k, err := r.Key()
-	if err != nil {
-		t.Errorf("init private key failed, %v", err)
-	}
+	require.NoError(t, err)
 	t.Logf("VRF RAW Private Key: %s", hex.EncodeToString(k.Raw()))
 }
 
 func TestVRFKeys_KeyV2(t *testing.T) {
-	/*k, err := NewV2()
-	if err != nil {
-		t.Errorf("NewV2 failed, %v", err)
-	}*/
 
-	privKeyBytes, _ := hex.DecodeString("36778dbc3a61764ed00aa1d38ed1ece4eaa830ab675d30483035de06cb1e65b9")
+	privKeyBytes, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
 	r := Raw(privKeyBytes)
 	k, err := r.Key()
-	if err != nil {
-		t.Errorf("init private key failed, %v", err)
-	}
+	require.NoError(t, err)
 
 	t.Logf("VRF RAW Private Key: %s", hex.EncodeToString(k.Raw()))
 	t.Logf("VRF Public Key: %s", k.PublicKey.String())

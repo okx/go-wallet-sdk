@@ -2,8 +2,8 @@ package proof
 
 import (
 	"fmt"
-	"github.com/vordev/VOR/core/services/signatures/secp256k1"
-	"github.com/vordev/VOR/core/utils"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/secp256k1"
+	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"math/big"
 
 	"go.dedis.ch/kyber/v3"

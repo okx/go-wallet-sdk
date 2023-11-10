@@ -1,7 +1,9 @@
 // Package secp256k1 is an implementation of the kyber.{Group,Point,Scalar}
-////////////////////////////////////////////////////////////////////////////////
-//       XXX: Do not use in production until this code has been audited.
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
+//
+//	XXX: Do not use in production until this code has been audited.
+//
+// //////////////////////////////////////////////////////////////////////////////
 // interfaces, based on btcd/btcec and kyber/group/mod
 //
 // XXX: NOT CONSTANT TIME!
@@ -13,9 +15,8 @@ package secp256k1
 import (
 	"crypto/cipher"
 	"fmt"
-	"math/big"
-
 	"go.dedis.ch/kyber/v3/util/random"
+	"math/big"
 )
 
 // q is the field characteristic (cardinality) of the secp256k1 base field. All

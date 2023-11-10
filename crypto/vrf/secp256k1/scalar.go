@@ -1,7 +1,9 @@
 // Package secp256k1 is an implementation of the kyber.{Group,Point,Scalcar}
-////////////////////////////////////////////////////////////////////////////////
-//       XXX: Do not use in production until this code has been audited.
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
+//
+//	XXX: Do not use in production until this code has been audited.
+//
+// //////////////////////////////////////////////////////////////////////////////
 // interfaces, based on btcd/btcec and kyber/group/mod
 //
 // XXX: NOT CONSTANT TIME!
@@ -14,14 +16,12 @@ package secp256k1
 import (
 	"crypto/cipher"
 	"fmt"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
+	secp256k1BTCD "github.com/btcsuite/btcd/btcec"
+	"github.com/ethereum/go-ethereum/common"
 	"go.dedis.ch/kyber/v3"
+	"go.dedis.ch/kyber/v3/util/random"
 	"io"
 	"math/big"
-
-	secp256k1BTCD "gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/btcd/btcec"
-
-	"go.dedis.ch/kyber/v3/util/random"
 )
 
 var GroupOrder = secp256k1BTCD.S256().N

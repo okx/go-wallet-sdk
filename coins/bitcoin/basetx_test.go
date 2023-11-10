@@ -131,7 +131,6 @@ func TestSingTx(t *testing.T) {
 func TestGenerateAddress(t *testing.T) {
 	address, err := GenerateAddress("022bc0ca1d6aea1c1e523bfcb33f46131bd1a3240aa04f71c34b1a177cfd5ff933", &chaincfg.TestNet3Params)
 	require.Nil(t, err)
-	t.Log(address)
 	assert.Equal(t, "1FrpuN2FVQdKhKAiXN4VW7MZba6RMevpkR", address)
 
 }

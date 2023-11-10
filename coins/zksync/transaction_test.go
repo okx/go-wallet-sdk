@@ -26,6 +26,7 @@ func TestCreateWithdrawTx(t *testing.T) {
 
 func TestCreateTransferTx(t *testing.T) {
 	accountId := uint32(1291712)
+	from := "0x0bc4b0c3483084bb71614e114968c1a0ae588888"
 	addr := "0x0bc4b0c3483084bb71614e114968c1a0ae588888"
 	amount := big.NewInt(12312124)
 	fee := big.NewInt(10000)
@@ -33,10 +34,10 @@ func TestCreateTransferTx(t *testing.T) {
 	nonce := uint32(20)
 	validFrom := uint64(0)
 	validUntil := uint64(10000000000000000)
-	tx := CreateWithdrawTx(accountId, addr, amount, fee, feeToken, nonce, validFrom, validUntil)
+	tx := CreateTransferTx(accountId, from, addr, amount, fee, feeToken, nonce, validFrom, validUntil)
 	txBytes, err := json.Marshal(tx)
 	require.NoError(t, err)
-	expected := "{\"type\":\"Withdraw\",\"accountId\":1291712,\"from\":\"0x0bc4b0c3483084bb71614e114968c1a0ae588888\",\"to\":\"0x0bc4b0c3483084bb71614e114968c1a0ae588888\",\"token\":2,\"amount\":12312124,\"fee\":\"10000\",\"nonce\":20,\"signature\":null,\"validFrom\":0,\"validUntil\":10000000000000000}"
+	expected := "{\"type\":\"Transfer\",\"accountId\":1291712,\"from\":\"0x0bc4b0c3483084bb71614e114968c1a0ae588888\",\"to\":\"0x0bc4b0c3483084bb71614e114968c1a0ae588888\",\"token\":2,\"amount\":12312124,\"fee\":\"10000\",\"nonce\":20,\"signature\":null,\"validFrom\":0,\"validUntil\":10000000000000000}"
 	require.Equal(t, expected, string(txBytes))
 }
 

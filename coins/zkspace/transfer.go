@@ -41,7 +41,7 @@ type SignTransfer struct {
 }
 
 func (t *Transfer) getType() string {
-	return "Transfer"
+	return string(TransactionTypeTransfer)
 }
 
 func (t *Transfer) GetTxHash() (string, error) {

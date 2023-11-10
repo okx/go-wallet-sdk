@@ -32,9 +32,7 @@ func CreateTransferTx(accountId uint32, from string, to string, tokenId uint16, 
 		ChainId:    chainId,
 		Nonce:      nonce,
 	}
-
 	return transferTx
-
 }
 
 type SignedTransaction struct {
@@ -57,5 +55,4 @@ func CreateSignTransferTx(tx *Transfer) SignTransfer {
 		Signature:  tx.Signature,
 	}
 	return transferTx
-
 }

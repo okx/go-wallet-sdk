@@ -12,7 +12,7 @@ import (
 
 func main() {
 	//transfer()
-	changePubkey()
+	//changePubkey()
 }
 
 func transfer() {

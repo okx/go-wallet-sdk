@@ -357,6 +357,22 @@ func TestSimulateTransaction(t *testing.T) {
 	t.Log("tx : ", tx)
 }
 
+func TestTransferSign(t *testing.T) {
+	from := "0xffb6fac50e85d7c6ae1b13347fac94c819bf68b1b45ae612a5d51e264e0a27fe"
+	to := "0xd6d64011d498462e065d0c85648cb357e2f1c9df37d9179755ddf89c1e830c77"
+	amount := 1000
+	sequenceNumber := 18
+	maxGasAmount := 10000
+	gasUnitPrice := 100
+	expirationTimestampSecs := time.Now().Unix() + 300
+	chainId := 2
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	data := Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
+		to, uint64(amount), seedHex)
+	fmt.Println(data)
+
+}
+
 func TestAddStake(t *testing.T) {
 	from := "0xffb6fac50e85d7c6ae1b13347fac94c819bf68b1b45ae612a5d51e264e0a27fe"
 	poolAddress := "0xb1a373b3eddb7a715a807709a36b18aca67a005885b16476b6a5ebd5c25e14b5"
@@ -424,4 +440,14 @@ func TestWithdraw(t *testing.T) {
 		poolAddress, uint64(amount), seedHex)
 	assert.Nil(t, err)
 	t.Log("tx : ", data)
+}
+
+func TestGetPubKey(t *testing.T) {
+	publicKey := ed25519.PublicKeyFromSeed("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+	fmt.Println(hex.EncodeToString(publicKey))
+	//61f579fc779146304353027b425a216d8015889c5f3b715ad26135b862f3bf84
+
+	b, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+	sig, _ := ed25519.Sign("c9c44cf555856d4c619d35daa1fe421c053234df8badabe4dce9d46aa923ec4f", b)
+	fmt.Println(hex.EncodeToString(sig))
 }

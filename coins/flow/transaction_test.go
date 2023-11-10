@@ -6,6 +6,27 @@ import (
 	"testing"
 )
 
+func TestCreateNewAccountTx(t *testing.T) {
+	privKey, pubKey := GenerateKeyPair()
+	t.Logf("private key hex : %s", privKey)
+
+	payerAddr := "0b65ef5c755c9117"
+	payerSequenceNumber := uint64(9)
+
+	referenceBlockIDHex := "9c45198cc1deda9087ec2f57607c1b4d6ae59e32a7f4619f47b05d8edb6fe21a"
+
+	gasLimit := uint64(999)
+	tx := CreateNewAccountTx(pubKey, payerAddr, referenceBlockIDHex, payerSequenceNumber, gasLimit)
+
+	bytes, err := core.TransactionToHTTP(*tx)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	t.Logf(string(bytes))
+}
+
 func TestCreateTransferFlowTx(t *testing.T) {
 	amount := float64(1)
 	toAddr := "0xbd7d04ba8666b4d2"

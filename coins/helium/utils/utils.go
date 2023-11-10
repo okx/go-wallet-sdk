@@ -98,7 +98,7 @@ func MathAdd(temp float64, temp2 float64, de int32) float64 {
 
 func ValidHeliumAddress(address string) error {
 	if address == "" {
-		return errors.New("address no null")
+		return errors.New("address is null")
 	}
 	data := base58.Decode(address)
 	checkSum1 := data[len(data)-4:]

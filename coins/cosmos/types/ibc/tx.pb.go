@@ -51,6 +51,8 @@ type MsgTransfer struct {
 	// Timeout timestamp in absolute nanoseconds since unix epoch.
 	// The timeout is disabled when set to 0.
 	TimeoutTimestamp uint64 `protobuf:"varint,7,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty" yaml:"timeout_timestamp"`
+	// optional memo
+	Memo string `protobuf:"bytes,8,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *MsgTransfer) MessageName() string {
@@ -77,6 +79,13 @@ func (m *MsgTransfer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Memo) > 0 {
+		i -= len(m.Memo)
+		copy(dAtA[i:], m.Memo)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Memo)))
+		i--
+		dAtA[i] = 0x42
+	}
 	if m.TimeoutTimestamp != 0 {
 		i = types.EncodeVarintTx(dAtA, i, uint64(m.TimeoutTimestamp))
 		i--
@@ -161,6 +170,10 @@ func (m *MsgTransfer) Size() (n int) {
 	n += 1 + l + types.SovTx(uint64(l))
 	if m.TimeoutTimestamp != 0 {
 		n += 1 + types.SovTx(uint64(m.TimeoutTimestamp))
+	}
+	l = len(m.Memo)
+	if l > 0 {
+		n += 1 + l + types.SovTx(uint64(l))
 	}
 	return n
 }
@@ -407,6 +420,38 @@ func (m *MsgTransfer) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Memo", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return types.ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return types.ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return types.ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Memo = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := types.SkipTx(dAtA[iNdEx:])

@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/kaspanet/go-secp256k1"
 	"github.com/kaspanet/kaspad/domain/consensus/model/externalapi"
 	"github.com/kaspanet/kaspad/domain/consensus/utils/consensushashing"
 	"github.com/kaspanet/kaspad/domain/consensus/utils/constants"
@@ -251,4 +250,23 @@ func serialize(tx *externalapi.DomainTransaction) (string, error) {
 func StrToUint64(s string) uint64 {
 	v, _ := strconv.ParseUint(s, 10, 64)
 	return v
+}
+
+func SignMessage(message string, privateKey []byte) (string, error) {
+	blake2b256, err := blake2b.New256([]byte("PersonalMessageSigningHash"))
+	if err != nil {
+		return "", err
+	}
+
+	blake2b256.Write([]byte(message))
+	hash := blake2b256.Sum(nil)
+
+	prvKey, _ := btcec.PrivKeyFromBytes(privateKey)
+
+	signature, err := schnorr.Sign(prvKey, hash)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(signature.Serialize()), nil
 }

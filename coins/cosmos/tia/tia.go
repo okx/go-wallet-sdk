@@ -15,3 +15,11 @@ func NewAddress(privateKeyHex string) (string, error) {
 func ValidateAddress(address string) bool {
 	return cosmos.ValidateAddress(address, HRP)
 }
+
+func Transfer(param cosmos.TransferParam, privateKeyHex string) (string, error) {
+	return cosmos.Transfer(param, privateKeyHex)
+}
+
+func IbcTransfer(param cosmos.IbcTransferParam, privateKeyHex string) (string, error) {
+	return cosmos.IbcTransfer(param, privateKeyHex)
+}

@@ -71,3 +71,48 @@ func TestIbcTransfer(t *testing.T) {
 	require.Nil(t, err)
 	t.Log("signedIBCTx : ", signedIBCTx)
 }
+
+// https://www.seiscan.app/atlantic-2/txs/B564BE5BFA5ED5096287F72F11778E3BE83F24CCD6074B28BACD5BBF0BFC9A3C
+// curl -X POST -d '{"tx_bytes":"Cs0BCsoBCiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSoQEKKnNlaTFzOTV6dnB4d3hjcjB5a2RrajN5bXNjcmV2ZGFtN3d2czI0ZGs1NxI+c2VpMTY1bDVuY2gzMDlyY2d2NzY1anlkZHdmMzV0YW5lM3QyMDllZjM1NXpmNzUzazI2czc2NHNxa242cTkaKHsidXBkYXRlX3ByaWNlIjp7ImJhaWxfb25fZXJyb3IiOmZhbHNlfX0qCQoEdXNlaRIBMRJoClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECWzs64TTLQ3sGP88eAUtzXoHtGHUYauDmYZWgBLyYUesSBAoCCAEYEhIUCg4KBHVzZWkSBjI1MDAwMBCAiXoaQFhyD8Iv42M5OeJJe0TvHU3PN5XmHYSVXx8MsIjdX1A+BW5et4Sqa3vQoF0pjDzEzGc93dFllESWJZF7QtywyYs=","mode":"BROADCAST_MODE_SYNC"}' https://rest.atlantic-2.seinetwork.io/cosmos/tx/v1beta1/txs
+func TestSignMessage(t *testing.T) {
+	// sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	data := "{\n" +
+		"\"chain_id\": \"atlantic-2\",\n" +
+		"\"account_number\": \"4050874\",\n" +
+		"\"sequence\": \"18\",\n" +
+		"\"fee\": {\n " +
+		"	\"gas\": \"2000000\",\n" +
+		"	\"amount\": [\n    " +
+		"		{\n    " +
+		"			\"denom\": \"usei\",\n" +
+		"			\"amount\": \"250000\"\n" +
+		"       }\n" +
+		"    ]\n" +
+		"},\n" +
+		"\"msgs\": [\n" +
+		" {\n" +
+		"	\"type\": \"cosmwasm.wasm.v1.MsgExecuteContract\",\n " +
+		"	\"value\": {\n" +
+		"		\"sender\": \"sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57\",\n " +
+		"		\"contract\": \"sei165l5nch309rcgv765jyddwf35tane3t209ef355zf753k26s764sqkn6q9\",\n " +
+		"		\"funds\": [\n" +
+		"	  		{\n" +
+		"	 			\"amount\": \"1\",\n" +
+		"   			\"denom\": \"usei\"\n" +
+		"     		}\n" +
+		" 		],\n" +
+		"		\"msg\": {\n" +
+		"			\"update_price\": {\n" +
+		"				\"bail_on_error\": false\n" +
+		"	    	}\n" +
+		"		}\n" +
+		" 	}\n" +
+		" }\n" +
+		"],\n " +
+		"\"memo\": \"\"\n" +
+		"}"
+	tt, _, err := cosmos.SignMessage(data, privateKeyHex)
+	require.Nil(t, err)
+	t.Log(tt)
+}

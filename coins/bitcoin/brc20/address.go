@@ -38,6 +38,9 @@ func NewTapRootAddressWithScriptWithPubKey(serializedPubKey []byte, script []byt
 	}
 	tapHash := proof.RootNode.TapHash()
 	pubKey, err := schnorr.ParsePubKey(serializedPubKey)
+	if err != nil {
+		return ""
+	}
 	outputKey := txscript.ComputeTaprootOutputKey(pubKey, tapHash[:])
 	address, err := btcutil.NewAddressTaproot(schnorr.SerializePubKey(outputKey), params)
 	if err != nil {

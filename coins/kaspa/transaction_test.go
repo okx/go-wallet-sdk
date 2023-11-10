@@ -1,7 +1,9 @@
 package kaspa
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -33,4 +35,12 @@ func TestTransfer(t *testing.T) {
 	require.NoError(t, err)
 	expected := "0dcbc57ae8b4be9c0769bdfffd54db09f7b36f048ba19d43f09c14b323a2b0d8"
 	require.Equal(t, expected, res.TxId)
+}
+
+func TestSignMessage(t *testing.T) {
+	privateKey, err := hex.DecodeString("b7e151628aed2a6abf7158809cf4f3c762e7160f38b4da56a784d9045190cfef")
+	assert.Nil(t, err)
+	signature, err := SignMessage("Hello Kaspa!", privateKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "a106673fbb90b19f9ff55a0a40ec7ad56933ae0cf0170503886c59564044f93b1fe29233933790c70d4718e448cbe45ae212908b5f62d061feda048c16184964", signature)
 }

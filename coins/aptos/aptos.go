@@ -769,6 +769,14 @@ func GetSigningHash(from string, sequenceNumber uint64, maxGasAmount uint64, gas
 	return hex.EncodeToString(rawTxHash), err
 }
 
+func GetRawTxHash(rawTxn *types.RawTransaction) (string, error) {
+	rawTxHash, err := rawTxn.GetSigningMessage()
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(rawTxHash), err
+}
+
 func SignedTx(rawTxn *types.RawTransaction, signDataHex string, pubKey string) (string, error) {
 	pb, err := hex.DecodeString(pubKey)
 	if err != nil {

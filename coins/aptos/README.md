@@ -21,6 +21,9 @@ go get -u github.com/okx/go-wallet-sdk/coins/aptos
 		fmt.Println(err)
 	}
 
+```
+##  transfer 
+```golang
 	// transfer
 	from := addr
 	to := "0xedc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28"

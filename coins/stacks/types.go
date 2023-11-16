@@ -37,19 +37,6 @@ type DecodeBtcAddressBean struct {
 	data     []byte
 }
 
-type STXPostCondition struct {
-	PostCondition
-	amount *big.Int
-}
-
-func (s STXPostCondition) getConditionType() int {
-	return s.ConditionType
-}
-
-func (s STXPostCondition) GetType() int {
-	return s.Type
-}
-
 type SignedContractCallOptions struct {
 	ContractAddress         string                   `json:"contractAddress"`
 	ContractName            string                   `json:"contractName"`

@@ -227,32 +227,6 @@ func makeUnsignedContractCallWithSerializePostCondition(publicKey string, txOpti
 	return stacksTransaction, nil
 }
 
-func makeUnsignedContractCallWithSerializePostCondition(publicKey string, txOptions *SignedContractCallOptions) *StacksTransaction {
-	payload := CreateContractCallPayload(txOptions.ContractAddress, txOptions.ContractName, txOptions.FunctionName, txOptions.FunctionArgs)
-	spendingCondition, err := createSingleSigSpendingCondition(SerializeP2PKH, publicKey, txOptions.Nonce, txOptions.Fee)
-	if err != nil {
-		return nil, err
-	}
-	authorization := StandardAuthorization{4, spendingCondition, nil}
-
-	var newpost []PostConditionInterface
-	if len(txOptions.SerializePostConditions) > 0 {
-		for _, ps := range txOptions.SerializePostConditions {
-			newpost = append(newpost, DeserializePostCondition(ps))
-		}
-	}
-
-	lpPostConditions := &LPList{7, 4, newpost}
-	var chainId = new(int64)
-	*chainId = 1
-	anchorMode := txOptions.AnchorMode
-	if anchorMode == 0 {
-		anchorMode = 3
-	}
-	stacksTransaction := newStacksTransaction(0, chainId, authorization, &anchorMode, payload, txOptions.PostConditionMode, lpPostConditions)
-	return stacksTransaction
-}
-
 func CreateContractCallPayload(contractAddress, contractName, functionName string, functionArgs []ClarityValue) *ContractCallPayload {
 	address := createAddress(contractAddress)
 	lpContractName := createLPString(contractName, nil, nil)

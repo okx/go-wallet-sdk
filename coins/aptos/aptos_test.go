@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
 	"github.com/okx/go-wallet-sdk/coins/aptos/types"
+	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -367,8 +368,9 @@ func TestTransferSign(t *testing.T) {
 	expirationTimestampSecs := time.Now().Unix() + 300
 	chainId := 2
 	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
-	data := Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
+	data, err := Transfer(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId),
 		to, uint64(amount), seedHex)
+	assert.Nil(t, err)
 	fmt.Println(data)
 
 }
@@ -443,11 +445,14 @@ func TestWithdraw(t *testing.T) {
 }
 
 func TestGetPubKey(t *testing.T) {
-	publicKey := ed25519.PublicKeyFromSeed("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+	publicKey, err := ed25519.PublicKeyFromSeed("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+	assert.Nil(t, err)
 	fmt.Println(hex.EncodeToString(publicKey))
 	//61f579fc779146304353027b425a216d8015889c5f3b715ad26135b862f3bf84
 
-	b, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
-	sig, _ := ed25519.Sign("c9c44cf555856d4c619d35daa1fe421c053234df8badabe4dce9d46aa923ec4f", b)
+	b, err := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+	assert.Nil(t, err)
+	sig, err := ed25519.Sign("c9c44cf555856d4c619d35daa1fe421c053234df8badabe4dce9d46aa923ec4f", b)
+	assert.Nil(t, err)
 	fmt.Println(hex.EncodeToString(sig))
 }

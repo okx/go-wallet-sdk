@@ -217,7 +217,10 @@ func SignTransaction(privateKeyhex string, tx *Transaction) error {
 	}
 	tx.ToAddr = address
 
-	publicKeyHex := GetPublicKeyFromPrivateKey(privateKeyhex)
+	publicKeyHex, err := GetPublicKeyFromPrivateKey(privateKeyhex)
+	if err != nil {
+		return err
+	}
 	tx.SenderPubKey = publicKeyHex
 
 	message, err := tx.Bytes()

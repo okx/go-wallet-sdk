@@ -1,3 +1,7 @@
+/**
+The MIT License (MIT) Copyright (c) 2021-2023 Blockwatch Data Inc.
+*/
+
 package types
 
 // Limits represents all resource limits defined for an operation in Tezos.

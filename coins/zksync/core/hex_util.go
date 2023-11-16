@@ -1,3 +1,6 @@
+/*
+Author: https://github.com/zksync-sdk/zksync-go
+**/
 // Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -18,7 +21,7 @@
 Package hexutil implements hex encoding with 0x prefix.
 This encoding is used by the Ethereum RPC API to transport binary data in JSON payloads.
 
-Encoding Rules
+# Encoding Rules
 
 All hex data must have prefix "0x".
 

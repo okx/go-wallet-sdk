@@ -1,3 +1,12 @@
+/*
+*
+The MIT License (MIT)
+
+# Copyright (c) 2020 Matter Labs
+
+https://github.com/zksync-sdk/zksync-sdk-go
+*/
+
 package zkscrypto
 
 /*

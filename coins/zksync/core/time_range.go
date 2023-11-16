@@ -1,3 +1,7 @@
+/*
+Author: https://github.com/zksync-sdk/zksync-go
+*
+*/
 package core
 
 type TimeRange struct {

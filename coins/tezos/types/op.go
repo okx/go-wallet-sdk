@@ -1,3 +1,7 @@
+/**
+The MIT License (MIT) Copyright (c) 2021-2023 Blockwatch Data Inc.
+*/
+
 package types
 
 import (
@@ -53,12 +57,12 @@ const (
 
 var (
 	opTypeStrings = map[OpType]string{
-		OpTypeInvalid:                      "",
-		OpTypeActivateAccount:              "activate_account",
-		OpTypeTransaction:                  "transaction",
-		OpTypeOrigination:                  "origination",
-		OpTypeDelegation:                   "delegation",
-		OpTypeReveal:                       "reveal",
+		OpTypeInvalid:         "",
+		OpTypeActivateAccount: "activate_account",
+		OpTypeTransaction:     "transaction",
+		OpTypeOrigination:     "origination",
+		OpTypeDelegation:      "delegation",
+		OpTypeReveal:          "reveal",
 	}
 	// before Babylon v005
 	opTagV0 = map[OpType]byte{
@@ -216,7 +220,6 @@ func (o *Op) WithTransfer(to Address, amount int64) *Op {
 	})
 	return o
 }
-
 
 // WithDelegation adds a delegation transaction to the contents list.
 func (o *Op) WithDelegation(to Address) *Op {

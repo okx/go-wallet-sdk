@@ -3,6 +3,7 @@ module github.com/okx/go-wallet-sdk/coins/cosmos
 go 1.19
 
 require (
+	cosmossdk.io/math v1.1.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/ethereum/go-ethereum v1.12.2
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	cosmossdk.io/math v1.1.2 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/btcsuite/btcd v0.23.0 // indirect

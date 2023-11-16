@@ -1,3 +1,7 @@
+/**
+The MIT License (MIT) Copyright (c) 2021-2023 Blockwatch Data Inc.
+*/
+
 package types
 
 import (
@@ -13,7 +17,7 @@ var (
 	// DefaultParams defines the blockchain configuration for Mainnet under the latest
 	// protocol.
 	DefaultParams = NewParams().ForNetwork(Mainnet).ForProtocol(ProtoV012_2).
-		Mixin(&Params{
+			Mixin(&Params{
 			OperationTagsVersion:         2,
 			MaxOperationsTTL:             120,
 			HardGasLimitPerOperation:     1040000,
@@ -25,7 +29,7 @@ var (
 		})
 
 	IthacanetParams = NewParams().ForNetwork(Ithacanet).ForProtocol(ProtoV012_2).
-		Mixin(&Params{
+			Mixin(&Params{
 			OperationTagsVersion:         2,
 			MaxOperationsTTL:             120,
 			HardGasLimitPerOperation:     1040000,
@@ -37,7 +41,7 @@ var (
 		})
 
 	JakartanetParams = NewParams().ForNetwork(Jakartanet).ForProtocol(ProtoV013_2).
-		Mixin(&Params{
+				Mixin(&Params{
 			OperationTagsVersion:         2,
 			MaxOperationsTTL:             120,
 			HardGasLimitPerOperation:     1040000,

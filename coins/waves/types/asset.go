@@ -1,3 +1,10 @@
+/**
+MIT License
+
+Copyright (c) 2018 WavesPlatform
+
+*/
+
 package types
 
 import (

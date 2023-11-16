@@ -1,3 +1,5 @@
+// Copyright (c) 2020-2023 Blockwatch Data Inc.
+// Author: alex@blockwatch.cc
 package types
 
 import (

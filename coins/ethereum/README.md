@@ -56,4 +56,4 @@ go get -u github.com/okx/go-wallet-sdk/coins/ethereum
 ```
 
 ## License
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.
+Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/ethereum/LICENSE>) licensed, see package or folder for the respective license.

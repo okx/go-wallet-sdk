@@ -23,16 +23,27 @@ go get -u github.com/okx/go-wallet-sdk/coins/elrond
 	}
 
 ```
+
+
 ###  transfer 
 ```golang
 	// transfer
-	
+	args := ArgCreateTransaction{
+		Nonce:    3,
+		Value:    "10000000000000000", // decimal 18
+		RcvAddr:  toAddress,
+		GasPrice: 1000000000,
+		GasLimit: 50000,
+		ChainID:  "T",
+		Version:  2,
+		Options:  1,
+	}
+    signedTx, err := Transfer(args, pk)
 	if err != nil {
 		// todo
 		fmt.Println(err)
 	}
 	fmt.Println(data)
 ```
-
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.

@@ -1,10 +1,11 @@
 package bitcoin
 
 import (
+	"testing"
+
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestPsbt(t *testing.T) {
@@ -82,7 +83,7 @@ func TestPsbt(t *testing.T) {
 	require.Nil(t, err)
 	t.Log(fee)
 
-	buyerTx, err := GenerateSignedBuyingTx(inputs, outputs, sellerPsbt, network)
+	buyerTx, err := GenerateSignedBuyingTx(inputs, outputs, sellerPsbt, true, network)
 	require.Nil(t, err)
 	t.Log(buyerTx)
 }

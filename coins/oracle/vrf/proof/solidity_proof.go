@@ -1,3 +1,9 @@
+/*
+*
+The MIT License (MIT)
+
+Copyright (c) 2018 SmartContract ChainLink, Ltd.
+*/
 package proof
 
 // Logic for providing the precomputed values required by the solidity verifier,

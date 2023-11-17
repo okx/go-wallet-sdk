@@ -1,3 +1,8 @@
+/**
+The MIT License (MIT)
+
+Copyright (c) 2018 SmartContract ChainLink, Ltd.
+*/
 // Package utils is used for common functions and tools used across the codebase.
 package utils
 

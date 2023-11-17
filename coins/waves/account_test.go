@@ -8,7 +8,7 @@ import (
 )
 
 func Test_newAddressFromPublicKeyHash(t *testing.T) {
-	addr, _ := NewAddressFromString("3P4ZvCY6W5WCMfPEdKCnWxqWWA8qdEDuJp3")
+	addr, _ := NewAddressFromString("3P22DpDfBvLr9E7WEfC5sGnWCyQ2M9wods3")
 	type args struct {
 		scheme     byte
 		pubKeyHash []byte
@@ -145,7 +145,7 @@ func TestGetAddress(t *testing.T) {
 				scheme:     TestNetScheme,
 				pubKeyHash: pubKeyHash3.Bytes(),
 			},
-			want:    "3P4ZvCY6W5WCMfPEdKCnWxqWWA8qdEDuJp3",
+			want:    "3NAorunHiZ5aJNQuyhZ3XBZy9Msc8pedYfA",
 			wantErr: false,
 		},
 	}

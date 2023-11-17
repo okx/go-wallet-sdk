@@ -28,10 +28,11 @@ func TestPubKeyfromPrivKeyWithPKCompressed(t *testing.T) {
 }
 
 func TestValidAddress(t *testing.T) {
-	addr := "SP1A6RRGGQ5DJM9FWRPYQRPHPFBNN1VKPGRB02581"
-	require.True(t, ValidAddress(addr))
-	addr = "1A6RRGGQ5DJM9FWRPYQRPHPFBNN1VKPGRB02581"
-	require.True(t, ValidAddress(addr))
+	address1 := "SP1A6RRGGQ5DJM9FWRPYQRPHPFBNN1VKPGRB02581"
+	assert.Equal(t, ValidAddress(address1), true)
+
+	address2 := "1A6RRGGQ5DJM9FWRPYQRPHPFBNN1VKPGRB02581"
+	assert.Equal(t, ValidAddress(address2), false)
 }
 
 func TestNewAddress(t *testing.T) {

@@ -1,3 +1,9 @@
+/*
+*
+The MIT License (MIT)
+
+Copyright (c) 2018 SmartContract ChainLink, Ltd.
+*/
 package utils
 
 import (

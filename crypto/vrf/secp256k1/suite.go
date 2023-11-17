@@ -1,3 +1,8 @@
+/**
+The MIT License (MIT)
+
+Copyright (c) 2018 SmartContract ChainLink, Ltd.
+*/
 // Package secp256k1 is an implementation of the kyber.{Group,Point,Scalar}
 ////////////////////////////////////////////////////////////////////////////////
 //       XXX: Do not use in production until this code has been audited.

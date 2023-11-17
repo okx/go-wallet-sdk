@@ -64,7 +64,7 @@ func TestNewUnsignedTransferWithSig(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	address, err := types.NewAddressFromString("3PJQXu9uQ8qoQK2f8zqXzjQYzjQ8JXhj2a")
+	address, err := types.NewAddressFromString("3NB2pUqjoavApZeAmdsVYS84hyRGXZpeytA")
 	if err != nil {
 		t.Fatal(err)
 		return

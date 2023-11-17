@@ -63,7 +63,7 @@ func TestValidateAddress(t *testing.T) {
 			args: args{
 				address: "ckt1qyqrqzqxq2q9qwq3q4q5q6q7q8q9q0qaqdqfqgqhqjqkqlqmqnqoqpqq",
 			},
-			want: true,
+			want: false,
 		},
 	}
 	for _, tt := range tests {

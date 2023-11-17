@@ -4,6 +4,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/schnorr"
+	"github.com/kaspanet/go-secp256k1"
 	"github.com/kaspanet/kaspad/domain/consensus/model/externalapi"
 	"github.com/kaspanet/kaspad/domain/consensus/utils/consensushashing"
 	"github.com/kaspanet/kaspad/domain/consensus/utils/constants"
@@ -15,6 +18,7 @@ import (
 	"github.com/kaspanet/kaspad/domain/miningmanager/mempool"
 	"github.com/kaspanet/kaspad/util"
 	"github.com/kaspanet/kaspad/util/txmass"
+	"golang.org/x/crypto/blake2b"
 	"strconv"
 )
 

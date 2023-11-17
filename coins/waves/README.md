@@ -12,7 +12,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/waves
 ```
 
 ## Usage
-### New Address
+### New address
 ```golang
 pubKeyHash1, _ := crypto.NewPublicKeyFromBase58("2wySdbAsXi1bfAfMBKC1NcyyJemUWLM4R5ECwXJiADUx")
 got, err := GetAddress(MainNetScheme, pubKeyHash1)

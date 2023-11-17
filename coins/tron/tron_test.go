@@ -3,6 +3,7 @@ package tron
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -12,6 +13,15 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/tron/token"
 	"github.com/okx/go-wallet-sdk/util/abi"
 )
+
+func TestTron_NewAddress(t *testing.T) {
+	pubKeyHex := "0357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f"
+	publicKey, _ := hex.DecodeString(pubKeyHex)
+	pub, _ := btcec.ParsePubKey(publicKey)
+	addr := GetAddress(pub)
+	fmt.Println(addr)
+	require.Equal(t, "TAT9zzmrEMufpgRYBbuGKCA4iL9CYRJegH", addr)
+}
 
 func TestTron_Address(t *testing.T) {
 	trxAddress := "TNrEPvnnX7Hwj1z6tb1aTXpMad7z4BxoNW"

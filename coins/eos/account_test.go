@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/eoscanada/eos-go/ecc"
 	atomic_market "github.com/okx/go-wallet-sdk/coins/eos/atomic-market"
 	"github.com/okx/go-wallet-sdk/coins/eos/types"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -113,41 +113,50 @@ func getPublicRPCEndpoint() string {
 	return "http://api.waxtest.waxgalaxy.io/v1"
 }
 
-func getTxOptions() *types.TxOptions {
-	url := getPublicRPCEndpoint() + "/chain/get_info"
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	// http response
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("getTxOptions err : ", err)
-		return nil
-	}
-	defer resp.Body.Close()
+/*
+	func getTxOptions() (*types.TxOptions, error) {
+		url := getPublicRPCEndpoint() + "/chain/get_info"
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
+		// http response
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
 
-	// parse response
-	var response map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil
+		// parse response
+		var response map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			return nil, err
+		}
+		// check is exists response
+		if _, ok := response["head_block_id"]; !ok {
+			return nil, errors.New("head_block_id not found")
+		}
+		// check is exists response
+		if _, ok := response["chain_id"]; !ok {
+			return nil, errors.New("chain_id not found")
+		}
+		return &types.TxOptions{
+			ChainID:     hexToChecksum256(response["chain_id"].(string)),
+			HeadBlockID: hexToChecksum256(response["head_block_id"].(string)),
+		}, nil
 	}
-	// check is exists response
-	if _, ok := response["head_block_id"]; !ok {
-		return nil
-	}
-	// check is exists response
-	if _, ok := response["chain_id"]; !ok {
-		return nil
-	}
+*/
+// curl https://api.waxtest.waxgalaxy.io/v1/chain/get_info
+// get information on the blockchain WAX
+func getTxOptions() (*types.TxOptions, error) {
 	return &types.TxOptions{
-		ChainID:     hexToChecksum256(response["chain_id"].(string)),
-		HeadBlockID: hexToChecksum256(response["head_block_id"].(string)),
-	}
+		ChainID:     hexToChecksum256("f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12"),
+		HeadBlockID: hexToChecksum256("0ed154c668a8a4f1916b30d9feead7e99edc9015635ba0feb3f8cd4368e8649b"),
+	}, nil
 }
-
 func DumpGetRequiredKeyContent(tx *types.Transaction, publicKey string, t *testing.T) {
 	m := make(map[string]interface{})
 	m["transaction"] = tx
@@ -210,25 +219,12 @@ func enc(v interface{}) (io.Reader, error) {
 	return buffer, nil
 }
 
-func setup() {
-	opt = getTxOptions()
-}
-
-func teardown() {}
-
-//func TestMain(m *testing.M) {
-//	setup()
-//	code := m.Run()
-//	teardown()
-//	os.Exit(code)
-//}
-
 // TestWax test the wax send transaction
 func TestNewWaxTransaction(t *testing.T) {
 	privateKey, err := ecc.NewPrivateKey(p1)
 	require.NoError(t, err)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err = getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewTransactionWithParams(n1+"abcdefghijklmn", n2, "test", types.NewWAXAsset(500000000), opt)
 	if nilTx != nil {
 		t.Error("NewTransactionWithParams error")
@@ -249,8 +245,8 @@ func TestNewWaxTransaction(t *testing.T) {
 
 func TestNewContractTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p1)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	contractName := "wax.token"
 	tx := NewContractTransaction(contractName, n1, n2, "test", types.NewWAXAsset(500000000), opt)
 	require.NotNil(t, tx)
@@ -267,8 +263,8 @@ func TestNewContractTransaction(t *testing.T) {
 
 func TestNewBuyRAMBytesTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p1)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewBuyRAMBytesTransaction(n1+"abcdefghijklmn", n2, 1000, opt)
 	require.Nil(t, nilTx)
 	tx := NewBuyRAMBytesTransaction(n1, n2, 1000, opt)
@@ -288,8 +284,8 @@ func TestNewBuyRAMBytesTransaction(t *testing.T) {
 
 func TestNewBuyRamTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p1)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewBuyRamTransaction(n1+"abcdefghijklmn", n1, types.NewWAXAsset(500000000), opt)
 	require.Nil(t, nilTx)
 	tx := NewBuyRamTransaction(n1, n1, types.NewWAXAsset(500000000), opt)
@@ -307,8 +303,8 @@ func TestNewBuyRamTransaction(t *testing.T) {
 
 func TestNewSellRAMTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p2)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewSellRAMTransaction(n2+"abcdefghijklmn", 1000, opt)
 	require.Nil(t, nilTx)
 	tx := NewSellRAMTransaction(n2, 100000, opt)
@@ -325,14 +321,14 @@ func TestNewSellRAMTransaction(t *testing.T) {
 
 func TestNewDelegateBWTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p1)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewDelegateBWTransaction(n1+"abcdefghijklmn", n2, types.NewWAXAsset(500000000),
 		types.NewWAXAsset(500000000), true, opt)
 	require.Nil(t, nilTx)
 	tx := NewDelegateBWTransaction(n1, n2, types.NewWAXAsset(500000000),
 		types.NewWAXAsset(500000000), true, opt)
-	require.Nil(t, tx)
+	require.NotNil(t, tx)
 	signedTx, packedTx, err := SignTransaction(p1, tx, opt.ChainID, types.CompressionNone)
 	require.NoError(t, err)
 	DumpGetRequiredKeyContent(tx, privateKey.PublicKey().String(), t)
@@ -345,8 +341,8 @@ func TestNewDelegateBWTransaction(t *testing.T) {
 
 func TestNewUndelegateBWTransaction(t *testing.T) {
 	privateKey, _ := ecc.NewPrivateKey(p2)
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	nilTx := NewUndelegateBWTransaction(n2+"abcdefghijklmn", n2, types.NewWAXAsset(500000000),
 		types.NewWAXAsset(500000000), opt)
 	require.Nil(t, nilTx)
@@ -364,8 +360,8 @@ func TestNewUndelegateBWTransaction(t *testing.T) {
 }
 
 func TestNewBuyNFTTransaction(t *testing.T) {
-	opt = getTxOptions()
-	require.NotNil(t, opt)
+	opt, err := getTxOptions()
+	require.NoError(t, err)
 	privateKey, _ := ecc.NewPrivateKey(p1)
 	saleId := uint64(32276)
 	listingPriceToAssert := "2.00000000 WAX"
@@ -392,10 +388,21 @@ func TestNewWaxNilOptTransaction(t *testing.T) {
 	tx := NewTransactionWithParams(n1, n2, "test", types.NewWAXAsset(500000000), nil)
 	require.NotNil(t, tx)
 }
+func setup() {
+	opt, _ = getTxOptions()
+}
 
+func teardown() {}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	teardown()
+	os.Exit(code)
+}
 func TestSignErrorTransaction(t *testing.T) {
 	tx := NewTransactionWithParams(n1, n2, "test", types.NewWAXAsset(500000000), nil)
 	require.NotNil(t, tx)
 	_, _, err := SignTransaction(p1+"11dsf", tx, opt.ChainID, types.CompressionNone)
-	require.NoError(t, err)
+	require.NotNil(t, err)
 }

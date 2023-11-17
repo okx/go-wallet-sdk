@@ -75,6 +75,7 @@ func NewUndelegateBWTransaction(from, to string, unstakeCPU, unstakeNet types.As
 func SignTransactionWithWIFs(wifs []string, tx *types.Transaction, chainID types.Checksum256,
 	compression types.CompressionType) (*types.SignedTransaction, *types.PackedTransaction, error) {
 	stx := types.NewSignedTransaction(tx)
+
 	signer, err := NewSignerFromWIFs(wifs)
 	if err != nil {
 		return nil, nil, err

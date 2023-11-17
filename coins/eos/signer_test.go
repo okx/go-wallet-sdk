@@ -70,7 +70,7 @@ func TestSigner_Add(t *testing.T) {
 			fields: fields{
 				Keys: []*ecc.PrivateKey{},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

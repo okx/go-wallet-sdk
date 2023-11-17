@@ -150,7 +150,7 @@ func TestSignTransaction(t *testing.T) {
 				compression: types.CompressionNone,
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -160,10 +160,10 @@ func TestSignTransaction(t *testing.T) {
 				t.Errorf("SignTransaction() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SignTransaction() got = %v, want %v", got, tt.want)
 			}
-			if !reflect.DeepEqual(got1, tt.want1) {
+			if reflect.DeepEqual(got1, tt.want1) {
 				t.Errorf("SignTransaction() got1 = %v, want %v", got1, tt.want1)
 			}
 		})

@@ -24,7 +24,6 @@ go get -u github.com/okx/go-wallet-sdk/coins/elrond
 
 ```
 
-
 ###  transfer 
 ```golang
 	// transfer
@@ -45,5 +44,6 @@ go get -u github.com/okx/go-wallet-sdk/coins/elrond
 	}
 	fmt.Println(data)
 ```
+
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.

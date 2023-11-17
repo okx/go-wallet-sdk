@@ -12,7 +12,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/avax
 ```
 
 ## Usage
-### address
+### New Address
 ```golang
 	// address
 	pk, _ := hex.DecodeString("d27a851e2ffe50d81d639a5bc17ccb488b1441307fea7636e264b9da0ce577a1")
@@ -24,7 +24,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/avax
 	}
 
 ```
-###  transfer
+###  Transfer
 ```golang
 	// transfer
 	var inputs []avax.TransferInput

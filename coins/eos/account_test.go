@@ -102,7 +102,7 @@ func hexToChecksum256(data string) types.Checksum256 {
 }
 func hexToHexBytes(data string) types.HexBytes {
 	bytes, _ := hex.DecodeString(data)
-	return types.HexBytes(bytes)
+	return bytes
 }
 
 // note following test for other coins fork of EOS, such as WAX

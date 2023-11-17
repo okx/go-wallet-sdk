@@ -31,7 +31,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 // GenerateSignedListingPSBTBase64
 ```
 
-### address
+### New Address
 ```golang
 	// address
 	network := &chaincfg.TestNet3Params
@@ -44,7 +44,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 	}
 	fmt.Println(p2pkh)
 ```
-### transfer
+### Transfer
 ```golang
 	// transfer btc
 	txBuild := bitcoin.NewTxBuild(1, &chaincfg.TestNet3Params)
@@ -69,7 +69,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 	fmt.Println(txHex)
 ```
 
-### psbt
+### PSBT
 ```golang
 	// psbt
 	var inputs []*bitcoin.TxInput

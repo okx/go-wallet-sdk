@@ -124,5 +124,4 @@ func TestCreateWithdrawNFTTx(t *testing.T) {
 	require.NoError(t, err)
 	expected := "{\"type\":\"WithdrawNFT\",\"accountId\":1291712,\"from\":\"0x1ca96f8cfe7276bb053b25e57188f1b5ec6a4728\",\"to\":\"0x1ca96f8cfe7276bb053b25e57188f1b5ec6a4728\",\"token\":113561,\"feeToken\":2,\"fee\":\"100000000000000\",\"nonce\":16,\"signature\":null,\"validFrom\":0,\"validUntil\":10000000000000000}"
 	require.Equal(t, expected, string(bytes))
-
 }

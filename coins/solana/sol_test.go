@@ -26,28 +26,29 @@ func Test_TransferTransaction(t *testing.T) {
 	rawTransaction := NewRawTransaction(hash, from)
 	rawTransaction.AppendTransferInstruction(1000000000, from, to)
 	rawTransaction.AppendSigner(hex.EncodeToString(fromPrivate.Bytes()))
-	tx, _ := rawTransaction.Sign(true)
+	tx, err := rawTransaction.Sign(true)
+	require.NoError(t, err)
 	expected := "4jijgudzgfQtujYrGnN66tv95LGUbnBv21vSWwyNQ185atbrW9b2pJdQsXXGBk3NMzrA7DcxNzkfFb3exJ11JG3JWj2WpWamCuDqza2Xg2Eh4ZhFKgYLhnXjyVdFDFtxjPa2t3xNUvLi1x1g2oE8jTcmq3ZjyQ2EFi1aNQVTwtg8eJLkFjr5kLjzn6tjnzstscj1A495KAWR3FETjHk2dTU6itaMJiSZ8sxMUZSEWKiJPDvD4MWN4vu8FwHtdWYABavzMzAxowskqevbiGKaezzAoN3zr5hJrEjQj"
 	require.Equal(t, expected, tx)
 }
 
 func Test_TokenTransferTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
-
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	from := fromPrivate.PublicKey().String()
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
-
 	mint := "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
-
 	fromAssociated, _, _ := base.FindAssociatedTokenAddress(base.MustPublicKeyFromBase58(from), base.MustPublicKeyFromBase58(mint))
 	toAssociated, _, _ := base.FindAssociatedTokenAddress(base.MustPublicKeyFromBase58(to), base.MustPublicKeyFromBase58(mint))
-
 	rawTransaction := NewRawTransaction(hash, from)
 	rawTransaction.AppendAssociatedTokenAccountCreateInstruction(from, to, mint)
 	rawTransaction.AppendTokenTransferInstruction(1000000, fromAssociated.String(), toAssociated.String(), from)
 	rawTransaction.AppendSigner(hex.EncodeToString(fromPrivate.Bytes()))
-	tx, _ := rawTransaction.Sign(true)
+	tx, err := rawTransaction.Sign(true)
+	if err != nil {
+		// todo
+	}
+	require.NoError(t, err)
 	expected := "7r9muRWaFEQC5wYCaXqtrr6BbPtZfm3pUsAFdzVrqaunHk1f6vjgi4GFa7d8ABppS9y6p6uCWLv7rraoTuA5FxEkmfBx6dNu3wgAGmxeQahgK91quoDKfQrCEGnsi3TV8pfykomPxejDdczHdq8LnCTQ5uskWyJknDuCrJDw2JH68yN5BpgwBy5k5UmAvmU7CMxaWwhNRRXv8sxVhNHkvFc4EaLuEttoaQ8CPiN85rqX4qVK3MRBMUVUtBoWDUSgEsFhBJVzXtcpEZ6htdqHqLPevJomKgfrLE2Wz7e52P4rr6dAst2nXKRHLvaTJTqhwG8d5YJ5SZpfuALXm8GN7VDogAzDzZrjXg6LXBWAiUNuBNXREWdd4mqyNZcjoUxn4Af4GkwX1fSZgMzmVym7otWeStW35me1CqwT6rqBgEtbn1UKMT4rqKMdCBTA4MZHruHfiJwwh5WpWrdUTCGa67jRvTXRdHnUAAfUkQpMNccrptZdCSqWHCiE9C2xMwqtZTTTW1avQ8t3sBsmQz775KxeKDin7aXaE5TAopjqDry6FG4FZwXFuq"
 	require.Equal(t, expected, tx)
 }

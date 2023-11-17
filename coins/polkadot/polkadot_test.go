@@ -36,7 +36,8 @@ func TestTransfer(t *testing.T) {
 		Version:      "84",
 	}
 
-	signed, _ := SignTx(tx, Transfer, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
+	signed, err := SignTx(tx, Transfer, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
+	require.NoError(t, err)
 	expected := "0x410284000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a200823181d175794c0438f88340b8f314d1e0e1f0e7fda5b0c0375be35482468ea6284e3831ce67b622322ad984f5a1d1868e7536e4558735fc1c9050443e1c8503150148000500000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a20700e40b5402"
 	require.Equal(t, expected, signed)
 }
@@ -58,7 +59,8 @@ func TestTransferAll(t *testing.T) {
 		EraHeight:    512, // 512 blocks valid
 	}
 
-	signed, _ := SignTx(tx, TransferAll, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
+	signed, err := SignTx(tx, TransferAll, "45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
+	require.NoError(t, err)
 	expected := "0x2d0284000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a200f30bef08367a97e17cac7b92512d109d2b43d78c3426832ec05467c2debb8fbdf3d8a8b7ef67afc92d68c716c9ddb18b141adcfca66093b39d2ecb9db7be210e151d48000504000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a200"
 	require.Equal(t, expected, signed)
 }

@@ -27,6 +27,9 @@ func TestTransfer(t *testing.T) {
 	}
 
 	signedTx, err := Transfer(txData)
+	if err != nil {
+		// todo
+	}
 	require.NoError(t, err)
 	res := &struct {
 		TxId string `json:"txId"`

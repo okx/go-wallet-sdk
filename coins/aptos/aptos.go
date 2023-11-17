@@ -3,6 +3,7 @@ package aptos
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -440,7 +441,7 @@ func Interface2U64(value interface{}) (uint64, error) {
 		op, _ := value.(float64)
 		return uint64(op), nil
 	default:
-		return 0, fmt.Errorf("convert value to u64 fail")
+		return 0, fmt.Errorf("%T convert value to u64 fail", value)
 	}
 }
 
@@ -480,7 +481,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 		case "u64":
 			ai, err := Interface2U64(moveValue)
 			if err != nil {
-				return nil, fmt.Errorf("unknown argument for u64")
+				return nil, fmt.Errorf("unknown argument for u64, %w", err)
 			}
 			bytes, err := types.BcsSerializeUint64(ai)
 			if err != nil {
@@ -491,7 +492,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			op := fmt.Sprintf("%v", moveValue)
 			b, err := strconv.ParseBool(op)
 			if err != nil {
-				return nil, fmt.Errorf("unknown argument for bool")
+				return nil, fmt.Errorf("unknown argument for bool, %w", err)
 			}
 			bytes, err := types.BcsSerializeBool(b)
 			if err != nil {
@@ -502,7 +503,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			op := fmt.Sprintf("%v", moveValue)
 			ai, err := strconv.ParseUint(op, 0, 8)
 			if err != nil {
-				return nil, fmt.Errorf("unknown argument for u8")
+				return nil, fmt.Errorf("unknown argument for u8, %w", err)
 			}
 			bytes, err := types.BcsSerializeU8(uint8(ai))
 			if err != nil {
@@ -512,7 +513,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 		case "u128":
 			ii, err := Interface2U128(moveValue)
 			if err != nil {
-				return nil, fmt.Errorf("unknown argument for u128")
+				return nil, fmt.Errorf("unknown argument for u128, %w", err)
 			}
 			bytes, err := types.BcsSerializeU128(*ii)
 			if err != nil {
@@ -528,7 +529,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					v := fmt.Sprintf("%v", e)
 					vv, err := strconv.ParseUint(v, 0, 8)
 					if err != nil {
-						return nil, fmt.Errorf("unknown argument for u8")
+						return nil, fmt.Errorf("unknown argument for u8, %w", err)
 					}
 					inputBytes = append(inputBytes, uint8(vv))
 				}
@@ -546,7 +547,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, bytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<u8>")
+				return nil, errors.New("unknown argument for vector<u8>")
 			}
 		case "vector<u64>":
 			switch moveValue.(type) {
@@ -561,7 +562,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				for _, e := range vArray {
 					v, err := Interface2U64(e)
 					if err != nil {
-						return nil, fmt.Errorf("unknown argument for u64")
+						return nil, fmt.Errorf("unknown argument for u64, %w", err)
 					}
 					bytes, err = types.BcsSerializeUint64(v)
 					if err != nil {
@@ -571,7 +572,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, targetBytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<u64>")
+				return nil, errors.New("unknown argument for vector<u64>")
 			}
 		case "vector<u128>":
 			switch moveValue.(type) {
@@ -586,7 +587,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				for _, e := range vArray {
 					v, err := Interface2U128(e)
 					if err != nil {
-						return nil, fmt.Errorf("unknown argument for u128")
+						return nil, fmt.Errorf("unknown argument for u128, %w", err)
 					}
 					bytes, err = types.BcsSerializeU128(*v)
 					if err != nil {
@@ -596,7 +597,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, targetBytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<u128>")
+				return nil, errors.New("unknown argument for vector<u128>")
 			}
 		case "vector<bool>":
 			switch moveValue.(type) {
@@ -612,7 +613,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					v := fmt.Sprintf("%v", e)
 					vv, err := strconv.ParseBool(v)
 					if err != nil {
-						return nil, fmt.Errorf("unknown argument for bool")
+						return nil, fmt.Errorf("unknown argument for bool, %w", err)
 					}
 					bytes, err = types.BcsSerializeBool(vv)
 					if err != nil {
@@ -622,7 +623,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, targetBytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<bool>")
+				return nil, errors.New("unknown argument for vector<bool>")
 			}
 		case "vector<address>":
 			switch moveValue.(type) {
@@ -638,7 +639,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				for _, e := range vArray {
 					v, ok := e.(string)
 					if !ok {
-						return nil, fmt.Errorf("unknown argument for address")
+						return nil, errors.New("unknown argument for address")
 					}
 					bytes, err = types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(v)))
 					if err != nil {
@@ -648,7 +649,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, targetBytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<address>")
+				return nil, errors.New("unknown argument for vector<address>")
 			}
 		case "vector<0x1::string::String>":
 			switch moveValue.(type) {
@@ -664,7 +665,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				for _, e := range vArray {
 					v, ok := e.(string)
 					if !ok {
-						return nil, fmt.Errorf("unknown argument for string")
+						return nil, errors.New("unknown argument for string")
 					}
 					bytes, err = types.BcsSerializeStr(v)
 					if err != nil {
@@ -674,12 +675,12 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 				}
 				array = append(array, targetBytes)
 			default:
-				return nil, fmt.Errorf("unknown argument for vector<string>")
+				return nil, errors.New("unknown argument for vector<string>")
 			}
 		case "0x1::string::String":
 			op, ok := moveValue.(string)
 			if !ok {
-				return nil, fmt.Errorf("unknown argument for string")
+				return nil, errors.New("unknown argument for string")
 			}
 			bytes, err := types.BcsSerializeStr(op)
 			if err != nil {

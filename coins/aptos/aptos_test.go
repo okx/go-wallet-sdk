@@ -296,6 +296,9 @@ func TestConvertArgs(t *testing.T) {
 	args = append(args, "1")
 	args = append(args, "0x2ba03b661d7691b41053dcf293caff2c17283b19cb4abe866b4855e8f6683771")
 	args = append(args, arrayNumber)
+	arrayNumber = nil
+	arrayNumber = append(arrayNumber, "1")
+	arrayNumber = append(arrayNumber, "2")
 	args = append(args, arrayNumber)
 	args = append(args, arrayNumber)
 	args = append(args, arrayBool)

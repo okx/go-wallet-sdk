@@ -41,7 +41,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 // Transfer
 // IbcTransfer
 ```
-
+### address
 ```golang
 	// address
 	hrp := "cosmos"
@@ -64,9 +64,11 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 	// ValidateAddress
 	valid := cosmos.ValidateAddress(address, hrp)
 	fmt.Println(valid)
-
+```
+### transfer
+```golang
 	// GetRawTransaction and SignRawTransaction
-	// Transfer
+	// transfer
 	pk, err := hex.DecodeString(pri)
 	k, _ := btcec.PrivKeyFromBytes(pk)
 	param := cosmos.TransferParam{}
@@ -90,7 +92,9 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 		fmt.Println(err)
 	}
 	fmt.Println(signedTransaction)
-
+```
+### SignMessage
+```golang
 	// SignMessage
 	data := "{\n  \"chain_id\": \"cosmoshub-4\",\n  \"account_number\": \"584406\",\n  \"sequence\": \"1\",\n  \"fee\": {\n    \"gas\": \"250000\",\n    \"amount\": [\n      {\n        \"denom\": \"uatom\",\n        \"amount\": \"0\"\n      }\n    ]\n  },\n  \"msgs\": [\n    {\n      \"type\": \"atom/gamm/swap-exact-amount-in\",\n      \"value\": {\n        \"sender\": \"cosmos145q0tcdur4tcx2ya5cphqx96e54yflfyqjrdt5\",\n        \"routes\": [\n          {\n            \"poolId\": \"722\",\n            \"tokenOutDenom\": \"ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A\"\n          }\n        ],\n        \"tokenIn\": {\n          \"denom\": \"uatom\",\n          \"amount\": \"10000\"\n        },\n        \"tokenOutMinAmount\": \"3854154180813018\"\n      }\n    }\n  ],\n  \"memo\": \"\"\n}"
 	signedMessage, _, err := cosmos.SignMessage(data, pri)
@@ -99,7 +103,9 @@ go get -u github.com/okx/go-wallet-sdk/coins/cosmos
 		fmt.Println(err)
 	}
 	fmt.Println(signedMessage)
-
+```
+### IbcTransfer
+```golang
 	// IbcTransfer
 	paramIbc := cosmos.IbcTransferParam{}
 	paramIbc.CommonParam.ChainId = "evmos_9001-2"

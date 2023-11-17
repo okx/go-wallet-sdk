@@ -45,7 +45,6 @@ func TestCreateTransferTx(t *testing.T) {
 	nonce := uint64(8)
 	tx := NewTransferTx(nonce, gas, feeAmount, toAddr, amount)
 	signedTx := SignTransaction(pk, chainId, tx)
-
 	signedTxBytes, err := cbor.Marshal(signedTx)
 	require.NoError(t, err)
 	t.Logf("signed tx : %s", base64.StdEncoding.EncodeToString(signedTxBytes))

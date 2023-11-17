@@ -22,7 +22,11 @@ func Test_CreateAddress(t *testing.T) {
 }
 
 func Test_Sign(t *testing.T) {
-	signTx := Sign(private, from, to, amount, fee, nonce, tokenType, isMax)
+	signTx, err := Sign(private, from, to, amount, fee, nonce, tokenType, isMax)
+	if err != nil {
+		// todo
+	}
+	require.NoError(t, err)
 	expected := "wgGUAQohATRzO7mymsXF5mphcGit6S+VtjKx/IRuIrvpOSqEWSLMEicKIQElWnMrrLtN3iwWLGgC3fPx3D8hzAR7R/GzQTaseWoJxBB4IAEYuJECIAIqQPFldfkKANOAus8bNMsfiSBYysh+SZXoQHB2BlRX5sLaDB4V+awcrzu99dXo9Guq4gwZMpq1AYX8A4b5Qzq95Q8="
 	require.Equal(t, expected, signTx)
 }

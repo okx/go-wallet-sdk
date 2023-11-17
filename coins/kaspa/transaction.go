@@ -174,8 +174,7 @@ func TransferWithNetParams(txData *TxData, params dagconfig.Params) (string, err
 		if err != nil {
 			return "", err
 		}
-		//prvKey, _ := btcec.PrivKeyFromBytes(prvKeyBytes)
-		prvKey, err := secp256k1.DeserializeSchnorrPrivateKeyFromSlice(prvKeyBytes)
+		prvKey, err := secp256k1.DeserializeSchnorrPrivateKeyFromSlice(prvKeyBytes) //*secp256k1.SchnorrKeyPair,not  secp.PrivateKey
 		if err != nil {
 			return "", err
 		}

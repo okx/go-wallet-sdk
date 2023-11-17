@@ -12,7 +12,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/aptos
 ```
 
 ## Usage
-
+### address
 ```golang
 	// address
 	addr, err := aptos.NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
@@ -22,7 +22,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/aptos
 	}
 
 ```
-##  transfer 
+###  transfer 
 ```golang
 	// transfer
 	from := addr

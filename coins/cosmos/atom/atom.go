@@ -84,11 +84,11 @@ func SignStart(chainId string, from string, to string, demon string, memo string
 }
 
 func Sign(rawHex string, privateKey *btcec.PrivateKey) (string, error) {
-	signDocBtyes, err := hex.DecodeString(rawHex)
+	signDocBytes, err := hex.DecodeString(rawHex)
 	if err != nil {
 		return "", err
 	}
-	hash := sha256.Sum256(signDocBtyes)
+	hash := sha256.Sum256(signDocBytes)
 	signature, err := ecdsa.SignCompact(privateKey, hash[:], false)
 	if err != nil {
 		return "", err

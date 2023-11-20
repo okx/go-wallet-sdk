@@ -83,6 +83,14 @@ func serializeStacksMessage(message Message) []byte {
 
 func serializePostCondition(postCondition PostConditionInterface) []byte {
 	switch postCondition.getConditionType() {
+	case 0:
+		postCondition0 := postCondition.(STXPostCondition)
+		bufferArray := bytes.NewBuffer(make([]byte, 0, MaxBufferSize))
+		bufferArray.Write(fromHexString(fmt.Sprintf("0x0%d", postCondition0.ConditionType)))
+		bufferArray.Write(serializePrincipal(postCondition0.Principal))
+		bufferArray.Write(fromHexString(fmt.Sprintf("0x0%d", postCondition0.ConditionCode)))
+		bufferArray.Write(toArrayLike(postCondition0.amount, 8))
+		return sliceByteBuffer(bufferArray)
 	case 1:
 		postCondition1 := postCondition.(FungiblePostCondition)
 
@@ -367,6 +375,77 @@ func serializeMessageSignature(messageSignature *MessageSignature) []byte {
 	}
 	bufferArray.Write(b)
 	return sliceByteBuffer(bufferArray)
+}
+
+func DeserializePostCondition(postCondition string) PostConditionInterface {
+	bytesReader := NewBytesReader(hexToBytes(postCondition))
+
+	postConditionType := bytesReader.ReadUInt8()
+	principal := deserializePrincipal(bytesReader)
+
+	switch postConditionType {
+	case STX:
+		conditionCode := bytesReader.ReadUInt8()
+		amount, _ := new(big.Int).SetString(hex.EncodeToString(bytesReader.ReadBytes(8)), 10)
+		return STXPostCondition{
+			PostCondition: PostCondition{
+				StacksMessage: StacksMessage{
+					Type: POSTCONDITION,
+				},
+				ConditionType: STX,
+				Principal:     principal,
+				ConditionCode: int(conditionCode),
+			},
+			amount: amount,
+		}
+	case Fungible:
+		assetInfo := deserializeAssetInfo(bytesReader)
+		conditionCode := bytesReader.ReadUInt8()
+		amount, _ := new(big.Int).SetString(hex.EncodeToString(bytesReader.ReadBytes(8)), 16)
+		return FungiblePostCondition{
+			PostCondition: PostCondition{
+				StacksMessage: StacksMessage{
+					Type: POSTCONDITION,
+				},
+				ConditionType: Fungible,
+				Principal:     principal,
+				ConditionCode: int(conditionCode),
+			},
+			assetInfo: *assetInfo,
+			amount:    amount,
+		}
+	}
+	return nil
+}
+
+func deserializeAssetInfo(bytesReader *BytesReader) *AssetInfo {
+	return &AssetInfo{
+		type_:        ASSETINFO,
+		address:      *deserializeAddress(bytesReader),
+		contractName: *deserializeLPString(bytesReader),
+		assetName:    *deserializeLPString(bytesReader),
+	}
+}
+
+func deserializePrincipal(bytesReader *BytesReader) PostConditionPrincipalInterface {
+	prefix := bytesReader.ReadUInt8()
+	address := deserializeAddress(bytesReader)
+
+	p := PostConditionPrincipal{
+		Type:    PRINCIPAL,
+		Prefix:  int(prefix),
+		Address: *address,
+	}
+
+	if prefix == Standard {
+		return p
+	}
+
+	contractName := deserializeLPString(bytesReader)
+	return ContractPrincipal{
+		PostConditionPrincipal: p,
+		contractName:           *contractName,
+	}
 }
 
 func DeserializeCV(serializedClarityValue string) ClarityValue {

@@ -1,0 +1,183 @@
+/*
+ * Copyright (C) 2019 Zilliqa
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+syntax = "proto3";
+
+option go_package = "protobuf";
+
+package ZilliqaMessage;
+
+// ============================================================================
+// Primitives
+// ============================================================================
+
+message ByteArray
+{
+    optional bytes data = 1;
+}
+
+message ProtoTransactionCoreInfo
+{
+    optional uint32 version         = 1;
+    optional uint64 nonce           = 2;
+    optional bytes toaddr           = 3;
+    optional ByteArray senderpubkey = 4;
+    optional ByteArray amount       = 5;
+    optional ByteArray gasprice     = 6;
+    optional uint64 gaslimit        = 7;
+    optional bytes code             = 8;
+    optional bytes data             = 9;
+}
+
+message ProtoTransaction
+{
+    optional bytes tranid                  = 1;
+    optional ProtoTransactionCoreInfo info = 2;
+    optional ByteArray signature           = 3;
+}
+
+message ProtoTransactionReceipt
+{
+    optional bytes receipt    = 1;
+    optional uint64 cumgas = 2;
+}
+
+message ProtoTransactionWithReceipt
+{
+    optional ProtoTransaction transaction    = 1;
+    optional ProtoTransactionReceipt receipt = 2;
+}
+
+message ProtoAccountBase
+{
+     optional uint32 version    = 1;
+     optional ByteArray balance = 2;
+     optional uint64 nonce      = 3;
+     optional bytes codehash    = 4;
+     optional bytes storageroot = 5;
+}
+
+// Used in databases "dsBlocks", "microBlocks", "txBlocks", "VCBlocks"
+message ProtoBlockBase
+{
+    message CoSignatures
+    {
+        ByteArray cs1   = 1;               // Added in: v1.0, Deprecated in: N/A
+        repeated bool b1         = 2 [packed=true]; // Added in: v1.0, Deprecated in: N/A
+        ByteArray cs2   = 3;               // Added in: v1.0, Deprecated in: N/A
+        repeated bool b2         = 4 [packed=true]; // Added in: v1.0, Deprecated in: N/A
+        // Add new members here
+    }
+    bytes blockhash     = 1;               // Added in: v1.0, Deprecated in: N/A
+    CoSignatures cosigs = 2;               // Added in: v1.0, Deprecated in: N/A
+    uint64 timestamp    = 3;               // Added in: v1.0, Deprecated in: N/A
+    // Add new members here
+}
+
+// Used in "dsBlockHeader", "microBlockHeader", "txBlockHeader", and "VCBlockHeader"
+message ProtoBlockHeaderBase
+{
+    uint32 version      = 1;   // Added in: v1.0, Deprecated in: N/A
+    bytes committeehash = 2;   // Added in: v1.0, Deprecated in: N/A
+    bytes prevhash      = 3;   // Added in: v1.0, Deprecated in: N/A
+}
+
+// Used in database "dsBlocks"
+message ProtoDSBlock
+{
+    message DSBlockHashSet
+    {
+        bytes shardinghash     = 1;  // Added in: v1.0, Deprecated in: N/A
+        bytes reservedfield    = 2;  // Added in: v1.0, Deprecated in: N/A
+        // Add new members here
+    }
+    message DSBlockHeader
+    {
+        ProtoBlockHeaderBase blockheaderbase = 1;  // Added in: v1.0, Deprecated in: N/A
+        uint32 dsdifficulty                  = 2;  // Added in: v1.0, Deprecated in: N/A, Only LSB used
+        uint32 difficulty                    = 3;  // Added in: v1.0, Deprecated in: N/A, Only LSB used
+        bytes prevhash                       = 4;  // Added in: v1.0, Deprecated in: N/A, 32 bytes
+        ByteArray leaderpubkey               = 5;  // Added in: v1.0, Deprecated in: N/A
+        uint64 blocknum       = 6;  // Added in: v1.0, Deprecated in: N/A
+        uint64 epochnum       = 7;  // Added in: v1.0, Deprecated in: N/A
+        ByteArray gasprice                   = 8;  // Added in: v1.0, Deprecated in: N/A
+        ByteArray swinfo                     = 9;  // Added in: v1.0, Deprecated in: N/A
+        message PowDSWinners
+        {
+            ByteArray key      = 1;  // Added in: v1.0, Deprecated in: N/A
+            ByteArray val      = 2;  // Added in: v1.0, Deprecated in: N/A
+            // Add new members here
+        }
+        repeated PowDSWinners dswinners = 10; // Added in: v1.0, Deprecated in: N/A
+        DSBlockHashSet hash    = 11; // Added in: v1.0, Deprecated in: N/A
+        repeated ByteArray dsremoved    = 12; // Added in: v2.0, Deprecated in: N/A
+        // Add new members here
+        message Vote
+        {
+            uint32 value = 1;
+            uint32 count = 2;
+        }
+        message Proposal
+        {
+            uint32 proposalid           = 1;
+            repeated Vote dsvotes       = 2;
+            repeated Vote minervotes    = 3;
+        }
+        repeated Proposal proposals      = 13;
+    }
+    DSBlockHeader header       = 1;  // Added in: v1.0, Deprecated in: N/A
+    ProtoBlockBase blockbase   = 2;  // Added in: v1.0, Deprecated in: N/A
+    // Add new members here
+}
+
+// Used in database "txBlocks"
+message ProtoMbInfo
+{
+    bytes mbhash   = 1; // Added in: v1.0, Deprecated in: N/A
+    bytes txroot   = 2; // Added in: v1.0, Deprecated in: N/A
+    oneof oneof3 { uint32 shardid = 3; } // Added in: v1.0, Deprecated in: N/A
+    // Add new members here
+}
+
+// Used in database "txBlocks"
+message ProtoTxBlock
+{
+    message TxBlockHashSet
+    {
+        bytes stateroothash   = 1;  // Added in: v1.0, Deprecated in: N/A
+        bytes statedeltahash  = 2;  // Added in: v1.0, Deprecated in: N/A
+        bytes mbinfohash      = 3;  // Added in: v1.0, Deprecated in: N/A
+        // Add new members here
+    }
+    message TxBlockHeader
+    {
+        ProtoBlockHeaderBase blockheaderbase = 1;  // Added in: v1.0, Deprecated in: N/A
+        uint64 gaslimit                      = 2;  // Added in: v1.0, Deprecated in: N/A
+        optional uint64 gasused                       = 3; // Added in: v1.0, Deprecated in: N/A
+        ByteArray rewards                    = 4;  // Added in: v1.0, Deprecated in: N/A
+        bytes prevhash                       = 5;  // Added in: v1.0, Deprecated in: N/A
+        uint64 blocknum                      = 6; // Added in: v1.0, Deprecated in: N/A
+        TxBlockHashSet hash                  = 7;  // Added in: v1.0, Deprecated in: N/A
+        optional uint32 numtxs               = 8;  // Added in: v1.0, Deprecated in: N/A
+        ByteArray minerpubkey                = 9;  // Added in: v1.0, Deprecated in: N/A
+        uint64 dsblocknum                    = 10;  // Added in: v1.0, Deprecated in: N/A
+        // Add new members here
+    }
+    TxBlockHeader header      = 1;  // Added in: v1.0, Deprecated in: N/A
+    repeated ProtoMbInfo mbinfos       = 2;  // Added in: v1.0, Deprecated in: N/A
+    ProtoBlockBase blockbase  = 3;  // Added in: v1.0, Deprecated in: N/A
+    // Add new members here
+}

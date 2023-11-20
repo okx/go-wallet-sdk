@@ -12,7 +12,6 @@ func NewAccount() (address, seedHex string, err error) {
 	if err != nil {
 		return "", "", err
 	}
-
 	return hex.EncodeToString(publicKey), hex.EncodeToString(privateKey.Seed()), nil
 }
 

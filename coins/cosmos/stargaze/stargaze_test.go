@@ -1,8 +1,8 @@
 package stargaze
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
@@ -14,11 +14,12 @@ curl -X POST -d '{"tx_bytes":"Cr8BCrwBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// stars1rlvaqq27e4c5jcnghgvdnd3739w0vvt3jafls7
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "stars145q0tcdur4tcx2ya5cphqx96e54yflfy5w5sq9"
+	require.Equal(t, expected, address)
+
+	ret := ValidateAddress(address)
+	require.True(t, ret)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
@@ -33,8 +34,10 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	expected = "Co8BCowBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmwKLHN0YXJzMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5NXc1c3E5EixzdGFyczE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeTV3NXNxORoOCgZ1c3RhcnMSBDEwMDASVgpOCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAxBT6e8CldM0trsi4gzHF+saFqVG9pJXLIgwtLwUwTZ2EgQKAggBEgQQoI0GGkDfp9lAfh2uz8vIYiwNeAniMphm2uHQLEyQua4fvxUh93ZN0ZuwnLINvbKjD7uX68UaQWKdfnJUEuL6O5mVgupn"
+	require.Equal(t, expected, signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -55,6 +58,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

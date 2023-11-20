@@ -216,3 +216,14 @@ func GetNewAddress(pubKey *btcec.PublicKey) string {
 func GetEthereumMessagePrefix(message string) string {
 	return fmt.Sprintf(MessagePrefixTmp, len(message))
 }
+
+func PubKeyToAddr(publicKey []byte) (string, error) {
+	pubKey, err := btcec.ParsePubKey(publicKey)
+	if err != nil {
+		return "", err
+	}
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(pubKey.SerializeUncompressed()[1:])
+	addressByte := hash.Sum(nil)
+	return "0x" + hex.EncodeToString(addressByte[12:]), nil
+}

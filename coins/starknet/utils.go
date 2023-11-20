@@ -22,7 +22,7 @@ type KeccakState interface {
 
 // given x will find corresponding public key coordinate on curve
 func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
-	xin := HexToBN(x)
+	xin, _ := HexToBN(x)
 
 	yout := sc.GetYCoordinate(xin)
 
@@ -52,11 +52,14 @@ func HexToShortStr(hexStr string) string {
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to big int
-func HexToBN(hexString string) *big.Int {
+func HexToBN(hexString string) (*big.Int, error) {
 	numStr := strings.Replace(hexString, "0x", "", -1)
 
-	n, _ := new(big.Int).SetString(numStr, 16)
-	return n
+	n, ok := new(big.Int).SetString(numStr, 16)
+	if !ok {
+		return nil, fmt.Errorf("please input a rigth hex string")
+	}
+	return n, nil
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to byte slice
@@ -264,7 +267,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 }
 
 func SplitFactStr(fact string) (fact_low, fact_high string) {
-	factBN := HexToBN(fact)
+	factBN, _ := HexToBN(fact)
 	factBytes := factBN.Bytes()
 	low := BytesToBig(factBytes[16:])
 	high := BytesToBig(factBytes[:16])
@@ -286,8 +289,9 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 }
 
 func jsToBN(str string) *big.Int {
+	bn, _ := HexToBN(str)
 	if strings.Contains(str, "0x") {
-		return HexToBN(str)
+		return bn
 	} else {
 		return StrToBig(str)
 	}

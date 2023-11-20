@@ -96,6 +96,9 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	ptx := new(big.Int).Set(sc.Gx)
 	pty := new(big.Int).Set(sc.Gy)
 	for i, elem := range elems {
+		if elem == nil {
+			return hash, fmt.Errorf("must initiate precomputed constant points")
+		}
 		x := new(big.Int).Set(elem)
 
 		if x.Cmp(big.NewInt(0)) != -1 && x.Cmp(sc.P) != -1 {
@@ -122,7 +125,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 func calculateDeployAccountTransactionHash(contractAddress *big.Int, classHash *big.Int, constructorCalldata []*big.Int, salt, version, chainId, nonce, maxFee *big.Int) (hash *big.Int, err error) {
 	calldata := []*big.Int{classHash, salt}
 	calldata = append(calldata, constructorCalldata...)
-	calldataHash, err := computeHashOnElements(calldata)
+	calldataHash, err := ComputeHashOnElements(calldata)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +140,7 @@ func calculateDeployAccountTransactionHash(contractAddress *big.Int, classHash *
 		chainId,
 		nonce,
 	}
-	return computeHashOnElements(multiHashData)
+	return ComputeHashOnElements(multiHashData)
 }
 
 func (sc StarkCurve) HashMulticall(addr, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {
@@ -613,7 +616,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 	return r
 }
 
-func computeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
+func ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
 	hash = big.NewInt(0)
 	for _, h := range elems {

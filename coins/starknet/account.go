@@ -3,6 +3,7 @@ package starknet
 import (
 	"encoding/json"
 	"math/big"
+	"strings"
 )
 
 const (
@@ -26,7 +27,10 @@ func NewKeyPair(curve StarkCurve) (priv, pub string, err error) {
 }
 
 func GetPubKey(curve StarkCurve, privKey string) (string, error) {
-	privKeyBN := HexToBN(privKey)
+	privKeyBN, err := HexToBN(privKey)
+	if err != nil {
+		return "", err
+	}
 	publicKey, err := curve.PrivateToPublic(privKeyBN)
 	if err != nil {
 		return "", err
@@ -35,9 +39,18 @@ func GetPubKey(curve StarkCurve, privKey string) (string, error) {
 }
 
 func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error) {
-	salt := HexToBN(starkPub)
-	classHash := HexToBN(ProxyAccountClassHash)
-	accountClassHash := HexToBN(AccountClassHash)
+	salt, err := HexToBN(starkPub)
+	if err != nil {
+		return nil, err
+	}
+	classHash, err := HexToBN(ProxyAccountClassHash)
+	if err != nil {
+		return nil, err
+	}
+	accountClassHash, err := HexToBN(AccountClassHash)
+	if err != nil {
+		return nil, err
+	}
 	deployerAddress := big.NewInt(0)
 
 	calldate := []*big.Int{big.NewInt(2), salt, big.NewInt(0)}
@@ -45,11 +58,14 @@ func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error
 	constructorCallData := []*big.Int{accountClassHash, GetSelectorFromName("initialize")}
 	constructorCallData = append(constructorCallData, calldate...)
 
-	constructorCalldataHash, err := computeHashOnElements(constructorCallData)
+	constructorCalldataHash, err := ComputeHashOnElements(constructorCallData)
 	if err != nil {
 		return nil, err
 	}
-	ContractAddressPrefix := HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
+	ContractAddressPrefix, err := HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
+	if err != nil {
+		return nil, err
+	}
 
 	ele := []*big.Int{
 		ContractAddressPrefix,
@@ -58,11 +74,15 @@ func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error
 		classHash,
 		constructorCalldataHash,
 	}
-	return computeHashOnElements(ele)
+	return ComputeHashOnElements(ele)
 }
 
 func GetPubKeyPoint(curve StarkCurve, privKey string) (string, error) {
-	x, y, err := curve.PrivateToPoint(HexToBN(privKey))
+	privKeyHex, err := HexToBN(privKey)
+	if err != nil {
+		return "", err
+	}
+	x, y, err := curve.PrivateToPoint(privKeyHex)
 	if err != nil {
 		return "", err
 	}
@@ -72,4 +92,26 @@ func GetPubKeyPoint(curve StarkCurve, privKey string) (string, error) {
 	}{BigToHexWithPadding(x), BigToHexWithPadding(y)})
 
 	return string(point), err
+}
+
+func ValidAddress(address string) bool {
+	if strings.HasPrefix(address, "0x") {
+		address = address[2:]
+	}
+	var ZERO = big.NewInt(0)
+	var MASK_251 = new(big.Int).Exp(big.NewInt(2), big.NewInt(251), nil)
+	return assertInRange(address, ZERO, MASK_251, "Starknet Address")
+}
+
+func assertInRange(address string, lowerBound, upperBound *big.Int, errorMessage string) bool {
+	add, ok := new(big.Int).SetString(address, 16)
+	if !ok {
+		return false
+	}
+
+	if add.Cmp(lowerBound) < 0 || add.Cmp(upperBound) > 0 {
+		return false
+	}
+
+	return true
 }

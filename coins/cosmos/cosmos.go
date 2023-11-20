@@ -18,6 +18,7 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos/types/ibc"
 	"golang.org/x/crypto/sha3"
 	"math/big"
+	"sort"
 	"strconv"
 )
 
@@ -56,12 +57,23 @@ type IbcTransferParam struct {
 	TimeOutInSeconds uint64
 }
 
-func NewAddress(privateKey string, hrp string) (string, error) {
+func NewAddress(privateKey string, hrp string, followETH bool) (string, error) {
 	pkBytes, err := hex.DecodeString(privateKey)
 	if err != nil {
 		return "", err
 	}
 	_, pb := btcec.PrivKeyFromBytes(pkBytes)
+	if followETH {
+		pubBytes := pb.SerializeUncompressed()
+		hash := sha3.NewLegacyKeccak256()
+		hash.Write(pubBytes[1:])
+		addressByte := hash.Sum(nil)
+		address, err := bech32.EncodeFromBase256(hrp, addressByte[12:])
+		if err != nil {
+			return "", err
+		}
+		return address, nil
+	}
 	bytes := btcutil.Hash160(pb.SerializeCompressed())
 	address, err := bech32.EncodeFromBase256(hrp, bytes)
 	if err != nil {
@@ -158,7 +170,6 @@ func MakeTransactionWithSignDoc(body string, auth string, ChainId string, Accoun
 }
 
 // GetRawTransaction Gets the string to be signed
-
 // param - （TransferParam | IbcTransferParam）
 // publicKeyCompressed - （hex 33 bytes）
 // return  signDoc
@@ -207,7 +218,7 @@ func GetRawTransaction(param interface{}, publicKeyCompressed string) (string, e
 		messages = append(messages, anySend)
 		return MakeTransactionWithMessage(p.CommonParam, publicKeyCompressed, messages)
 	default:
-		return "", fmt.Errorf("unspport param type")
+		return "", errors.New("unsupported param type")
 	}
 }
 
@@ -421,6 +432,77 @@ func BuildTxAction(param CommonParam, messages []*types.Any, privateKeyHex strin
 	return base64.StdEncoding.EncodeToString(transBytes), nil
 }
 
+func BuildTxActionForSignMessage(param CommonParam, messages []*types.Any, privateKeyHex string, useEthSecp256k1 bool) (string, string, error) {
+	// body = messages(message array) + memo + timeoutHeight
+	body := tx.TxBody{Messages: messages, Memo: param.Memo, TimeoutHeight: param.TimeoutHeight}
+
+	// Public key 33bytes compressed format
+	pkBytes, err := hex.DecodeString(privateKeyHex)
+	if err != nil {
+		return "", "", err
+	}
+	privateKey, _ := btcec.PrivKeyFromBytes(pkBytes)
+
+	pubKey, err := getPublicKey(privateKeyHex, useEthSecp256k1)
+	if err != nil {
+		return "", "", err
+	}
+
+	single := tx.ModeInfo_Single{Mode: types.SignMode_SIGN_MODE_DIRECT}
+	single_ := tx.ModeInfo_Single_{Single: &single}
+	modeInfo := tx.ModeInfo{Sum: &single_}
+	signerInfo := make([]*tx.SignerInfo, 0)
+	signerInfo = append(signerInfo, &tx.SignerInfo{PublicKey: pubKey, ModeInfo: &modeInfo, Sequence: param.Sequence})
+
+	// authInfo = signerInfo(publicKey + modeInfo + sequence) + fee(amount + gasLimit)
+	feeAmount, _ := types.NewIntFromString(param.FeeAmount)
+	feeCoin := types.NewCoin(param.FeeDemon, feeAmount)
+	feeCoins := types.NewCoins(feeCoin)
+	fee := tx.Fee{Amount: feeCoins, GasLimit: param.GasLimit}
+	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
+
+	// signDoc = bodyBytes + authInfoBytes + ChainId + AccountNumber
+	bodyBytes, _ := body.Marshal()
+	authInfoBytes, _ := authInfo.Marshal()
+	signDoc := tx.SignDoc{BodyBytes: bodyBytes, AuthInfoBytes: authInfoBytes, ChainId: param.ChainId, AccountNumber: param.AccountNumber}
+	signDocBtyes, _ := signDoc.Marshal()
+
+	// signature
+	var signBytes []byte
+	if useEthSecp256k1 {
+		m := HashMessage(signDocBtyes)
+		result, err := ecdsa.SignCompact(privateKey, m, false)
+		if err != nil {
+			return "", "", err
+		}
+		V := result[0]
+		R := result[1:33]
+		S := result[33:65]
+		signBytes = make([]byte, 0)
+		signBytes = append(signBytes, R...)
+		signBytes = append(signBytes, S...)
+		signBytes = append(signBytes, V-27)
+	} else {
+		hash := sha256.Sum256(signDocBtyes)
+		var err error
+		signBytes, err = ecdsa.SignCompact(privateKey, hash[:], false)
+		if err != nil {
+			return "", "", err
+		}
+		signBytes = signBytes[1:]
+	}
+
+	signatures := make([][]byte, 0)
+	signatures = append(signatures, signBytes)
+
+	trans := tx.TxRaw{BodyBytes: signDoc.BodyBytes, AuthInfoBytes: signDoc.AuthInfoBytes, Signatures: signatures}
+	transBytes, err := trans.Marshal()
+	if err != nil {
+		return "", "", err
+	}
+	return base64.StdEncoding.EncodeToString(transBytes), base64.StdEncoding.EncodeToString(signBytes), nil
+}
+
 type MessageData struct {
 	ChainId       string `json:"chain_id,omitempty"`
 	AccountNumber string `json:"account_number,omitempty"`
@@ -479,12 +561,68 @@ func SignDoc(body string, auth string, privateKeyHex string, ChainId string, Acc
 	return base64.StdEncoding.EncodeToString(transBytes), base64.StdEncoding.EncodeToString(signBytes), nil
 }
 
-// Sign the message, using JSON format
-func SignMessage(data string, privateKeyHex string) (string, error) {
-	return SignMessageAction(data, privateKeyHex, false)
+func sortedObject(obj interface{}) interface{} {
+	switch v := obj.(type) {
+	case map[string]interface{}:
+		keys := make([]string, 0, len(v))
+		for key := range v {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		result := make(map[string]interface{})
+		for _, key := range keys {
+			result[key] = sortedObject(v[key])
+		}
+		return result
+	case []interface{}:
+		for i, item := range v {
+			v[i] = sortedObject(item)
+		}
+		return v
+	default:
+		return obj
+	}
 }
 
-func SignMessageAction(data string, privateKeyHex string, useEthSecp256k1 bool) (string, error) {
+func SignAminoMessage(data string, privateKeyHex string) (string, error) {
+	var msg map[string]interface{}
+	json.Unmarshal([]byte(data), &msg)
+
+	sortedMsg := sortedObject(msg)
+	msgBytes, err := json.Marshal(sortedMsg)
+	if err != nil {
+		return "", err
+	}
+
+	hash := sha256.Sum256(msgBytes)
+	pkBytes, err := hex.DecodeString(privateKeyHex)
+	if err != nil {
+		return "", err
+	}
+
+	privateKey, _ := btcec.PrivKeyFromBytes(pkBytes)
+	signature, err := ecdsa.SignCompact(privateKey, hash[:], false)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(signature[1:]), nil
+}
+
+// SignMessage Sign the message, using JSON format
+func SignMessage(data string, privateKeyHex string) (string, string, error) {
+	tx, _, err := SignMessageAction(data, privateKeyHex, false)
+	if err != nil {
+		return "", "", err
+	}
+
+	sig, err := SignAminoMessage(data, privateKeyHex)
+	if err != nil {
+		return "", "", err
+	}
+	return tx, sig, nil
+}
+
+func SignMessageAction(data string, privateKeyHex string, useEthSecp256k1 bool) (string, string, error) {
 	messageData := MessageData{}
 	_ = json.Unmarshal([]byte(data), &messageData)
 
@@ -494,7 +632,7 @@ func SignMessageAction(data string, privateKeyHex string, useEthSecp256k1 bool) 
 		if fn != nil {
 			b, err := json.Marshal(m.V)
 			if err != nil {
-				return "", err
+				return "", "", err
 			}
 			messages = append(messages, fn(string(b)))
 		}
@@ -509,7 +647,7 @@ func SignMessageAction(data string, privateKeyHex string, useEthSecp256k1 bool) 
 	param.FeeAmount = messageData.Fee.Amount[0].Amount.String()
 	param.GasLimit = string2Uint64(messageData.Fee.Gas)
 	param.ChainId = messageData.ChainId
-	return BuildTxAction(param, messages, privateKeyHex, useEthSecp256k1)
+	return BuildTxActionForSignMessage(param, messages, privateKeyHex, useEthSecp256k1)
 }
 
 func string2Uint64(intStr string) uint64 {
@@ -543,7 +681,6 @@ func getJsonSignDoc(p *CommonParam, msg *types.StdAny) (*types.StdSignDoc, error
 	return &signDoc, nil
 }
 
-// GetRawJsonTransaction
 func GetRawJsonTransaction(param interface{}) (string, error) {
 	switch param.(type) {
 	case TransferParam:
@@ -598,10 +735,6 @@ func GetRawJsonTransaction(param interface{}) (string, error) {
 	}
 }
 
-// GetSignedJsonTransaction -
-// signDoc - （json）
-// signature
-// publicKey
 func GetSignedJsonTransaction(signDoc string, publicKey string, signature string) (string, error) {
 	stdDoc := types.StdSignDoc{}
 	err := json.Unmarshal([]byte(signDoc), &stdDoc)
@@ -648,8 +781,8 @@ func GetSignedJsonTransaction(signDoc string, publicKey string, signature string
 	if err != nil {
 		return "", err
 	}
-	pubkey := types.PubKey{Key: compressedBytes}
-	anyPubkey, err := types.NewAnyWithValue(&pubkey)
+	pubKey := types.PubKey{Key: compressedBytes}
+	anyPubkey, err := types.NewAnyWithValue(&pubKey)
 	if err != nil {
 		return "", err
 	}

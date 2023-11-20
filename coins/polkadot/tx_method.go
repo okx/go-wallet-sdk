@@ -9,7 +9,7 @@ const (
 	TransferAll = 2 //  balances-transfer_all
 )
 
-// balances-transfer  balances-transfer_keep_alive
+// BalanceTransfer balances-transfer_keep_alive
 func BalanceTransfer(method, to string, amount uint64) ([]byte, error) {
 	pubKey, err := AddressToPublicKey(to)
 	if err != nil {
@@ -39,7 +39,7 @@ func BalanceTransfer(method, to string, amount uint64) ([]byte, error) {
 	return ret, nil
 }
 
-// balances-transfer_all
+// BalanceTransferAll
 // false: keepAlive 00
 func BalanceTransferAll(method, to, keepAlive string) ([]byte, error) {
 	pubKey, err := AddressToPublicKey(to)

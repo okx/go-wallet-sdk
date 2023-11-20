@@ -1,24 +1,20 @@
 package evmos
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-/*
-https://rest.bd.evmos.org:1317/cosmos/auth/v1beta1/accounts/evmos1rvs5xph4l3px2efynqsthus8p6r4exyrue82uy
-curl -X POST -d '{"tx_bytes":"CswBCskBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKbAQoIdHJhbnNmZXISCWNoYW5uZWwtMxobCgZhZXZtb3MSETEwMDAwMDAwMDAwMDAwMDAwIixldm1vczF5YzRxNnN2c2w5eHk5ZzJncGxnbmxweHdobnpyM3k3M3dmczB4aCotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gOCBuJnk3oEXEn0KWQpPCigvZXRoZXJtaW50LmNyeXB0by52MS5ldGhzZWNwMjU2azEuUHViS2V5EiMKIQOcJMA96W11QpNEacdGblBLXYYIw5nd27SBSxlh+Pc6UxIECgIIARgBEiAKGgoGYWV2bW9zEhA0MDAwMDAwMDAwMDAwMDAwEMCaDBpBxW58piSUv3r+MRmwIe3xllBkJxgF5I0QIlHLjym8amohsZWmyYCUzaux/pO2RNbB4K9VmJ2m8Y3/56w6Gpeh5wE=","mode":"BROADCAST_MODE_SYNC"}' https://rest.bd.evmos.org:1317/cosmos/tx/v1beta1/txs
-*/
+// https://rest.bd.evmos.org:1317/cosmos/auth/v1beta1/accounts/evmos1rvs5xph4l3px2efynqsthus8p6r4exyrue82uy
+// curl -X POST -d '{"tx_bytes":"CswBCskBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKbAQoIdHJhbnNmZXISCWNoYW5uZWwtMxobCgZhZXZtb3MSETEwMDAwMDAwMDAwMDAwMDAwIixldm1vczF5YzRxNnN2c2w5eHk5ZzJncGxnbmxweHdobnpyM3k3M3dmczB4aCotY29zbW9zMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyN2NreXh2MgA4gOCBuJnk3oEXEn0KWQpPCigvZXRoZXJtaW50LmNyeXB0by52MS5ldGhzZWNwMjU2azEuUHViS2V5EiMKIQOcJMA96W11QpNEacdGblBLXYYIw5nd27SBSxlh+Pc6UxIECgIIARgBEiAKGgoGYWV2bW9zEhA0MDAwMDAwMDAwMDAwMDAwEMCaDBpBxW58piSUv3r+MRmwIe3xllBkJxgF5I0QIlHLjym8amohsZWmyYCUzaux/pO2RNbB4K9VmJ2m8Y3/56w6Gpeh5wE=","mode":"BROADCAST_MODE_SYNC"}' https://rest.bd.evmos.org:1317/cosmos/tx/v1beta1/txs
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// evmos1yc4q6svsl9xy9g2gplgnlpxwhnzr3y73wfs0xh
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "evmos1jl389rqgh59lhf33j20pp082aj8utjtp3a0lt5"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = "evmos1yc4q6svsl9xy9g2gplgnlpxwhnzr3y73wfs0xh"
@@ -33,8 +29,9 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 140000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.TransferAction(param, privateKeyHex, true)
-	t.Log(tt)
+	signedTx, err := cosmos.TransferAction(param, privateKeyHex, true)
+	require.Nil(t, err)
+	t.Log("signedTx : ", signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -55,6 +52,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-3"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransferAction(p, privateKeyHex, true)
-	t.Log(tt)
+	signedIBCTx, err := cosmos.IbcTransferAction(p, privateKeyHex, true)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
 }

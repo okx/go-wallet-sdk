@@ -7,7 +7,7 @@ const (
 )
 
 func NewAddress(privateKeyHex string) (string, error) {
-	return cosmos.NewAddress(privateKeyHex, HRP)
+	return cosmos.NewAddress(privateKeyHex, HRP, false)
 }
 
 func ValidateAddress(address string) bool {

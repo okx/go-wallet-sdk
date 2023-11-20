@@ -95,7 +95,6 @@ func ValidateAddress(address string) bool {
 func NewTransaction(input TransactionInput, privateKeyHex string) string {
 	privateKeyBytes, _ := hex.DecodeString(privateKeyHex)
 	_, publicKey := btcec.PrivKeyFromBytes(privateKeyBytes)
-
 	messages := make([]*types.Any, 0)
 	if input.SendArray != nil {
 		for _, msg := range input.SendArray {
@@ -103,35 +102,67 @@ func NewTransaction(input TransactionInput, privateKeyHex string) string {
 			messages = append(messages, anyMsg)
 		}
 	}
-
 	if input.SwapArray != nil {
 		for _, msg := range input.SwapArray {
 			anyMsg, _ := types.NewAnyWithValue(&msg)
 			messages = append(messages, anyMsg)
 		}
 	}
-
 	if input.ContractArray != nil {
 		for _, msg := range input.ContractArray {
 			anyMsg, _ := types.NewAnyWithValue(&msg)
 			messages = append(messages, anyMsg)
 		}
 	}
-
 	body := tx.TxBody{Messages: messages, Memo: input.Memo, TimeoutHeight: 0}
-
 	pubkey := types.PubKey{Key: publicKey.SerializeCompressed()}
 	anyPubkey, _ := types.NewAnyWithValue(&pubkey)
-
 	single := tx.ModeInfo_Single{Mode: types.SignMode_SIGN_MODE_DIRECT}
 	single_ := tx.ModeInfo_Single_{Single: &single}
 	modeInfo := tx.ModeInfo{Sum: &single_}
 	signerInfo := make([]*tx.SignerInfo, 0)
 	signerInfo = append(signerInfo, &tx.SignerInfo{PublicKey: anyPubkey, ModeInfo: &modeInfo, Sequence: input.Sequence})
-
 	fee := tx.Fee{Amount: input.Fee, GasLimit: input.GasLimit}
 	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
+	bodyBytes, _ := body.Marshal()
+	authInfoBytes, _ := authInfo.Marshal()
+	signDoc := tx.SignDoc{BodyBytes: bodyBytes, AuthInfoBytes: authInfoBytes, ChainId: input.ChainId, AccountNumber: input.AccountNumber}
+	signDocBtyes, _ := signDoc.Marshal()
+	return hex.EncodeToString(signDocBtyes)
+}
 
+func NewTransactionWithTypeUrl(input TransactionInput, privateKeyHex string) string {
+	privateKeyBytes, _ := hex.DecodeString(privateKeyHex)
+	_, publicKey := btcec.PrivKeyFromBytes(privateKeyBytes)
+	messages := make([]*types.Any, 0)
+	if input.SendArray != nil {
+		for _, msg := range input.SendArray {
+			anyMsg, _ := types.NewAnyWithValue(&msg)
+			messages = append(messages, anyMsg)
+		}
+	}
+	if input.SwapArray != nil {
+		for _, msg := range input.SwapArray {
+			anyMsg, _ := types.NewAnyWithValue(&msg)
+			messages = append(messages, anyMsg)
+		}
+	}
+	if input.ContractArray != nil {
+		for _, msg := range input.ContractArray {
+			anyMsg, _ := types.NewAnyWithValueAndName(&msg)
+			messages = append(messages, anyMsg)
+		}
+	}
+	body := tx.TxBody{Messages: messages, Memo: input.Memo, TimeoutHeight: 0}
+	pubkey := types.PubKey{Key: publicKey.SerializeCompressed()}
+	anyPubkey, _ := types.NewAnyWithValue(&pubkey)
+	single := tx.ModeInfo_Single{Mode: types.SignMode_SIGN_MODE_DIRECT}
+	single_ := tx.ModeInfo_Single_{Single: &single}
+	modeInfo := tx.ModeInfo{Sum: &single_}
+	signerInfo := make([]*tx.SignerInfo, 0)
+	signerInfo = append(signerInfo, &tx.SignerInfo{PublicKey: anyPubkey, ModeInfo: &modeInfo, Sequence: input.Sequence})
+	fee := tx.Fee{Amount: input.Fee, GasLimit: input.GasLimit}
+	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
 	bodyBytes, _ := body.Marshal()
 	authInfoBytes, _ := authInfo.Marshal()
 	signDoc := tx.SignDoc{BodyBytes: bodyBytes, AuthInfoBytes: authInfoBytes, ChainId: input.ChainId, AccountNumber: input.AccountNumber}
@@ -164,4 +195,30 @@ func SignEnd(rawHex string, signHex string) string {
 	trans := tx.TxRaw{BodyBytes: signDoc.BodyBytes, AuthInfoBytes: signDoc.AuthInfoBytes, Signatures: signatures}
 	transBytes, _ := trans.Marshal()
 	return base64.StdEncoding.EncodeToString(transBytes)
+}
+
+func GetRawTxHex(input TransactionInput, pub string) string {
+	pb, _ := hex.DecodeString(pub)
+	messages := make([]*types.Any, 0)
+	if input.ContractArray != nil {
+		for _, msg := range input.ContractArray {
+			anyMsg, _ := types.NewAnyWithValueAndName(&msg)
+			messages = append(messages, anyMsg)
+		}
+	}
+	body := tx.TxBody{Messages: messages, Memo: input.Memo, TimeoutHeight: 0}
+	pubkey := types.PubKey{Key: pb}
+	anyPubkey, _ := types.NewAnyWithValue(&pubkey)
+	single := tx.ModeInfo_Single{Mode: types.SignMode_SIGN_MODE_DIRECT}
+	single_ := tx.ModeInfo_Single_{Single: &single}
+	modeInfo := tx.ModeInfo{Sum: &single_}
+	signerInfo := make([]*tx.SignerInfo, 0)
+	signerInfo = append(signerInfo, &tx.SignerInfo{PublicKey: anyPubkey, ModeInfo: &modeInfo, Sequence: input.Sequence})
+	fee := tx.Fee{Amount: input.Fee, GasLimit: input.GasLimit}
+	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
+	bodyBytes, _ := body.Marshal()
+	authInfoBytes, _ := authInfo.Marshal()
+	signDoc := tx.SignDoc{BodyBytes: bodyBytes, AuthInfoBytes: authInfoBytes, ChainId: input.ChainId, AccountNumber: input.AccountNumber}
+	signDocBtyes, _ := signDoc.Marshal()
+	return hex.EncodeToString(signDocBtyes)
 }

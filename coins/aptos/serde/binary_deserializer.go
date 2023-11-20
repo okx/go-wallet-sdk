@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 )
 
-// `BinaryDeserializer` is a partial implementation of the `Deserializer` interface.
+// BinaryDeserializer is a partial implementation of the `Deserializer` interface.
 // It is used as an embedded struct by the Bincode and BCS deserializers.
 type BinaryDeserializer struct {
 	Buffer               *bytes.Buffer
@@ -35,7 +35,7 @@ func (d *BinaryDeserializer) DecreaseContainerDepth() {
 	d.containerDepthBudget += 1
 }
 
-// `deserializeLen` to be provided by the extending struct.
+// DeserializeBytes `deserializeLen` to be provided by the extending struct.
 func (d *BinaryDeserializer) DeserializeBytes(deserializeLen func() (uint64, error)) ([]byte, error) {
 	len, err := deserializeLen()
 	if err != nil {
@@ -52,7 +52,7 @@ func (d *BinaryDeserializer) DeserializeBytes(deserializeLen func() (uint64, err
 	return ret, nil
 }
 
-// `deserializeLen` to be provided by the extending struct.
+// DeserializeStr `deserializeLen` to be provided by the extending struct.
 func (d *BinaryDeserializer) DeserializeStr(deserializeLen func() (uint64, error)) (string, error) {
 	bytes, err := d.DeserializeBytes(deserializeLen)
 	if err != nil {

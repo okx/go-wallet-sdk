@@ -38,17 +38,18 @@ type DecodeBtcAddressBean struct {
 }
 
 type SignedContractCallOptions struct {
-	ContractAddress   string                   `json:"contractAddress"`
-	ContractName      string                   `json:"contractName"`
-	FunctionName      string                   `json:"functionName"`
-	FunctionArgs      []ClarityValue           `json:"functionArgs"`
-	SendKey           string                   `json:"sendKey"`
-	ValidateWithAbi   bool                     `json:"validateWithAbi"`
-	Fee               big.Int                  `json:"fee"`
-	Nonce             big.Int                  `json:"nonce"`
-	AnchorMode        int                      `json:"anchorMode"`
-	PostConditionMode int                      `json:"postConditionMode"`
-	PostConditions    []PostConditionInterface `json:"postConditions"`
+	ContractAddress         string                   `json:"contractAddress"`
+	ContractName            string                   `json:"contractName"`
+	FunctionName            string                   `json:"functionName"`
+	FunctionArgs            []ClarityValue           `json:"functionArgs"`
+	SendKey                 string                   `json:"sendKey"`
+	ValidateWithAbi         bool                     `json:"validateWithAbi"`
+	Fee                     big.Int                  `json:"fee"`
+	Nonce                   big.Int                  `json:"nonce"`
+	AnchorMode              int                      `json:"anchorMode"`
+	PostConditionMode       int                      `json:"postConditionMode"`
+	PostConditions          []PostConditionInterface `json:"postConditions"`
+	SerializePostConditions []string                 `json:"serializePostConditions"`
 }
 
 type StacksTransaction struct {
@@ -87,12 +88,18 @@ type StacksPrivateKey struct {
 type PostCondition struct {
 	StacksMessage
 	ConditionType int
-	Principal     PostConditionPrincipal
+	// Principal     PostConditionPrincipal
+	Principal     PostConditionPrincipalInterface
 	ConditionCode int
 }
 
+func (p PostCondition) getConditionType() int {
+	return p.ConditionType
+}
+
 func (p PostCondition) GetType() int {
-	return p.Type
+	// return p.Type
+	return p.ConditionType
 }
 
 type AssetInfo struct {
@@ -123,6 +130,19 @@ func (c ContractPrincipal) getPrefix() int {
 
 type PostConditionPrincipalInterface interface {
 	getPrefix() int
+}
+
+type STXPostCondition struct {
+	PostCondition
+	amount *big.Int
+}
+
+func (s STXPostCondition) getConditionType() int {
+	return s.ConditionType
+}
+
+func (s STXPostCondition) GetType() int {
+	return s.Type
 }
 
 type FungiblePostCondition struct {

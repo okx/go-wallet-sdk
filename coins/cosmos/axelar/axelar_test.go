@@ -1,9 +1,8 @@
 package axelar
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -12,11 +11,9 @@ import (
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// axelar1rvs5xph4l3px2efynqsthus8p6r4exyr6kqvdd
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "axelar145q0tcdur4tcx2ya5cphqx96e54yflfyyu49q4"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
 	param.FromAddress = "axelar1rvs5xph4l3px2efynqsthus8p6r4exyr6kqvdd"
@@ -31,9 +28,10 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
-	assert.Equal(t, tt, "CpEBCo4BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEm4KLWF4ZWxhcjFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjZrcXZkZBItYXhlbGFyMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyNmtxdmRkGg4KBHVheGwSBjEwMDAwMBJkCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAESEgoMCgR1YXhsEgQxMDAwEKCNBhpAl6KVyR7I1pmnvra7mjADszcKrka7K7mM5EzLBWyDCUZvE+dXA9ZszSYzI4zZkuTVLqAIOA1QZVkvkxzprLzxXw==")
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	expected = "CpEBCo4BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEm4KLWF4ZWxhcjFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjZrcXZkZBItYXhlbGFyMXJ2czV4cGg0bDNweDJlZnlucXN0aHVzOHA2cjRleHlyNmtxdmRkGg4KBHVheGwSBjEwMDAwMBJkCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAESEgoMCgR1YXhsEgQxMDAwEKCNBhpAl6KVyR7I1pmnvra7mjADszcKrka7K7mM5EzLBWyDCUZvE+dXA9ZszSYzI4zZkuTVLqAIOA1QZVkvkxzprLzxXw=="
+	require.Equal(t, expected, signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -53,9 +51,9 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "100000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-1"
-	//p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
 	p.TimeOutInSeconds = uint64(1690267554699/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
-	t.Log(tt)
-	assert.Equal(t, tt, "Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgR1YXhsEgYxMDAwMDAiLWF4ZWxhcjFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjZrcXZkZCorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOICYuqeGtcK6FxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYARISCgwKBHVheGwSBDEwMDAQoI0GGkCHINNqZMnedwU42PPAQWTjin1KE4wApkUs5qoOHPIqKT2TWCRG903cLlBsuwQzXbmj0oZ19rGeR6Y7t4H68RO9")
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	expected := "Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgR1YXhsEgYxMDAwMDAiLWF4ZWxhcjFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjZrcXZkZCorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOICYuqeGtcK6FxJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYARISCgwKBHVheGwSBDEwMDAQoI0GGkCHINNqZMnedwU42PPAQWTjin1KE4wApkUs5qoOHPIqKT2TWCRG903cLlBsuwQzXbmj0oZ19rGeR6Y7t4H68RO9"
+	require.Equal(t, expected, signedIBCTx)
 }

@@ -1,26 +1,21 @@
 package sei
 
 import (
-	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func TestAddress(t *testing.T) {
+func TestNewAddress(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if address != "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4" {
-		t.Errorf("NewAddress failed, want sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57, get %s", address)
-	}
+	require.Nil(t, err)
+	expected := "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4"
+	require.Equal(t, expected, address)
 
 	ret := ValidateAddress(address)
-	if !ret {
-		t.Fatal("ValidateAddress failed")
-	}
+	require.True(t, ret)
 }
 
 // txHash: https://sei.explorers.guru/transaction/08D076CFE1903AB697974E7CB756F5E9A3344FF07220892CE2A75EBB29494435
@@ -29,15 +24,13 @@ func TestAddress(t *testing.T) {
 func TestTransfer(t *testing.T) {
 	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
 	address, err := NewAddress(privateKeyHex)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57
-	fmt.Println(address)
+	require.Nil(t, err)
+	expected := "sei145q0tcdur4tcx2ya5cphqx96e54yflfyd7jmd4"
+	require.Equal(t, expected, address)
 
 	param := cosmos.TransferParam{}
-	param.FromAddress = "sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57"
-	param.ToAddress = "sei1urdedeej0fd4kslzn3uq6s8mndh8wt7usk6a4z"
+	param.FromAddress = address
+	param.ToAddress = address
 	param.Demon = "usei"
 	param.Amount = "100000"
 	param.CommonParam.ChainId = "atlantic-2"
@@ -48,8 +41,10 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
 	param.CommonParam.TimeoutHeight = 0
-	tt, _ := cosmos.Transfer(param, privateKeyHex)
-	t.Log(tt)
+	signedTx, err := cosmos.Transfer(param, privateKeyHex)
+	require.Nil(t, err)
+	expected = "CosBCogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKKnNlaTE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeWQ3am1kNBIqc2VpMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5ZDdqbWQ0Gg4KBHVzZWkSBjEwMDAwMBJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYARISCgwKBHVzZWkSBDEwMDAQoI0GGkDJivGlkzrZffAXInJAHY2QBOgD8QraVrDhLyX5yAjr+QLdwloCq5maBrniL3PmBrRUrPxFNC8Wt5QklQ70YYDF"
+	require.Equal(t, expected, signedTx)
 }
 
 // https://sei.explorers.guru/transaction/E07194819858ED6C8BF355AF55A1F57E6346C45E3A9C5CDEE2DFFDEA3992BE5B
@@ -72,6 +67,52 @@ func TestIbcTransfer(t *testing.T) {
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-7"
 	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Nil(t, err)
+	t.Log("signedIBCTx : ", signedIBCTx)
+}
+
+// https://www.seiscan.app/atlantic-2/txs/B564BE5BFA5ED5096287F72F11778E3BE83F24CCD6074B28BACD5BBF0BFC9A3C
+// curl -X POST -d '{"tx_bytes":"Cs0BCsoBCiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSoQEKKnNlaTFzOTV6dnB4d3hjcjB5a2RrajN5bXNjcmV2ZGFtN3d2czI0ZGs1NxI+c2VpMTY1bDVuY2gzMDlyY2d2NzY1anlkZHdmMzV0YW5lM3QyMDllZjM1NXpmNzUzazI2czc2NHNxa242cTkaKHsidXBkYXRlX3ByaWNlIjp7ImJhaWxfb25fZXJyb3IiOmZhbHNlfX0qCQoEdXNlaRIBMRJoClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECWzs64TTLQ3sGP88eAUtzXoHtGHUYauDmYZWgBLyYUesSBAoCCAEYEhIUCg4KBHVzZWkSBjI1MDAwMBCAiXoaQFhyD8Iv42M5OeJJe0TvHU3PN5XmHYSVXx8MsIjdX1A+BW5et4Sqa3vQoF0pjDzEzGc93dFllESWJZF7QtywyYs=","mode":"BROADCAST_MODE_SYNC"}' https://rest.atlantic-2.seinetwork.io/cosmos/tx/v1beta1/txs
+func TestSignMessage(t *testing.T) {
+	// sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57
+	privateKeyHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	data := "{\n" +
+		"\"chain_id\": \"atlantic-2\",\n" +
+		"\"account_number\": \"4050874\",\n" +
+		"\"sequence\": \"18\",\n" +
+		"\"fee\": {\n " +
+		"	\"gas\": \"2000000\",\n" +
+		"	\"amount\": [\n    " +
+		"		{\n    " +
+		"			\"denom\": \"usei\",\n" +
+		"			\"amount\": \"250000\"\n" +
+		"       }\n" +
+		"    ]\n" +
+		"},\n" +
+		"\"msgs\": [\n" +
+		" {\n" +
+		"	\"type\": \"cosmwasm.wasm.v1.MsgExecuteContract\",\n " +
+		"	\"value\": {\n" +
+		"		\"sender\": \"sei1s95zvpxwxcr0ykdkj3ymscrevdam7wvs24dk57\",\n " +
+		"		\"contract\": \"sei165l5nch309rcgv765jyddwf35tane3t209ef355zf753k26s764sqkn6q9\",\n " +
+		"		\"funds\": [\n" +
+		"	  		{\n" +
+		"	 			\"amount\": \"1\",\n" +
+		"   			\"denom\": \"usei\"\n" +
+		"     		}\n" +
+		" 		],\n" +
+		"		\"msg\": {\n" +
+		"			\"update_price\": {\n" +
+		"				\"bail_on_error\": false\n" +
+		"	    	}\n" +
+		"		}\n" +
+		" 	}\n" +
+		" }\n" +
+		"],\n " +
+		"\"memo\": \"\"\n" +
+		"}"
+	tt, _, err := cosmos.SignMessage(data, privateKeyHex)
+	require.Nil(t, err)
 	t.Log(tt)
 }

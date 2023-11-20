@@ -91,7 +91,7 @@ func C58Encode(input []byte) string {
 	return base58.Encode(b)
 }
 
-// CheckDecode decodes a string that was encoded with CheckEncode and verifies the checksum.
+// CheckDecodeWithCheckSumLast decodes a string that was encoded with CheckEncode and verifies the checksum.
 func CheckDecodeWithCheckSumLast(input string) (result []byte, err error) {
 	decoded := base58.Decode(input)
 	if len(decoded) < 5 {

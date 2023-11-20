@@ -50,12 +50,8 @@ func TestSignMessage(t *testing.T) {
 		if err == io.EOF {
 			break
 		}
-
 		ic++
-		fmt.Printf("正在校验第%d条\n", ic)
-
 		items := strings.Split(string(line), ",")
-
 		mnemonic := items[0]
 		rootPrivateKey := items[1]
 		childPrivateKey := items[2]
@@ -137,10 +133,7 @@ func TestHash(t *testing.T) {
 		if err == io.EOF {
 			break
 		}
-
 		ic++
-		fmt.Printf("正在校验第%d条\n", ic)
-
 		items := strings.Split(string(line), ",")
 
 		//const msg = base.randomBytes(32)

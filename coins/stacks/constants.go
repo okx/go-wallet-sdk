@@ -58,3 +58,15 @@ const (
 	PostConditionPrincipalIDSTANDARD = 2
 	PostConditionPrincipalIDCONTRACT = 3
 )
+
+const (
+	Origin   = 0x01
+	Standard = 0x02
+	Contract = 0x03
+)
+
+const (
+	STX         = 0x00
+	Fungible    = 0x01
+	NonFungible = 0x02
+)

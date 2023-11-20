@@ -140,6 +140,19 @@ func CreateControlBlock(privateKey *btcec.PrivateKey, inscriptionScript []byte) 
 	return controlBlock.ToBytes()
 }
 
+func CreateControlBlockWithPubKey(publicKey []byte, inscriptionScript []byte) ([]byte, error) {
+	proof := &txscript.TapscriptProof{
+		TapLeaf:  txscript.NewBaseTapLeaf(publicKey),
+		RootNode: txscript.NewBaseTapLeaf(inscriptionScript),
+	}
+	pub, err := schnorr.ParsePubKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
+	controlBlock := proof.ToControlBlock(pub)
+	return controlBlock.ToBytes()
+}
+
 func IsTaprootAddress(address string, params *chaincfg.Params) (bool, error) {
 	addr, err := btcutil.DecodeAddress(address, params)
 	if err != nil {
@@ -280,6 +293,157 @@ func (build *TransactionBuilder) Build() (string, error) {
 	}
 	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
 	if err := tx.Serialize(buf); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf.Bytes()), nil
+}
+
+func (build *TransactionBuilder) CalculateHash(pubKeyHex string) (string, error) {
+	if len(build.inputs) == 0 || len(build.outputs) == 0 {
+		return "", fmt.Errorf("input or output is empty")
+	}
+
+	if !build.checkChangeValue() {
+		return "", fmt.Errorf("change amount exceed max")
+	}
+
+	tx := build.tx
+	var prevPkScripts [][]byte
+	prevOuts := txscript.NewMultiPrevOutFetcher(nil)
+	for i := 0; i < len(build.inputs); i++ {
+		input := build.inputs[i]
+		hash, err := chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return "", err
+		}
+
+		outPoint := wire.NewOutPoint(hash, input.vOut)
+		txIn := wire.NewTxIn(outPoint, nil, nil)
+		tx.TxIn = append(tx.TxIn, txIn)
+
+		pkScript, err := getAddressOutputScript(input.address, build.params)
+		if err != nil {
+			return "", err
+		}
+
+		prevPkScripts = append(prevPkScripts, pkScript)
+
+		prevOuts.AddPrevOut(*outPoint, &wire.TxOut{
+			Value:    ConvertToBigInt(input.value).Int64(),
+			PkScript: pkScript,
+		})
+	}
+
+	for i := 0; i < len(build.outputs); i++ {
+		output := build.outputs[i]
+		script, err := getAddressOutputScript(output.address, build.params)
+		if err != nil {
+			return "", err
+		}
+		txOut := wire.NewTxOut(ConvertToBigInt(output.amount).Int64(), script)
+		tx.TxOut = append(tx.TxOut, txOut)
+	}
+
+	for i := 0; i < len(build.inputs); i++ {
+		input := build.inputs[i]
+		isTaproot, _ := IsTaprootAddress(input.address, build.params)
+		if isTaproot {
+			pubKeyBytes, _ := hex.DecodeString(pubKeyHex)
+			// taproot address
+			inscriptionScript, err := CreateInscriptionScriptWithPubKey(pubKeyBytes, input.inscription.contentType, input.inscription.body)
+			if err != nil {
+				return "", err
+			}
+
+			hash, err := txscript.CalcTapscriptSignaturehash(txscript.NewTxSigHashes(tx, prevOuts), txscript.SigHashDefault, tx, i, prevOuts, txscript.NewBaseTapLeaf(inscriptionScript))
+			if err != nil {
+				return "", err
+			}
+
+			return hex.EncodeToString(hash), nil
+		} else {
+			return "", fmt.Errorf("unsupport brc20 account")
+		}
+	}
+
+	return "", nil
+}
+
+func (build *TransactionBuilder) BuildWithSig(signatureHex, pubKeyHex string) (string, error) {
+	if len(build.inputs) == 0 || len(build.outputs) == 0 {
+		return "", fmt.Errorf("input or output is empty")
+	}
+
+	if !build.checkChangeValue() {
+		return "", fmt.Errorf("change amount exceed max")
+	}
+
+	tx := build.tx
+	var prevPkScripts [][]byte
+	prevOuts := txscript.NewMultiPrevOutFetcher(nil)
+	for i := 0; i < len(build.inputs); i++ {
+		input := build.inputs[i]
+		hash, err := chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return "", err
+		}
+
+		outPoint := wire.NewOutPoint(hash, input.vOut)
+		txIn := wire.NewTxIn(outPoint, nil, nil)
+		tx.TxIn = append(tx.TxIn, txIn)
+
+		pkScript, err := getAddressOutputScript(input.address, build.params)
+		if err != nil {
+			return "", err
+		}
+
+		prevPkScripts = append(prevPkScripts, pkScript)
+
+		prevOuts.AddPrevOut(*outPoint, &wire.TxOut{
+			Value:    ConvertToBigInt(input.value).Int64(),
+			PkScript: pkScript,
+		})
+	}
+
+	for i := 0; i < len(build.outputs); i++ {
+		output := build.outputs[i]
+		script, err := getAddressOutputScript(output.address, build.params)
+		if err != nil {
+			return "", err
+		}
+		txOut := wire.NewTxOut(ConvertToBigInt(output.amount).Int64(), script)
+		tx.TxOut = append(tx.TxOut, txOut)
+	}
+
+	for i := 0; i < len(build.inputs); i++ {
+		input := build.inputs[i]
+
+		isTaproot, _ := IsTaprootAddress(input.address, build.params)
+		if isTaproot {
+			pubKeyBytes, err := hex.DecodeString(pubKeyHex)
+			if err != nil {
+				return "", err
+			}
+			// taproot address
+			inscriptionScript, err := CreateInscriptionScriptWithPubKey(pubKeyBytes, input.inscription.contentType, input.inscription.body)
+			if err != nil {
+				return "", err
+			}
+			controlBlockWitness, err := CreateControlBlockWithPubKey(pubKeyBytes, inscriptionScript)
+			if err != nil {
+				return "", err
+			}
+
+			signature, err := hex.DecodeString(signatureHex)
+			if err != nil {
+				return "", err
+			}
+			tx.TxIn[i].Witness = wire.TxWitness{signature, inscriptionScript, controlBlockWitness}
+		}
+	}
+	buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
+	err := tx.Serialize(buf)
+	if err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(buf.Bytes()), nil

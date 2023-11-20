@@ -7,4 +7,4 @@ All notable changes to this project will be documented in this file.
 
 ### updates
 
-- **solana-sdk:** change some files name and remove some unused libs ([20](https://github.com/okx/go-wallet-sdk/pull/20))
+- **solana-sdk:** change some files name and remove some unused libs ([21](https://github.com/okx/go-wallet-sdk/pull/21))

@@ -7,4 +7,4 @@ All notable changes to this project will be documented in this file.
 
 ### updates
 
-- **coin-zkspace:** add unit tests ans remove redundant code ([20](https://github.com/okx/go-wallet-sdk/pull/20))
+- **zkspace-sdk:** change some files name and remove some unused libs ([20](https://github.com/okx/go-wallet-sdk/pull/20))

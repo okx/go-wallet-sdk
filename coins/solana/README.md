@@ -1,4 +1,4 @@
-# @okxweb3/solana-sdk
+# solana-sdk
 Solana SDK is used to interact with the Solana blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

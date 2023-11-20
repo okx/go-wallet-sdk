@@ -1,4 +1,4 @@
-# @okxweb3/aptos-sdk
+# aptos-sdk
 Aptos SDK is used to interact with the Aptos blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

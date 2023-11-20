@@ -1,4 +1,4 @@
-# @okxweb3/oasis-sdk
+# oasis-sdk
 Oasis SDK is used to interact with the Oasis blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

@@ -1,4 +1,4 @@
-# @okxweb3/stacks-sdk
+# stacks-sdk
 Stacks SDK is used to interact with the Stacks blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

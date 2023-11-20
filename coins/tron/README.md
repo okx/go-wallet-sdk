@@ -1,4 +1,4 @@
-# @okxweb3/tron-sdk
+# tron-sdk
 Tron SDK is used to interact with the Tron blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

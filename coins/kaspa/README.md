@@ -1,4 +1,4 @@
-# @okxweb3/kaspa-sdk
+# kaspa-sdk
 Kaspa SDK is used to interact with the Kaspa blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

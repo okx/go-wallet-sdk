@@ -1,4 +1,4 @@
-# @okxweb3/cosmos-sdk
+# cosmos-sdk
 Cosmos SDK is used to interact with the Cosmos blockchain, it contains various functions can be used to web3 wallet.
 The SDK not only support Atom, it also supports following chains:
 - Atom

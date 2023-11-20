@@ -1,4 +1,4 @@
-# @okxweb3/coin-harmony
+# @okxweb3/harmony-sdk
 Harmony SDK is used to interact with the Harmony blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

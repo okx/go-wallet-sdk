@@ -1,4 +1,4 @@
-# @okxweb3/coin-bitcoin
+# @okxweb3/bitcoin-sdk
 Bitcoin SDK is used to interact with the Bitcoin Mainnet or Testnet, it contains various functions can be used to web3 wallet.
 The SDK not only support Bitcoin, it also supports following chains:
 

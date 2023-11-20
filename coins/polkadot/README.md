@@ -1,4 +1,4 @@
-# @okxweb3/coin-polkdot
+# @okxweb3/polkdot-sdk
 Polkdot SDK is used to interact with the Polkdot blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

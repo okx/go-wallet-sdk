@@ -1,4 +1,4 @@
-# @okxweb3/coin-kaspa
+# @okxweb3/near-sdk
 Kaspa SDK is used to interact with the Kaspa blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation
@@ -8,7 +8,7 @@ Kaspa SDK is used to interact with the Kaspa blockchain, it contains various fun
 To obtain the latest version, simply require the project using :
 
 ```shell
-go get -u github.com/okx/go-wallet-sdk/coins/kaspa
+go get -u github.com/okx/go-wallet-sdk/coins/near
 ```
 
 ## Usage

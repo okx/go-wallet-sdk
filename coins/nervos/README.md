@@ -1,4 +1,4 @@
-# @okxweb3/coin-nervos
+# @okxweb3/nervos-sdk
 Nervos SDK is used to interact with the Nervos blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

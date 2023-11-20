@@ -1,4 +1,4 @@
-# @okxweb3/coin-zksync
+# zksync-sdk
 Zksync SDK is used to interact with the Zksync blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

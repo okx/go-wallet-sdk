@@ -1,4 +1,4 @@
-# @okxweb3/coin-filecoin
+# filecoin-sdk
 Filecoin SDK is used to interact with the Filecoin blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

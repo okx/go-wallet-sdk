@@ -1,4 +1,4 @@
-# @okxweb3/coin-zkspace
+# zkspace-sdk
 Zkspace SDK is used to interact with the Zkspace blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

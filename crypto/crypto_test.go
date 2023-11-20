@@ -26,7 +26,11 @@ import (
 )
 
 func TestNewChildKeyByPathString(t *testing.T) {
-	seed := bip39.NewSeed("//todo please replace your mnemonic", "")
+	entropy, _ := bip39.NewEntropy(256)
+	mnemonic, _ := bip39.NewMnemonic(entropy)
+	fmt.Println(hex.EncodeToString(entropy), mnemonic)
+
+	seed := bip39.NewSeed(mnemonic, "")
 	rp, _ := bip32.NewMasterKey(seed)
 
 	c, _ := rp.NewChildKeyByPathString("m/44'/118'/0'/0/0")

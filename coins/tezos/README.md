@@ -1,4 +1,4 @@
-# @okxweb3/coins-tezos
+# tezos-sdk
 Tezos SDK is used to interact with the Tezos blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

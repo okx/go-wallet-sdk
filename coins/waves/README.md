@@ -1,4 +1,4 @@
-# @okxweb3/coins-waves
+# waves-sdk
 Waves SDK is used to interact with the Waves blockchain, it contains various functions can be used to web3 wallet.
 
 ## Installation

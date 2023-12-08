@@ -76,7 +76,6 @@ type SignParams struct {
 
 func SignEip1559Transaction(chainId *big.Int, tx *types.Transaction, prvKey *ecdsa.PrivateKey) ([]byte, string, error) {
 	signer := types.NewLondonSigner(chainId)
-	fmt.Println(tx.Hash().Hex())
 	signedTx, err := types.SignTx(tx, signer, prvKey)
 	if err != nil {
 		return nil, "", err

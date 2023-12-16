@@ -3,6 +3,7 @@ package bitcoin
 import (
 	"bytes"
 	"encoding/hex"
+
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/psbt"
@@ -97,7 +98,7 @@ func GenerateSignedListingPSBTBase64(in *TxInput, out *TxOutput, network *chainc
 	return p.B64Encode()
 }
 
-func GenerateSignedBuyingTx(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chaincfg.Params) (string, error) {
+func GenerateSignedBuyingTx(ins []*TxInput, outs []*TxOutput, sellerPsbt string, suppotRbf bool, network *chaincfg.Params) (string, error) {
 	sp, err := psbt.NewFromRawBytes(bytes.NewReader([]byte(sellerPsbt)), true)
 	if err != nil {
 		return "", err
@@ -105,6 +106,11 @@ func GenerateSignedBuyingTx(ins []*TxInput, outs []*TxOutput, sellerPsbt string,
 
 	var inputs []*wire.OutPoint
 	var nSequences []uint32
+	nSequence := wire.MaxTxInSequenceNum
+	if suppotRbf { 
+		nSequence -= 10
+	}
+
 	prevOuts := make(map[wire.OutPoint]*wire.TxOut)
 	for i, in := range ins {
 		var prevOut *wire.OutPoint
@@ -126,7 +132,7 @@ func GenerateSignedBuyingTx(ins []*TxInput, outs []*TxOutput, sellerPsbt string,
 		witnessUtxo := wire.NewTxOut(in.Amount, prevPkScript)
 		prevOuts[*prevOut] = witnessUtxo
 
-		nSequences = append(nSequences, wire.MaxTxInSequenceNum)
+		nSequences = append(nSequences, nSequence)
 	}
 
 	var outputs []*wire.TxOut

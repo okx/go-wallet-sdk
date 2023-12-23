@@ -2,6 +2,7 @@ package bitcoin
 
 import (
 	"encoding/hex"
+
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
@@ -42,7 +43,7 @@ func GenerateAddress(pubKey string, net *chaincfg.Params) (string, error) {
 	if net == nil {
 		net = &chaincfg.MainNetParams
 	}
-	addressPubKey, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKey), &chaincfg.MainNetParams)
+	addressPubKey, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKey), net)
 	if err != nil {
 		return "", err
 	}

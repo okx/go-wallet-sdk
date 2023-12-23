@@ -3,6 +3,8 @@ package bitcoin
 import (
 	"encoding/hex"
 	"fmt"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
@@ -10,7 +12,6 @@ import (
 	"github.com/okx/go-wallet-sdk/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // support for single private key address formats (legacy/segwit_nested/segwit_native/taproot_keypath)
@@ -131,6 +132,6 @@ func TestSingTx(t *testing.T) {
 func TestGenerateAddress(t *testing.T) {
 	address, err := GenerateAddress("022bc0ca1d6aea1c1e523bfcb33f46131bd1a3240aa04f71c34b1a177cfd5ff933", &chaincfg.TestNet3Params)
 	require.Nil(t, err)
-	assert.Equal(t, "1FrpuN2FVQdKhKAiXN4VW7MZba6RMevpkR", address)
+	assert.Equal(t, "mvNnCR7EJS4aUReLEw2sL2ZtTZh8CAP8Gp", address)
 
 }

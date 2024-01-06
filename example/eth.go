@@ -87,7 +87,7 @@ func SignEip1559Transaction(chainId *big.Int, tx *types.Transaction, prvKey *ecd
 	return rawTx, signedTx.Hash().Hex(), nil
 }
 
-func toJosn(r interface{}) string {
+func toJson(r interface{}) string {
 	res, err := json.Marshal(r)
 	if err != nil {
 		return ""
@@ -148,7 +148,7 @@ func SignTransaction(txJson, prvHex string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return toJosn(SignedTx{Hash: hash, Hex: util.EncodeHexWith0x(res)}), nil
+		return toJson(SignedTx{Hash: hash, Hex: util.EncodeHexWith0x(res)}), nil
 	} else {
 		prv, _ := btcec2.PrivKeyFromBytes(prvBytes)
 		// Token processing
@@ -162,7 +162,7 @@ func SignTransaction(txJson, prvHex string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return toJosn(SignedTx{Hash: ethereum.CalTxHash(res), Hex: res}), nil
+		return toJson(SignedTx{Hash: ethereum.CalTxHash(res), Hex: res}), nil
 	}
 }
 

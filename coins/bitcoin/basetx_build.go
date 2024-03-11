@@ -135,11 +135,11 @@ func (build *TransactionBuilder) SingleBuild() (string, error) {
 		prvKey, publicKey := btcec.PrivKeyFromBytes(privateBytes)
 		var signatureScript []byte
 		if input.redeemScript == "" {
-			addPub, err := btcutil.NewAddressPubKey(publicKey.SerializeCompressed(), &chaincfg.MainNetParams)
+			addPub, err := btcutil.NewAddressPubKey(publicKey.SerializeCompressed(), build.netParams)
 			if err != nil {
 				return "", err
 			}
-			decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
+			decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), build.netParams)
 			if err != nil {
 				return "", err
 			}
@@ -273,11 +273,11 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 	for i := 0; i < len(build.inputs); i++ {
 		input := build.inputs[i]
 		var signatureScript []byte
-		addPub, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKeyMap[i]), &chaincfg.MainNetParams)
+		addPub, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKeyMap[i]), build.netParams)
 		if err != nil {
 			return "", nil, err
 		}
-		decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), &chaincfg.MainNetParams)
+		decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), build.netParams)
 		if err != nil {
 			return "", nil, err
 		}

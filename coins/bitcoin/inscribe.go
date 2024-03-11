@@ -478,6 +478,14 @@ func GetTransactionWeight(tx *btcutil.Tx) int64 {
 	return int64((baseSize * (WitnessScaleFactor - 1)) + totalSize)
 }
 
+func GetTransactionWeight2(msgTx *wire.MsgTx) int64 {
+	baseSize := msgTx.SerializeSizeStripped()
+	totalSize := msgTx.SerializeSize()
+
+	// (baseSize * 3) + totalSize
+	return int64((baseSize * (WitnessScaleFactor - 1)) + totalSize)
+}
+
 // GetTxVirtualSize computes the virtual size of a given transaction. A
 // transaction's virtual size is based off its weight, creating a discount for
 // any witness data it contains, proportional to the current
@@ -488,4 +496,12 @@ func GetTxVirtualSize(tx *btcutil.Tx) int64 {
 	// We add 3 here as a way to compute the ceiling of the prior arithmetic
 	// to 4. The division by 4 creates a discount for wit witness data.
 	return (GetTransactionWeight(tx) + (WitnessScaleFactor - 1)) / WitnessScaleFactor
+}
+
+func GetTxVirtualSize2(msgTx *wire.MsgTx) int64 {
+	// vSize := (weight(tx) + 3) / 4
+	//       := (((baseSize * 3) + totalSize) + 3) / 4
+	// We add 3 here as a way to compute the ceiling of the prior arithmetic
+	// to 4. The division by 4 creates a discount for wit witness data.
+	return (GetTransactionWeight2(msgTx) + (WitnessScaleFactor - 1)) / WitnessScaleFactor
 }

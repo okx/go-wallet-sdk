@@ -42,7 +42,7 @@ func GenerateAddress(pubKey string, net *chaincfg.Params) (string, error) {
 	if net == nil {
 		net = &chaincfg.MainNetParams
 	}
-	addressPubKey, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKey), &chaincfg.MainNetParams)
+	addressPubKey, err := btcutil.NewAddressPubKey(util.RemoveZeroHex(pubKey), net)
 	if err != nil {
 		return "", err
 	}

@@ -9,14 +9,17 @@ import (
 	"github.com/okx/go-wallet-sdk/util"
 )
 
-func GetRedeemScript(pubKeys []string, minSignNum int) ([]byte, error) {
+func GetRedeemScript(pubKeys []string, minSignNum int, net *chaincfg.Params) ([]byte, error) {
+	if net == nil {
+		net = &chaincfg.MainNetParams
+	}
 	var allPubKeys []*btcutil.AddressPubKey
 	for _, v := range pubKeys {
 		pubKey, err := hex.DecodeString(v)
 		if err != nil {
 			return nil, err
 		}
-		addressPubKey, err := btcutil.NewAddressPubKey(pubKey, &chaincfg.MainNetParams)
+		addressPubKey, err := btcutil.NewAddressPubKey(pubKey, net)
 
 		if err != nil {
 			return nil, err

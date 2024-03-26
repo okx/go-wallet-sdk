@@ -340,43 +340,64 @@ func (builder *InscriptionBuilder) signCommitTx() error {
 	return Sign(builder.CommitTx, builder.CommitTxPrivateKeyList, builder.CommitTxPrevOutputFetcher)
 }
 
+func SignTxInput1(privateKey *btcec.PrivateKey, tx *wire.MsgTx, index int, txSigHashes *txscript.TxSigHashes,
+	pkScript []byte, amount int64) error {
+	if txscript.IsPayToTaproot(pkScript) {
+		witness, err := txscript.TaprootWitnessSignature(tx, txSigHashes, index, amount, pkScript, txscript.SigHashDefault, privateKey)
+		if err != nil {
+			return err
+		}
+
+		tx.TxIn[index].Witness = witness
+
+		return nil
+	}
+
+	if txscript.IsPayToPubKeyHash(pkScript) {
+		sigScript, err := txscript.SignatureScript(tx, index, pkScript, txscript.SigHashAll, privateKey, true)
+		if err != nil {
+			return err
+		}
+
+		tx.TxIn[index].SignatureScript = sigScript
+
+		return nil
+	}
+
+	pubKeyBytes := privateKey.PubKey().SerializeCompressed()
+	script, err := PayToPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
+	if err != nil {
+		return err
+	}
+
+	witness, err := txscript.WitnessSignature(tx, txSigHashes, index, amount, script, txscript.SigHashAll, privateKey, true)
+	if err != nil {
+		return err
+	}
+	tx.TxIn[index].Witness = witness
+
+	if !txscript.IsPayToScriptHash(pkScript) {
+		return nil
+	}
+
+	redeemScript, err := PayToWitnessPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
+	if err != nil {
+		return err
+	}
+
+	tx.TxIn[index].SignatureScript = append([]byte{byte(len(redeemScript))}, redeemScript...)
+
+	return nil
+}
+
 func Sign(tx *wire.MsgTx, privateKeys []*btcec.PrivateKey, prevOutFetcher *txscript.MultiPrevOutFetcher) error {
+	txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
+
 	for i, in := range tx.TxIn {
 		prevOut := prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint)
-		txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
-		privKey := privateKeys[i]
-		if txscript.IsPayToTaproot(prevOut.PkScript) {
-			witness, err := txscript.TaprootWitnessSignature(tx, txSigHashes, i, prevOut.Value, prevOut.PkScript, txscript.SigHashDefault, privKey)
-			if err != nil {
-				return err
-			}
-			in.Witness = witness
-		} else if txscript.IsPayToPubKeyHash(prevOut.PkScript) {
-			sigScript, err := txscript.SignatureScript(tx, i, prevOut.PkScript, txscript.SigHashAll, privKey, true)
-			if err != nil {
-				return err
-			}
-			in.SignatureScript = sigScript
-		} else {
-			pubKeyBytes := privKey.PubKey().SerializeCompressed()
-			script, err := PayToPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
-			if err != nil {
-				return err
-			}
-			amount := prevOut.Value
-			witness, err := txscript.WitnessSignature(tx, txSigHashes, i, amount, script, txscript.SigHashAll, privKey, true)
-			if err != nil {
-				return err
-			}
-			in.Witness = witness
-
-			if txscript.IsPayToScriptHash(prevOut.PkScript) {
-				redeemScript, err := PayToWitnessPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
-				if err != nil {
-					return err
-				}
-				in.SignatureScript = append([]byte{byte(len(redeemScript))}, redeemScript...)
-			}
+		err := SignTxInput1(privateKeys[i], tx, i, txSigHashes, prevOut.PkScript, prevOut.Value)
+		if err != nil {
+			return err
 		}
 	}
 

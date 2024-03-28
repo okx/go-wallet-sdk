@@ -32,12 +32,95 @@ func (build *TransactionBuilder) signatureScriptFromPublicKey(publicKey *btcec.P
 		return
 	}
 
-	decodeAddress, err := btcutil.DecodeAddress(addPub.EncodeAddress(), build.netParams)
-	if err != nil {
+	signatureScript, err = AddrToPkScript(addPub.EncodeAddress(), build.netParams)
+
+	return
+}
+
+func (build *TransactionBuilder) Build2() (*wire.MsgTx, error) {
+	if len(build.inputs) == 0 || len(build.outputs) == 0 {
+		return nil, errors.New("invalid inputs or outputs")
+	}
+
+	tx := &wire.MsgTx{Version: build.version, LockTime: 0}
+
+	for i := 0; i < len(build.inputs); i++ {
+		txHash, err := chainhash.NewHashFromStr(build.inputs[i].txId)
+		if err != nil {
+			return nil, err
+		}
+
+		tx.TxIn = append(tx.TxIn,
+			wire.NewTxIn(wire.NewOutPoint(txHash, build.inputs[i].vOut), nil, nil))
+	}
+
+	for i := 0; i < len(build.outputs); i++ {
+		pkScript, err := AddrToPkScript(build.outputs[i].address, build.netParams)
+		if err != nil {
+			return nil, err
+		}
+
+		txOut := wire.NewTxOut(build.outputs[i].amount, pkScript)
+		tx.TxOut = append(tx.TxOut, txOut)
+	}
+
+	return tx, nil
+}
+
+func SignBuildTx(tx *wire.MsgTx, inputs []Input, privateKeyList map[int]string,
+	network *chaincfg.Params) (err error) {
+	if len(inputs) != len(tx.TxIn) {
+		err = errors.New("invalid args")
+
 		return
 	}
 
-	signatureScript, err = txscript.PayToAddrScript(decodeAddress)
+	txIns := tx.TxIn
+
+	prevOutFetcher := txscript.NewMultiPrevOutFetcher(nil)
+
+	for i := 0; i < len(txIns); i++ {
+		input := inputs[i]
+
+		var signatureScript []byte
+
+		signatureScript, err = AddrToPkScript(input.address, network)
+
+		var txHash *chainhash.Hash
+
+		txHash, err = chainhash.NewHashFromStr(input.txId)
+		if err != nil {
+			return
+		}
+
+		outPoint := wire.NewOutPoint(txHash, input.vOut)
+
+		txOut := wire.NewTxOut(input.amount, signatureScript)
+		prevOutFetcher.AddPrevOut(*outPoint, txOut)
+	}
+
+	txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
+
+	for i, in := range tx.TxIn {
+		prevOut := prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint)
+
+		privateKeyS, ok := privateKeyList[i]
+		if !ok {
+			continue
+		}
+
+		var privateKeyWif *btcutil.WIF
+
+		privateKeyWif, err = btcutil.DecodeWIF(privateKeyS)
+		if err != nil {
+			return
+		}
+
+		err = SignTxInput1(privateKeyWif.PrivKey, tx, i, txSigHashes, prevOut.PkScript, prevOut.Value)
+		if err != nil {
+			return err
+		}
+	}
 
 	return
 }
@@ -47,7 +130,8 @@ func (build *TransactionBuilder) SingleBuild2() (string, error) {
 		return "", errors.New("invalid inputs or outputs")
 	}
 
-	tx := build.tx
+	tx := &wire.MsgTx{Version: build.version, LockTime: 0}
+
 	var scriptArray [][]byte
 
 	for i := 0; i < len(build.inputs); i++ {

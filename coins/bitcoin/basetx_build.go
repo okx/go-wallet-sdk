@@ -19,7 +19,7 @@ type TransactionBuilder struct {
 	inputs    []Input
 	outputs   []Output
 	netParams *chaincfg.Params
-	tx        *wire.MsgTx
+	version   int32
 }
 
 type Input struct {
@@ -44,7 +44,7 @@ func NewTxBuild(version int32, netParams *chaincfg.Params) *TransactionBuilder {
 		inputs:    nil,
 		outputs:   nil,
 		netParams: netParams,
-		tx:        &wire.MsgTx{Version: version, LockTime: 0},
+		version:   version,
 	}
 	return builder
 }
@@ -71,7 +71,8 @@ func (build *TransactionBuilder) Build() (*wire.MsgTx, error) {
 		return nil, errors.New("invalid inputs or outputs")
 	}
 
-	tx := build.tx
+	tx := &wire.MsgTx{Version: build.version, LockTime: 0}
+
 	prevOutFetcher := txscript.NewMultiPrevOutFetcher(nil)
 	var privateKeys []*btcec.PrivateKey
 	for i := 0; i < len(build.inputs); i++ {
@@ -123,7 +124,8 @@ func (build *TransactionBuilder) SingleBuild() (string, error) {
 		return "", errors.New("invalid inputs or outputs")
 	}
 
-	tx := build.tx
+	tx := &wire.MsgTx{Version: build.version, LockTime: 0}
+
 	var scriptArray [][]byte
 	var ecKeyArray []btcec.PrivateKey
 	for i := 0; i < len(build.inputs); i++ {
@@ -268,7 +270,8 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 		return "", nil, fmt.Errorf("input or output miss")
 	}
 
-	tx := build.tx
+	tx := &wire.MsgTx{Version: build.version, LockTime: 0}
+
 	var scriptArray [][]byte
 	for i := 0; i < len(build.inputs); i++ {
 		input := build.inputs[i]

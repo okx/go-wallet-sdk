@@ -69,7 +69,7 @@ func TestBtcTx(t *testing.T) {
 
 func TestMultiAddress(t *testing.T) {
 	var pubKeys = []string{"022bc0ca1d6aea1c1e523bfcb33f46131bd1a3240aa04f71c34b1a177cfd5ff933", "035dc63727e7719824978161cdd94609db5235537bc8339a07b6838a6075f02530", "033eeee979afb70450d2aebb17ace1b170a96199b495cdf3dd0631eb96aa21e6a8"}
-	redeemScript, err := GetRedeemScript(pubKeys, 2)
+	redeemScript, err := GetRedeemScript(pubKeys, 2, &chaincfg.TestNet3Params)
 	require.Nil(t, err)
 	fmt.Println(hex.EncodeToString(redeemScript))
 	multiAddress, err := GenerateMultiAddress(redeemScript, &chaincfg.TestNet3Params)

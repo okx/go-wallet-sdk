@@ -21,7 +21,6 @@ func Test_TransferTransaction(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
-	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
 	from := fromPrivate.PublicKey().String()
 	rawTransaction := NewRawTransaction(hash, from)
 	rawTransaction.AppendTransferInstruction(1000000000, from, to)
@@ -53,6 +52,25 @@ func Test_TokenTransferTransaction(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
+func Test_Token2022TransferTransaction(t *testing.T) {
+	hash := "HqpUiCHdybmpK91LF9pVwTtCkMfcXhwBVAbxpsNPUuFk"
+	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
+	from := fromPrivate.PublicKey().String()
+	to := "GbDq1KMiTmSys7SPwNTJVF3oSvnpirihdZyqpNTBnf3R"
+	mint := "FTDMffVuqMpPPTdfaDTNgMTx7A8xe2jpPQBzMq3D85yi"
+	fromAssociated, _, _ := base.FindAssociatedTokenAddress(base.MustPublicKeyFromBase58(from), base.MustPublicKeyFromBase58(mint), base.TOKEN2022)
+	toAssociated, _, _ := base.FindAssociatedTokenAddress(base.MustPublicKeyFromBase58(to), base.MustPublicKeyFromBase58(mint), base.TOKEN2022)
+	rawTransaction := NewRawTransaction(hash, from)
+	// create token account
+	rawTransaction.AppendAssociatedTokenAccountCreateInstruction(from, to, mint, base.TOKEN2022)
+	rawTransaction.AppendTokenTransferInstruction(1000000, fromAssociated.String(), toAssociated.String(), from, base.TOKEN2022)
+	rawTransaction.AppendSigner(hex.EncodeToString(fromPrivate.Bytes()))
+	tx, err := rawTransaction.Sign(true)
+	require.NoError(t, err)
+	expected := "ACoQ83r9fiirEcQSaoP4sTi13FbeUtx7mD6CWHQCcTMj6RuCA3xoJ8eZygnrWFsSxJvBMDFbKmk2waUM35NLR6MuwifUvykvdZXBEU1Kx2ejkbjmcJwMq4wXRXXNgYV1A1W7frVmpqiPnAuhLASLSCw6LFLFcaytQJb76hee6X4cr3nzzPSrn4mapgtwyVBeTRWZiNpENUWPmKSXvcwgtfR3SKddJ4GLX9N1QaHAZKnoQe629VbWvpAJh8RmFq58wkDGPPdbmpiSDpzALDJzEQXVCMYYikeSJSiuNaXtaqVnGgvDp751CLci5NfoqXDnppTP7ENGVz7KG5vPqj4B4EZsWPbpazq4obRqPKU3dCPESB6qLY8GdxFgSnrVxfFFsttLdSyK2u8wxqLMuSxEcLEXFmHHSLkPdGo3BSmHrZwq4eLPr5P5kH95PYCHRv7L1drLHwVwruAmj2SBBXjQQ3xZPCPBqwbT7AbAPepQy8DQgpfiTpyYWLQwQfgGSxrWK8W914fxGBA2sfHkR6irLZRv33z3jD7uZMtYfoyu2TgusTVkewVVif"
+	require.Equal(t, expected, tx)
+}
+
 func Test_TokenApproveTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
 
@@ -78,7 +96,6 @@ func Test_UnMarshall(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
-	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
 	from := fromPrivate.PublicKey().String()
 
 	rawTransaction := NewRawTransaction(hash, from)
@@ -126,7 +143,6 @@ func Test_TransferWithNoce(t *testing.T) {
 	nonceAddress := "29odEnJWGSCcWx3o7hoAPdpaDuZfyjFdDEs3q5WsfJVp"
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "8awFZzqF8KuYuXjRKWibsehoiJrt9qJXFXBNSDvkHyi8"
-	// FZNZLT5diWHooSBjcng9qitykwcL9v3RiNrpC3fp9PU1
 	from := "5vWSQFWuHuwz3cCHY3MYXB3twp6w4UtXAFG2VeqALGUq"
 
 	rawTransaction := NewRawTransaction(hash, from)

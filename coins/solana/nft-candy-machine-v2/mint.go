@@ -2,11 +2,15 @@ package nft_candy_machine_v2
 
 import "github.com/okx/go-wallet-sdk/coins/solana/base"
 
-func GetTokenWallet(wallet base.PublicKey, mint base.PublicKey) (base.PublicKey, error) {
+func GetTokenWallet(wallet base.PublicKey, mint base.PublicKey, options ...string) (base.PublicKey, error) {
+	tokenProgramID := base.TokenProgramID
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		tokenProgramID = base.Token2022ProgramID
+	}
 	addr, _, err := base.FindProgramAddress(
 		[][]byte{
 			wallet.Bytes(),
-			base.TokenProgramID.Bytes(),
+			tokenProgramID.Bytes(),
 			mint.Bytes(),
 		},
 		base.SPLAssociatedTokenAccountProgramID,

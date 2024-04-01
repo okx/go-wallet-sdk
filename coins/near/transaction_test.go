@@ -19,7 +19,7 @@ func TestCreateTransaction(t *testing.T) {
 	nonce := int64(1)
 	addr, err := PrivateKeyToAddr(privateKey)
 	require.NoError(t, err)
-	publicKeyHex, err := PrivateKeyToPublicKeyHex(privateKey)
+	publicKeyHex, err := PrivateKeyToPublicKey(privateKey)
 	require.NoError(t, err)
 	tx, err := CreateTransaction(addr, to, publicKeyHex, blockHash, nonce)
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestContactTransaction(t *testing.T) {
 	argsStr := `{"account_id": "serhii.testnet"}`
 	gas := big.NewInt(1)
 	addr := "ggasii.testnet"
-	publicKeyHex, err := PrivateKeyToPublicKeyHex(privateKey)
+	publicKeyHex, err := PrivateKeyToPublicKey(privateKey)
 	require.NoError(t, err)
 	tx, err := CreateTransaction(addr, to, publicKeyHex, blockHash, nonce)
 	require.NoError(t, err)

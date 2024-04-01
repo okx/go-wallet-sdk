@@ -37,23 +37,19 @@ type Transfer struct {
 }
 
 func CreateTransaction(from, to, publicKeyHex, blockHash string, nonce int64) (*Transaction, error) {
+
 	bh := base58.Decode(blockHash)
 	if len(bh) == 0 {
 		return nil, fmt.Errorf("base58  decode blockhash error ,BlockHash=%s", blockHash)
 	}
 
-	pubBytes, err := hex.DecodeString(publicKeyHex)
+	pub, err := serialize.TryParsePubKey(publicKeyHex)
 	if err != nil {
-		return nil, fmt.Errorf("public key hex decode error,public key hex=%s", publicKeyHex)
+		return nil, err
 	}
-
-	if len(pubBytes) != 32 {
-		return nil, fmt.Errorf("public key len error,public key=%s", publicKeyHex)
-	}
-
 	tx := Transaction{
 		SignerId:   serialize.String{Value: from},
-		PublicKey:  serialize.PublicKey{KeyType: 0, Value: pubBytes},
+		PublicKey:  *pub,
 		Nonce:      serialize.U64{Value: uint64(nonce)},
 		ReceiverId: serialize.String{Value: to},
 		BlockHash:  serialize.BlockHash{Value: bh},
@@ -96,7 +92,6 @@ func (tx *Transaction) Serialize() ([]byte, error) {
 		return nil, fmt.Errorf("tx serialize: blockhash error,Err=%v", err)
 	}
 	data = append(data, bs...)
-	//serialize action
 	al := len(tx.Actions)
 	uAL := serialize.U32{
 		Value: uint32(al),
@@ -117,7 +112,7 @@ func (tx *Transaction) Serialize() ([]byte, error) {
 }
 
 func SignTransaction(txBase58 string, privateKey string) (string, error) {
-	pkBytes, err := hex.DecodeString(privateKey)
+	pkBytes, err := serialize.TryParse(privateKey)
 	if err != nil {
 		return "", err
 	}

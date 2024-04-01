@@ -22,6 +22,22 @@ type TransactionBuilder struct {
 	tx        *wire.MsgTx
 }
 
+func (t *TransactionBuilder) TotalInputAmount() int64 {
+	total := int64(0)
+	for _, v := range t.inputs {
+		total += v.amount
+	}
+	return total
+}
+
+func (t *TransactionBuilder) TotalOutputAmount() int64 {
+	total := int64(0)
+	for _, v := range t.outputs {
+		total += v.amount
+	}
+	return total
+}
+
 type Input struct {
 	txId          string
 	vOut          uint32
@@ -33,6 +49,7 @@ type Input struct {
 
 type Output struct {
 	address string
+	script  string
 	amount  int64
 }
 
@@ -49,6 +66,14 @@ func NewTxBuild(version int32, netParams *chaincfg.Params) *TransactionBuilder {
 	return builder
 }
 
+func (build *TransactionBuilder) AppendInput(input Input) {
+	build.inputs = append(build.inputs, input)
+}
+
+func (build *TransactionBuilder) AppendOutput(o Output) {
+	build.outputs = append(build.outputs, o)
+}
+
 func (build *TransactionBuilder) AddInput(txId string, vOut uint32, privateKeyHex string,
 	redeemScript string, address string, amount int64) {
 	input := Input{txId: txId, vOut: vOut, privateKeyHex: privateKeyHex,
@@ -63,6 +88,11 @@ func (build *TransactionBuilder) AddInput2(txId string, vOut uint32, privateKey 
 
 func (build *TransactionBuilder) AddOutput(address string, amount int64) {
 	output := Output{address: address, amount: amount}
+	build.outputs = append(build.outputs, output)
+}
+
+func (build *TransactionBuilder) AddOutput2(address string, script string, amount int64) {
+	output := Output{address: address, script: script, amount: amount}
 	build.outputs = append(build.outputs, output)
 }
 
@@ -90,12 +120,6 @@ func (build *TransactionBuilder) Build() (*wire.MsgTx, error) {
 		txIn := wire.NewTxIn(outPoint, nil, nil)
 		tx.TxIn = append(tx.TxIn, txIn)
 
-		/*privateKeyBytes, err := hex.DecodeString(input.privateKeyHex)
-		if err != nil {
-			return "", err
-		}
-		privateKey, _ := btcec.PrivKeyFromBytes(privateKeyBytes)
-		privateKeys = append(privateKeys, privateKey)*/
 		wif, err := btcutil.DecodeWIF(input.privateKeyHex)
 		if err != nil {
 			return nil, err
@@ -105,9 +129,19 @@ func (build *TransactionBuilder) Build() (*wire.MsgTx, error) {
 
 	for i := 0; i < len(build.outputs); i++ {
 		output := build.outputs[i]
-		pkScript, err := AddrToPkScript(output.address, build.netParams)
-		if err != nil {
-			return nil, err
+
+		var pkScript []byte
+		var err error
+		if len(output.script) != 0 && len(output.address) == 0 {
+			pkScript, err = hex.DecodeString(output.script)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			pkScript, err = AddrToPkScript(output.address, build.netParams)
+			if err != nil {
+				return nil, err
+			}
 		}
 		txOut := wire.NewTxOut(output.amount, pkScript)
 		tx.TxOut = append(tx.TxOut, txOut)

@@ -35,7 +35,7 @@ func (d *BinaryDeserializer) DecreaseContainerDepth() {
 	d.containerDepthBudget += 1
 }
 
-// DeserializeBytes `deserializeLen` to be provided by the extending struct.
+// DeserializeBytes to be provided by the extending struct.
 func (d *BinaryDeserializer) DeserializeBytes(deserializeLen func() (uint64, error)) ([]byte, error) {
 	len, err := deserializeLen()
 	if err != nil {
@@ -49,10 +49,10 @@ func (d *BinaryDeserializer) DeserializeBytes(deserializeLen func() (uint64, err
 	if err == nil && uint64(n) < len {
 		return nil, errors.New("input is too short")
 	}
-	return ret, nil
+	return ret, err
 }
 
-// DeserializeStr `deserializeLen` to be provided by the extending struct.
+// DeserializeStr to be provided by the extending struct.
 func (d *BinaryDeserializer) DeserializeStr(deserializeLen func() (uint64, error)) (string, error) {
 	bytes, err := d.DeserializeBytes(deserializeLen)
 	if err != nil {
@@ -89,7 +89,8 @@ func (d *BinaryDeserializer) DeserializeChar() (rune, error) {
 }
 
 func (d *BinaryDeserializer) DeserializeU8() (uint8, error) {
-	return d.Buffer.ReadByte()
+	ret, err := d.Buffer.ReadByte()
+	return uint8(ret), err
 }
 
 func (d *BinaryDeserializer) DeserializeU16() (uint16, error) {

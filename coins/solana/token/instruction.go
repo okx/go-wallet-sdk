@@ -138,10 +138,18 @@ const (
 
 type Instruction struct {
 	base.BaseVariant
+	TokenProgramID base.PublicKey
 }
 
 func (inst *Instruction) ProgramID() base.PublicKey {
-	return base.TokenProgramID
+	if inst.TokenProgramID.IsZero() {
+		return base.TokenProgramID
+	}
+	return inst.TokenProgramID
+}
+
+func (inst *Instruction) SetProgramID(tokenProgramID base.PublicKey) {
+	inst.TokenProgramID = tokenProgramID
 }
 
 func (inst *Instruction) Accounts() (out []*base.AccountMeta) {

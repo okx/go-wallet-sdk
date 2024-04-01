@@ -138,7 +138,6 @@ func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chainc
 	txBuild.AddOutput2("", hex.EncodeToString(sp.UnsignedTx.TxOut[SellerSignatureIndex].PkScript), sp.UnsignedTx.TxOut[SellerSignatureIndex].Value)
 
 	for i := 2; i < len(ins); i++ {
-		txBuild.AddInput2(ins[i].TxId, ins[i].VOut, dummyPrivKey, ins[i].Address, ins[i].Amount)
 	}
 
 	for i := 2; i < len(outs); i++ {
@@ -227,7 +226,6 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 			return "", err
 		}
 
-		//这里要注销掉.
 		if finalize {
 			err = psbt.Finalize(bp, i)
 			if err != nil {

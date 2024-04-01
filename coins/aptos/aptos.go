@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/okx/go-wallet-sdk/coins/aptos/aptos_types"
+	"github.com/okx/go-wallet-sdk/coins/aptos/transaction_builder"
 	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
-	"github.com/okx/go-wallet-sdk/coins/aptos/types"
 	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 )
 
@@ -35,7 +36,7 @@ func NewAddress(seedHex string, shortEnable bool) (string, error) {
 		return "", err
 	}
 	publicKey = append(publicKey, 0x0)
-	address := "0x" + hex.EncodeToString(types.Sha256Hash(publicKey))
+	address := "0x" + hex.EncodeToString(aptos_types.Sha256Hash(publicKey))
 	if shortEnable {
 		return ShortenAddress(address), nil
 	} else {
@@ -50,7 +51,7 @@ func GetAddressByPubKey(pubKeyHex string, shortEnable bool) (string, error) {
 	}
 
 	pubKey = append(pubKey, 0x0)
-	address := "0x" + hex.EncodeToString(types.Sha256Hash(pubKey))
+	address := "0x" + hex.EncodeToString(aptos_types.Sha256Hash(pubKey))
 	if shortEnable {
 		return ShortenAddress(address), nil
 	} else {
@@ -58,7 +59,7 @@ func GetAddressByPubKey(pubKeyHex string, shortEnable bool) (string, error) {
 	}
 }
 
-// ValidateAddress hex 32bytes
+// hex 32bytes
 func ValidateAddress(address string, shortEnable bool) bool {
 	re1, _ := regexp.Compile("^0x[\\dA-Fa-f]{62,64}$")
 	re2, _ := regexp.Compile("^[\\dA-Fa-f]{64}$")
@@ -66,16 +67,21 @@ func ValidateAddress(address string, shortEnable bool) bool {
 }
 
 func MakeRawTransaction(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64,
-	expirationTimestampSecs uint64, chainId uint8, payload types.TransactionPayload) *types.RawTransaction {
-	rawTxn := types.RawTransaction{}
-	rawTxn.Sender = types.BytesFromHex(ExpandAddress(from))
+	expirationTimestampSecs uint64, chainId uint8, payload aptos_types.TransactionPayload) (*aptos_types.RawTransaction, error) {
+	rawTxn := aptos_types.RawTransaction{}
+	// addr, err := aptos_types.FromHex(ExpandAddress(from))
+	addr, err := aptos_types.FromHex(from)
+	if err != nil {
+		return nil, err
+	}
+	rawTxn.Sender = *addr
 	rawTxn.SequenceNumber = sequenceNumber
 	rawTxn.MaxGasAmount = maxGasAmount
 	rawTxn.GasUnitPrice = gasUnitPrice
 	rawTxn.ExpirationTimestampSecs = expirationTimestampSecs
-	rawTxn.ChainId = types.ChainId(chainId)
+	rawTxn.ChainId = aptos_types.ChainId(chainId)
 	rawTxn.Payload = payload
-	return &rawTxn
+	return &rawTxn, nil
 }
 
 func Transfer(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
@@ -87,29 +93,32 @@ func Transfer(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPr
 	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
 }
 
-func TransferPayload(to string, amount uint64) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(to)))
+func TransferPayload(to string, amount uint64) (aptos_types.TransactionPayload, error) {
+	//moduleAddress := make([]byte, 31)
+	//moduleAddress = append(moduleAddress, 0x1)
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(to)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "aptos_account"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "aptos_account"},
 		Function: "transfer",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
 func BuildSignedTransaction(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
-	payload types.TransactionPayload, seedHex string) (string, error) {
-	rawTxn := MakeRawTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload)
+	payload aptos_types.TransactionPayload, seedHex string) (string, error) {
+	rawTxn, err := MakeRawTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload)
+	if err != nil {
+		return "", err
+	}
 	return SignRawTransaction(rawTxn, seedHex)
 }
 
@@ -117,7 +126,7 @@ func BuildSignedTransaction(from string, sequenceNumber uint64, maxGasAmount uin
 // /// Transaction submitted by the user. e.g: P2P payment transaction, publishing module
 // /// transaction, etc.
 // /// TODO: We need to rename SignedTransaction to SignedUserTransaction, as well as all the other
-// ///       transaction types we had in our codebase.
+// ///       transaction aptos_types we had in our codebase.
 // UserTransaction(SignedTransaction),
 //
 // /// Transaction that applies a WriteSet to the current storage, it's applied manually via db-bootstrapper.
@@ -132,7 +141,7 @@ func BuildSignedTransaction(from string, sequenceNumber uint64, maxGasAmount uin
 // StateCheckpoint(HashValue),
 // }
 func GetTransactionHash(hexStr string) (string, error) {
-	prefix := types.Sha256Hash([]byte("APTOS::Transaction"))
+	prefix := aptos_types.Sha256Hash([]byte("APTOS::Transaction"))
 	bcsBytes, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return "", err
@@ -141,210 +150,208 @@ func GetTransactionHash(hexStr string) (string, error) {
 	message = append(message, prefix...)
 	message = append(message, 0x0)
 	message = append(message, bcsBytes...)
-	return "0x" + hex.EncodeToString(types.Sha256Hash(message)), nil
+	return "0x" + hex.EncodeToString(aptos_types.Sha256Hash(message)), nil
 }
 
-func CoinTransferPayload(to string, amount uint64, tyArg string) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(to)))
+func CoinTransferPayload(to string, amount uint64, tyArg string) (aptos_types.TransactionPayload, error) {
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(to)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-
-	// 0x3::moon_coin::MoonCoin
+	// 0x3::moon_coin::MoonCoin  address（hex） + module + structure
 	parts := strings.Split(tyArg, "::")
-	contractAddr := types.BytesFromHex(ExpandAddress(parts[0]))
-	tyArgs := make([]types.TypeTag, 0)
-	t1 := types.TypeTag__Struct{
-		Value: types.StructTag{
-			Address:    contractAddr,
-			Module:     types.Identifier(parts[1]),
-			Name:       types.Identifier(parts[2]),
-			TypeParams: []types.TypeTag{},
+	contractAddr, err := aptos_types.FromHex(ExpandAddress(parts[0]))
+	if err != nil {
+		return nil, err
+	}
+	tyArgs := make([]aptos_types.TypeTag, 0)
+	t1 := aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *contractAddr,
+			ModuleName: aptos_types.Identifier(parts[1]),
+			Name:       aptos_types.Identifier(parts[2]),
+			TypeArgs:   []aptos_types.TypeTag{},
 		},
 	}
 	tyArgs = append(tyArgs, &t1)
-
 	// 0x1::coin transfer
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "coin"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "coin"},
 		Function: "transfer",
 		TyArgs:   tyArgs,
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func CoinRegisterPayload(tyArg string) types.TransactionPayload {
+func CoinRegisterPayload(tyArg string) (aptos_types.TransactionPayload, error) {
 	moduleAddress := make([]byte, 31)
 	moduleAddress = append(moduleAddress, 0x1)
 
 	parts := strings.Split(tyArg, "::")
-	contractAddr := types.BytesFromHex(ExpandAddress(parts[0]))
-	tyArgs := make([]types.TypeTag, 0)
-	t1 := types.TypeTag__Struct{
-		Value: types.StructTag{
-			Address:    contractAddr,
-			Module:     types.Identifier(parts[1]),
-			Name:       types.Identifier(parts[2]),
-			TypeParams: []types.TypeTag{},
+	contractAddr, err := aptos_types.FromHex(ExpandAddress(parts[0]))
+	if err != nil {
+		return nil, err
+	}
+	tyArgs := make([]aptos_types.TypeTag, 0)
+	t1 := aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *contractAddr,
+			ModuleName: aptos_types.Identifier(parts[1]),
+			Name:       aptos_types.Identifier(parts[2]),
+			TypeArgs:   []aptos_types.TypeTag{},
 		},
 	}
 	tyArgs = append(tyArgs, &t1)
 
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "managed_coin"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "managed_coin"},
 		Function: "register",
 		TyArgs:   tyArgs,
 		Args:     [][]byte{},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func CoinMintPayload(receiveAddress string, amount uint64, tyArg string) (types.TransactionPayload, error) {
+func CoinMintPayload(receiveAddress string, amount uint64, tyArg string) (aptos_types.TransactionPayload, error) {
 	moduleAddress := make([]byte, 31)
 	moduleAddress = append(moduleAddress, 0x1)
 
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(receiveAddress))
-	if err != nil {
-		return nil, err
-	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
-	if err != nil {
-		return nil, err
-	}
+	bscAddress, _ := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(receiveAddress))
+	bscAmount, _ := aptos_types.BcsSerializeUint64(amount)
 
 	parts := strings.Split(tyArg, "::")
-	contractAddr := types.BytesFromHex(ExpandAddress(parts[0]))
-	tyArgs := make([]types.TypeTag, 0)
-	t1 := types.TypeTag__Struct{
-		Value: types.StructTag{
-			Address:    contractAddr,
-			Module:     types.Identifier(parts[1]),
-			Name:       types.Identifier(parts[2]),
-			TypeParams: []types.TypeTag{},
+	contractAddr, err := aptos_types.FromHex(ExpandAddress(parts[0]))
+	if err != nil {
+		return nil, err
+	}
+	tyArgs := make([]aptos_types.TypeTag, 0)
+	t1 := aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *contractAddr,
+			ModuleName: aptos_types.Identifier(parts[1]),
+			Name:       aptos_types.Identifier(parts[2]),
+			TypeArgs:   []aptos_types.TypeTag{},
 		},
 	}
 	tyArgs = append(tyArgs, &t1)
 
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "managed_coin"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "managed_coin"},
 		Function: "mint",
 		TyArgs:   tyArgs,
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func CoinBurnPayload(amount uint64, tyArg string) (types.TransactionPayload, error) {
+func CoinBurnPayload(amount uint64, tyArg string) (aptos_types.TransactionPayload, error) {
 	moduleAddress := make([]byte, 31)
 	moduleAddress = append(moduleAddress, 0x1)
 
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
+
+	parts := strings.Split(tyArg, "::")
+	contractAddr, err := aptos_types.FromHex(ExpandAddress(parts[0]))
 	if err != nil {
 		return nil, err
 	}
-
-	parts := strings.Split(tyArg, "::")
-	contractAddr := types.BytesFromHex(ExpandAddress(parts[0]))
-	tyArgs := make([]types.TypeTag, 0)
-	t1 := types.TypeTag__Struct{
-		Value: types.StructTag{
-			Address:    contractAddr,
-			Module:     types.Identifier(parts[1]),
-			Name:       types.Identifier(parts[2]),
-			TypeParams: []types.TypeTag{},
+	tyArgs := make([]aptos_types.TypeTag, 0)
+	t1 := aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *contractAddr,
+			ModuleName: aptos_types.Identifier(parts[1]),
+			Name:       aptos_types.Identifier(parts[2]),
+			TypeArgs:   []aptos_types.TypeTag{},
 		},
 	}
 	tyArgs = append(tyArgs, &t1)
 
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "managed_coin"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "managed_coin"},
 		Function: "burn",
 		TyArgs:   tyArgs,
 		Args:     [][]byte{bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func OfferNFTTokenPayload(receiver string, creator string, collectionName string, tokenName string, propertyVersion uint64, amount uint64) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x3)
-
-	bscReceiver, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(receiver)))
+func OfferNFTTokenPayload(receiver string, creator string, collectionName string, tokenName string, propertyVersion uint64, amount uint64) (aptos_types.TransactionPayload, error) {
+	moduleAddress, _ := aptos_types.FromHex("0x3")
+	bscReceiver, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(receiver)))
 	if err != nil {
 		return nil, err
 	}
-	bscCreator, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(creator)))
+	bscCreator, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(creator)))
 	if err != nil {
 		return nil, err
 	}
-	bscCollectName, err := types.BcsSerializeStr(collectionName)
+	bscCollectName, err := aptos_types.BcsSerializeStr(collectionName)
 	if err != nil {
 		return nil, err
 	}
-	bscTokenName, err := types.BcsSerializeStr(tokenName)
+	bscTokenName, err := aptos_types.BcsSerializeStr(tokenName)
 	if err != nil {
 		return nil, err
 	}
-	bscPropertyVersion, err := types.BcsSerializeUint64(propertyVersion)
+	bscPropertyVersion, err := aptos_types.BcsSerializeUint64(propertyVersion)
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "token_transfers"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *moduleAddress, Name: "token_transfers"},
 		Function: "offer_script",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscReceiver, bscCreator, bscCollectName, bscTokenName, bscPropertyVersion, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func ClaimNFTTokenPayload(sender string, creator string, collectionName string, tokenName string, propertyVersion uint64) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x3)
+func ClaimNFTTokenPayload(sender string, creator string, collectionName string, tokenName string, propertyVersion uint64) (aptos_types.TransactionPayload, error) {
+	moduleAddress, err := aptos_types.FromHex("0x3")
+	if err != nil {
+		return nil, err
+	}
+	bscSender, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(sender)))
+	if err != nil {
+		return nil, err
+	}
+	bscCreator, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(creator)))
+	if err != nil {
+		return nil, err
+	}
+	bscCollectName, err := aptos_types.BcsSerializeStr(collectionName)
+	if err != nil {
+		return nil, err
+	}
+	bscTokenName, err := aptos_types.BcsSerializeStr(tokenName)
+	if err != nil {
+		return nil, err
+	}
+	bscPropertyVersion, err := aptos_types.BcsSerializeUint64(propertyVersion)
+	if err != nil {
+		return nil, err
+	}
 
-	bscSender, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(sender)))
-	if err != nil {
-		return nil, err
-	}
-	bscCreator, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(creator)))
-	if err != nil {
-		return nil, err
-	}
-	bscCollectName, err := types.BcsSerializeStr(collectionName)
-	if err != nil {
-		return nil, err
-	}
-	bscTokenName, err := types.BcsSerializeStr(tokenName)
-	if err != nil {
-		return nil, err
-	}
-	bscPropertyVersion, err := types.BcsSerializeUint64(propertyVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "token_transfers"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *moduleAddress, Name: "token_transfers"},
 		Function: "claim_script",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscSender, bscCreator, bscCollectName, bscTokenName, bscPropertyVersion},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func SignRawTransaction(rawTxn *types.RawTransaction, seedHex string) (string, error) {
+func SignRawTransaction(rawTxn *aptos_types.RawTransaction, seedHex string) (string, error) {
 	publicKey, err := ed25519.PublicKeyFromSeed(seedHex)
 	if err != nil {
 		return "", err
@@ -358,9 +365,8 @@ func SignRawTransaction(rawTxn *types.RawTransaction, seedHex string) (string, e
 	if err != nil {
 		return "", err
 	}
-
-	ed25519Authenticator := types.TransactionAuthenticator__Ed25519{PublicKey: types.Ed25519PublicKey(publicKey), Signature: signature}
-	signedTransaction := types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
+	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(publicKey), Signature: signature}
+	signedTransaction := aptos_types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
 	txBytes, err := signedTransaction.BcsSerialize()
 	if err != nil {
 		return "", err
@@ -368,14 +374,15 @@ func SignRawTransaction(rawTxn *types.RawTransaction, seedHex string) (string, e
 	return hex.EncodeToString(txBytes), nil
 }
 
-func SimulateTransaction(rawTxn *types.RawTransaction, seedHex string) (string, error) {
+func SimulateTransaction(rawTxn *aptos_types.RawTransaction, seedHex string) (string, error) {
 	publicKey, err := ed25519.PublicKeyFromSeed(seedHex)
 	if err != nil {
 		return "", err
 	}
+
 	signature := make([]byte, 64)
-	ed25519Authenticator := types.TransactionAuthenticator__Ed25519{PublicKey: types.Ed25519PublicKey(publicKey), Signature: signature}
-	signedTransaction := types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
+	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(publicKey), Signature: signature}
+	signedTransaction := aptos_types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
 	txBytes, err := signedTransaction.BcsSerialize()
 	if err != nil {
 		return "", err
@@ -383,7 +390,7 @@ func SimulateTransaction(rawTxn *types.RawTransaction, seedHex string) (string, 
 	return hex.EncodeToString(txBytes), nil
 }
 
-func parseTypeArguments(data string) *types.TypeTag__Struct {
+func parseTypeArguments(data string) *aptos_types.TypeTagStruct {
 	i1 := strings.Index(data, "<")
 	i2 := strings.Index(data, ">")
 	var left string
@@ -397,7 +404,7 @@ func parseTypeArguments(data string) *types.TypeTag__Struct {
 		right = make([]string, 0)
 	}
 
-	typeTags := make([]types.TypeTag, 0)
+	typeTags := make([]aptos_types.TypeTag, 0)
 	for _, s := range right {
 		if len(s) > 0 {
 			temp := parseTypeArguments(s)
@@ -407,18 +414,18 @@ func parseTypeArguments(data string) *types.TypeTag__Struct {
 
 	parts := strings.Split(left, "::")
 	// module address
-	p1 := types.BytesFromHex(ExpandAddress(parts[0]))
+	p1, _ := aptos_types.FromHex(ExpandAddress(parts[0]))
 	// module name
-	p2 := types.Identifier(parts[1])
+	p2 := aptos_types.Identifier(parts[1])
 	// struct name
-	p3 := types.Identifier(parts[2])
+	p3 := aptos_types.Identifier(parts[2])
 
-	return &types.TypeTag__Struct{
-		Value: types.StructTag{
-			Address:    p1,
-			Module:     p2,
+	return &aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *p1,
+			ModuleName: p2,
 			Name:       p3,
-			TypeParams: typeTags,
+			TypeArgs:   typeTags,
 		},
 	}
 }
@@ -441,7 +448,7 @@ func Interface2U64(value interface{}) (uint64, error) {
 		op, _ := value.(float64)
 		return uint64(op), nil
 	default:
-		return 0, fmt.Errorf("%T convert value to u64 fail", value)
+		return 0, fmt.Errorf("convert value to u64 fail")
 	}
 }
 
@@ -459,13 +466,13 @@ func Interface2U128(value interface{}) (*serde.Uint128, error) {
 	}
 }
 
-func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
-	if len(args) != len(argTypes) {
-		return nil, fmt.Errorf("types and values size not match")
+func ConvertArgs(args []interface{}, arg_types []aptos_types.MoveType) ([][]byte, error) {
+	if len(args) != len(arg_types) {
+		return nil, fmt.Errorf("aptos_types and values size not match")
 	}
 	array := make([][]byte, 0)
 	for i := range args {
-		moveType := argTypes[i]
+		moveType := arg_types[i]
 		moveValue := args[i]
 		switch moveType {
 		case "address":
@@ -473,7 +480,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if !ok {
 				return nil, fmt.Errorf("unknown argument for address")
 			}
-			bytes, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(op)))
+			bytes, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(op)))
 			if err != nil {
 				return nil, err
 			}
@@ -483,7 +490,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unknown argument for u64, %w", err)
 			}
-			bytes, err := types.BcsSerializeUint64(ai)
+			bytes, err := aptos_types.BcsSerializeUint64(ai)
 			if err != nil {
 				return nil, err
 			}
@@ -494,7 +501,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unknown argument for bool, %w", err)
 			}
-			bytes, err := types.BcsSerializeBool(b)
+			bytes, err := aptos_types.BcsSerializeBool(b)
 			if err != nil {
 				return nil, err
 			}
@@ -505,7 +512,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unknown argument for u8, %w", err)
 			}
-			bytes, err := types.BcsSerializeU8(uint8(ai))
+			bytes, err := aptos_types.BcsSerializeU8(uint8(ai))
 			if err != nil {
 				return nil, err
 			}
@@ -515,7 +522,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unknown argument for u128, %w", err)
 			}
-			bytes, err := types.BcsSerializeU128(*ii)
+			bytes, err := aptos_types.BcsSerializeU128(*ii)
 			if err != nil {
 				return nil, err
 			}
@@ -533,15 +540,15 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					}
 					inputBytes = append(inputBytes, uint8(vv))
 				}
-				bytes, err := types.BcsSerializeBytes(inputBytes)
+				bytes, err := aptos_types.BcsSerializeBytes(inputBytes)
 				if err != nil {
 					return nil, err
 				}
 				array = append(array, bytes)
 			case string:
 				op, _ := moveValue.(string)
-				v := types.BytesFromHex(op)
-				bytes, err := types.BcsSerializeBytes(v)
+				v := aptos_types.BytesFromHex(op)
+				bytes, err := aptos_types.BcsSerializeBytes(v)
 				if err != nil {
 					return nil, err
 				}
@@ -554,7 +561,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			case []interface{}:
 				vArray, _ := moveValue.([]interface{})
 				targetBytes := make([]byte, 0)
-				bytes, err := types.BcsSerializeLen(uint64(len(vArray)))
+				bytes, err := aptos_types.BcsSerializeLen(uint64(len(vArray)))
 				if err != nil {
 					return nil, err
 				}
@@ -564,7 +571,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					if err != nil {
 						return nil, fmt.Errorf("unknown argument for u64, %w", err)
 					}
-					bytes, err = types.BcsSerializeUint64(v)
+					bytes, err = aptos_types.BcsSerializeUint64(v)
 					if err != nil {
 						return nil, err
 					}
@@ -579,7 +586,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			case []interface{}:
 				vArray, _ := moveValue.([]interface{})
 				targetBytes := make([]byte, 0)
-				bytes, err := types.BcsSerializeLen(uint64(len(vArray)))
+				bytes, err := aptos_types.BcsSerializeLen(uint64(len(vArray)))
 				if err != nil {
 					return nil, err
 				}
@@ -589,7 +596,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					if err != nil {
 						return nil, fmt.Errorf("unknown argument for u128, %w", err)
 					}
-					bytes, err = types.BcsSerializeU128(*v)
+					bytes, err = aptos_types.BcsSerializeU128(*v)
 					if err != nil {
 						return nil, err
 					}
@@ -604,7 +611,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			case []interface{}:
 				vArray, _ := moveValue.([]interface{})
 				targetBytes := make([]byte, 0)
-				bytes, err := types.BcsSerializeLen(uint64(len(vArray)))
+				bytes, err := aptos_types.BcsSerializeLen(uint64(len(vArray)))
 				if err != nil {
 					return nil, err
 				}
@@ -615,7 +622,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					if err != nil {
 						return nil, fmt.Errorf("unknown argument for bool, %w", err)
 					}
-					bytes, err = types.BcsSerializeBool(vv)
+					bytes, err = aptos_types.BcsSerializeBool(vv)
 					if err != nil {
 						return nil, err
 					}
@@ -630,7 +637,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			case []interface{}:
 				vArray, _ := moveValue.([]interface{})
 				targetBytes := make([]byte, 0)
-				bytes, err := types.BcsSerializeLen(uint64(len(vArray)))
+				bytes, err := aptos_types.BcsSerializeLen(uint64(len(vArray)))
 				if err != nil {
 					return nil, err
 				}
@@ -641,7 +648,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					if !ok {
 						return nil, errors.New("unknown argument for address")
 					}
-					bytes, err = types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(v)))
+					bytes, err = aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(v)))
 					if err != nil {
 						return nil, err
 					}
@@ -656,7 +663,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			case []interface{}:
 				vArray, _ := moveValue.([]interface{})
 				targetBytes := make([]byte, 0)
-				bytes, err := types.BcsSerializeLen(uint64(len(vArray)))
+				bytes, err := aptos_types.BcsSerializeLen(uint64(len(vArray)))
 				if err != nil {
 					return nil, err
 				}
@@ -667,7 +674,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 					if !ok {
 						return nil, errors.New("unknown argument for string")
 					}
-					bytes, err = types.BcsSerializeStr(v)
+					bytes, err = aptos_types.BcsSerializeStr(v)
 					if err != nil {
 						return nil, err
 					}
@@ -682,7 +689,7 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 			if !ok {
 				return nil, errors.New("unknown argument for string")
 			}
-			bytes, err := types.BcsSerializeStr(op)
+			bytes, err := aptos_types.BcsSerializeStr(op)
 			if err != nil {
 				return nil, err
 			}
@@ -693,92 +700,144 @@ func ConvertArgs(args []interface{}, argTypes []MoveType) ([][]byte, error) {
 	}
 	return array, nil
 }
+func fetchABI(modules []aptos_types.MoveModuleBytecode) map[string]aptos_types.MoveFunctionFullName {
+	abiMap := map[string]aptos_types.MoveFunctionFullName{}
+	for _, module := range modules {
+		abi := module.Abi
+		for _, ef := range abi.ExposedFunctions {
+			if ef.IsEntry {
+				fullName := abi.Address + "::" + abi.Name + "::" + ef.Name
+				abiMap[fullName] = aptos_types.MoveFunctionFullName{
+					FullName:     fullName,
+					MoveFunction: ef,
+				}
+			}
+		}
+	}
+	return abiMap
+}
 
-func PayloadFromJsonAndAbi(payload string, abi string) (types.TransactionPayload, error) {
-	moveModules := make([]MoveModuleBytecode, 0)
+func filterMoveFunctionParams(funcAbi aptos_types.MoveFunctionFullName) []string {
+	res := make([]string, 0)
+	for _, param := range funcAbi.Params {
+		if param == "signer" || param == "&signer" {
+			continue
+		}
+		res = append(res, param)
+	}
+	return res
+}
+
+func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionPayload, error) {
+	moveModules := make([]aptos_types.MoveModuleBytecode, 0)
 	err := json.Unmarshal([]byte(abi), &moveModules)
 	if err != nil {
 		return nil, err
 	}
 
-	entryFunction := EntryFunctionPayload{}
+	entryFunction := aptos_types.EntryFunctionPayload{}
 	err = json.Unmarshal([]byte(payload), &entryFunction)
 	if err != nil {
 		return nil, err
 	}
 
-	funcParts := strings.Split(entryFunction.Function, "::")
-	// 0x43417434fd869edee76cca2a4d2301e528a1551b1d719b75c350c3c97d15b8b9::scripts::swap
-	for _, m := range moveModules {
-		moveModuleAddress := ExpandAddress(funcParts[0])
-		if ExpandAddress(m.Abi.Address) == moveModuleAddress && m.Abi.Name == funcParts[1] {
-			for _, e := range m.Abi.ExposedFunctions {
-				if e.IsEntry && e.Name == funcParts[2] {
-					ma := types.BytesFromHex(moveModuleAddress)
-					mn := types.Identifier(funcParts[1])
-					fn := types.Identifier(funcParts[2])
-
-					tyArgs := make([]types.TypeTag, 0)
-					for _, ta := range entryFunction.TypeArguments {
-						if len(ta) > 0 {
-							tt := parseTypeArguments(ta)
-							tyArgs = append(tyArgs, tt)
-						}
-					}
-
-					args, err := ConvertArgs(entryFunction.Arguments, filterArgumentsTypes(e.Params))
-					if err != nil {
-						return nil, err
-					}
-					scriptFunction := types.ScriptFunction{
-						Module:   types.ModuleId{Address: ma, Name: mn},
-						Function: fn,
-						TyArgs:   tyArgs,
-						Args:     args,
-					}
-					return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
-				}
-			}
-		}
+	f := entryFunction.Function
+	r, err := regexp.Compile("^0[xX]0*")
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("can not find move function from abi, %s", entryFunction.Function)
-}
-
-func filterArgumentsTypes(types []MoveType) []MoveType {
-	array := make([]MoveType, 0)
-	for _, t := range types {
-		if !strings.Contains(t, "signer") {
-			array = append(array, t)
-		}
+	function := r.ReplaceAllString(f, "0x")
+	funcParts := strings.Split(function, "::")
+	if len(funcParts) != 3 {
+		return nil, errors.New("func needs to be a fully qualified function name in format <address>::<module>::<function>, e.g. 0x1::coin::transfer")
 	}
-	return array
+	abiMap := fetchABI(moveModules)
+	funcAbi, ok := abiMap[function]
+	if !ok {
+		return nil, errors.New("abi miss")
+	}
+	abiArgs := filterMoveFunctionParams(funcAbi)
+	typeArgsEntryFunction := entryFunction.TypeArguments
+	typeArgABIs := make([]aptos_types.ArgumentABI, 0)
+	for i, abiArg := range abiArgs {
+		parser, err := aptos_types.NewTypeTagParser(abiArg, typeArgsEntryFunction)
+		if err != nil {
+			return nil, err
+		}
+		typeTag, err := parser.ParseTypeTag()
+		if err != nil {
+			return nil, err
+		}
+		argAbi := aptos_types.ArgumentABI{
+			Name:    strconv.Itoa(i),
+			TypeTag: typeTag,
+		}
+		typeArgABIs = append(typeArgABIs, argAbi)
+	}
+
+	// here only support EntryFunctionABI
+	// todo support TransactionScriptABI
+	// argument in input data
+	typeTags := []aptos_types.TypeTag{}
+	for _, tagString := range entryFunction.TypeArguments {
+		if tagString == "" {
+			continue
+		}
+		parser, err := aptos_types.NewTypeTagParser(tagString, nil)
+		if err != nil {
+			return nil, err
+		}
+		tag, err := parser.ParseTypeTag()
+		if err != nil {
+			return nil, err
+		}
+		typeTags = append(typeTags, tag)
+	}
+	args, err := transaction_builder.ToBCSArgs(typeArgABIs, entryFunction.Arguments)
+	if err != nil {
+		return nil, err
+	}
+	ma, err := aptos_types.FromHex(funcParts[0])
+	if err != nil {
+		return nil, err
+	}
+	mn := aptos_types.Identifier(funcParts[1])
+	fn := aptos_types.Identifier(funcParts[2])
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *ma, Name: mn},
+		Function: fn,
+		TyArgs:   typeTags,
+		Args:     args,
+	}
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
 func GetSigningHash(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
 	to string, amount uint64) (string, error) {
-
 	payload, err := TransferPayload(to, amount)
 	if err != nil {
 		return "", err
 	}
-	rawTxn := MakeRawTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload)
-
+	rawTxn, err := MakeRawTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload)
+	if err != nil {
+		return "", err
+	}
 	rawTxHash, err := rawTxn.GetSigningMessage()
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(rawTxHash), err
+	return hex.EncodeToString(rawTxHash), nil
 }
 
-func GetRawTxHash(rawTxn *types.RawTransaction) (string, error) {
+func GetRawTxHash(rawTxn *aptos_types.RawTransaction) (string, error) {
 	rawTxHash, err := rawTxn.GetSigningMessage()
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(rawTxHash), err
+	return hex.EncodeToString(rawTxHash), nil
 }
 
-func SignedTx(rawTxn *types.RawTransaction, signDataHex string, pubKey string) (string, error) {
+func SignedTx(rawTxn *aptos_types.RawTransaction, signDataHex string, pubKey string) (string, error) {
 	pb, err := hex.DecodeString(pubKey)
 	if err != nil {
 		return "", err
@@ -789,8 +848,8 @@ func SignedTx(rawTxn *types.RawTransaction, signDataHex string, pubKey string) (
 		return "", err
 	}
 
-	ed25519Authenticator := types.TransactionAuthenticator__Ed25519{PublicKey: types.Ed25519PublicKey(pb), Signature: signData}
-	signedTransaction := types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
+	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(pb), Signature: signData}
+	signedTransaction := aptos_types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
 	txBytes, err := signedTransaction.BcsSerialize()
 	if err != nil {
 		return "", err
@@ -807,24 +866,24 @@ func AddStake(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPr
 	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
 }
 
-func AddStakePayload(poolAddress string, amount uint64) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(poolAddress)))
+func AddStakePayload(poolAddress string, amount uint64) (aptos_types.TransactionPayload, error) {
+	// moduleAddress := make([]byte, 31)
+	// moduleAddress = append(moduleAddress, 0x1)
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(poolAddress)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "delegation_pool"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "delegation_pool"},
 		Function: "add_stake",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
 func Unlock(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
@@ -836,24 +895,24 @@ func Unlock(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPric
 	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
 }
 
-func UnlockPayload(poolAddress string, amount uint64) (types.TransactionPayload, error) {
-	moduleAddress := make([]byte, 31)
-	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(poolAddress)))
+func UnlockPayload(poolAddress string, amount uint64) (aptos_types.TransactionPayload, error) {
+	// moduleAddress := make([]byte, 31)
+	// moduleAddress = append(moduleAddress, 0x1)
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(poolAddress)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "delegation_pool"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "delegation_pool"},
 		Function: "unlock",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
 func ReactivateStake(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
@@ -865,24 +924,24 @@ func ReactivateStake(from string, sequenceNumber uint64, maxGasAmount uint64, ga
 	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
 }
 
-func ReactivateStakePayload(poolAddress string, amount uint64) (types.TransactionPayload, error) {
+func ReactivateStakePayload(poolAddress string, amount uint64) (aptos_types.TransactionPayload, error) {
 	moduleAddress := make([]byte, 31)
 	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(poolAddress)))
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(poolAddress)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "delegation_pool"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "delegation_pool"},
 		Function: "reactivate_stake",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
 func Withdraw(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
@@ -894,22 +953,33 @@ func Withdraw(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPr
 	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
 }
 
-func WithdrawPayload(poolAddress string, amount uint64) (types.TransactionPayload, error) {
+func WithdrawPayload(poolAddress string, amount uint64) (aptos_types.TransactionPayload, error) {
 	moduleAddress := make([]byte, 31)
 	moduleAddress = append(moduleAddress, 0x1)
-	bscAddress, err := types.BcsSerializeFixedBytes(types.BytesFromHex(ExpandAddress(poolAddress)))
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(poolAddress)))
 	if err != nil {
 		return nil, err
 	}
-	bscAmount, err := types.BcsSerializeUint64(amount)
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
 	if err != nil {
 		return nil, err
 	}
-	scriptFunction := types.ScriptFunction{
-		Module:   types.ModuleId{Address: moduleAddress, Name: "delegation_pool"},
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "delegation_pool"},
 		Function: "withdraw",
-		TyArgs:   []types.TypeTag{},
+		TyArgs:   []aptos_types.TypeTag{},
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
-	return &types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+}
+
+func SignMessage(priKey, message string) (string, error) {
+	if len(priKey) == 0 || len(message) == 0 {
+		return "", fmt.Errorf("invalid params message %s", message)
+	}
+	signature, err := ed25519.Sign(priKey, []byte(message))
+	if err != nil {
+		return "", err
+	}
+	return "0x" + hex.EncodeToString(signature), nil
 }

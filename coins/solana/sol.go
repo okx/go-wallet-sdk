@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	associatedtokenaccount "github.com/okx/go-wallet-sdk/coins/solana/associated-token-account"
+	computebudget "github.com/okx/go-wallet-sdk/coins/solana/compute-budget"
 	"github.com/tyler-smith/go-bip39"
 
 	"github.com/okx/go-wallet-sdk/coins/solana/base"
@@ -106,6 +107,15 @@ func (t *RawTransaction) AppendInitializeNonceAccountInstruction(authorized stri
 	t.instructions = append(t.instructions, inst)
 }
 
+func (t *RawTransaction) AppendPriorityFeeInstruction(computeUnitLimit uint32, computeUnitPrice uint64) {
+	if computeUnitLimit > 0 && computeUnitPrice > 0 {
+		computeUnitLimitInstruction := computebudget.NewSetComputeUnitLimitInstruction(computeUnitLimit).Build()
+		computeUnitPriceInstruction := computebudget.NewSetComputeUnitPriceInstruction(computeUnitPrice).Build()
+		t.instructions = append(t.instructions, computeUnitLimitInstruction)
+		t.instructions = append(t.instructions, computeUnitPriceInstruction)
+	}
+}
+
 func (t *RawTransaction) AppendTransferInstruction(
 	lamports uint64,
 	fundingAccount string,
@@ -168,17 +178,14 @@ func (t *RawTransaction) AppendTokenApproveCheckedInstruction(
 	t.instructions = append(t.instructions, inst)
 }
 
-func (t *RawTransaction) AppendTokenBurnInstruction(
-	// Parameters:
-	amount uint64,
-	// Accounts:
-	source string,
-	mint string,
-	owner string) {
+func (t *RawTransaction) AppendTokenBurnInstruction(amount uint64, source string, mint string, owner string, options ...string) {
 	sourcePublicKey := base.MustPublicKeyFromBase58(source)
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	ownerPublicKey := base.MustPublicKeyFromBase58(owner)
 	inst := token.NewBurnInstruction(amount, sourcePublicKey, mintPublicKey, ownerPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -189,11 +196,15 @@ func (t *RawTransaction) AppendTokenBurnCheckedInstruction(
 	// Accounts:
 	source string,
 	mint string,
-	owner string) {
+	owner string,
+	options ...string) {
 	sourcePublicKey := base.MustPublicKeyFromBase58(source)
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	ownerPublicKey := base.MustPublicKeyFromBase58(owner)
 	inst := token.NewBurnCheckedInstruction(amount, decimals, sourcePublicKey, mintPublicKey, ownerPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -256,11 +267,15 @@ func (t *RawTransaction) AppendInitializeMintInstruction(
 	decimals uint8,
 	mint_authority string,
 	freeze_authority string,
-	mint string) {
+	mint string,
+	options ...string) {
 	mintAuthPublicKey := base.MustPublicKeyFromBase58(mint_authority)
 	freezeAuthPublicKey := base.MustPublicKeyFromBase58(freeze_authority)
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	inst := token.NewInitializeMintInstruction(decimals, mintAuthPublicKey, freezeAuthPublicKey, mintPublicKey).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -268,11 +283,15 @@ func (t *RawTransaction) AppendTokenInitializeMint2Instruction(
 	decimals uint8,
 	mint_authority string,
 	freeze_authority string,
-	mint string) {
+	mint string,
+	options ...string) {
 	mintAuthPublicKey := base.MustPublicKeyFromBase58(mint_authority)
 	freezeAuthPublicKey := base.MustPublicKeyFromBase58(freeze_authority)
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	inst := token.NewInitializeMint2Instruction(decimals, mintAuthPublicKey, freezeAuthPublicKey, mintPublicKey).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -280,11 +299,15 @@ func (t *RawTransaction) AppendTokenMintToInstruction(
 	amount uint64,
 	mint string,
 	destination string,
-	authority string) {
+	authority string,
+	options ...string) {
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	destinationPublicKey := base.MustPublicKeyFromBase58(destination)
 	authorityPublicKey := base.MustPublicKeyFromBase58(authority)
 	inst := token.NewMintToInstruction(amount, mintPublicKey, destinationPublicKey, authorityPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -294,11 +317,15 @@ func (t *RawTransaction) AppendTokenMintToCheckedInstruction(
 	// Accounts:
 	mint string,
 	destination string,
-	authority string) {
+	authority string,
+	options ...string) {
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	destinationPublicKey := base.MustPublicKeyFromBase58(destination)
 	authorityPublicKey := base.MustPublicKeyFromBase58(authority)
 	inst := token.NewMintToCheckedInstruction(amount, decimals, mintPublicKey, destinationPublicKey, authorityPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -339,11 +366,15 @@ func (t *RawTransaction) AppendTokenTransferInstruction(
 	amount uint64,
 	source string,
 	destination string,
-	owner string) {
+	owner string,
+	options ...string) {
 	sourcePublicKey := base.MustPublicKeyFromBase58(source)
 	destinationPublicKey := base.MustPublicKeyFromBase58(destination)
 	ownerPublicKey := base.MustPublicKeyFromBase58(owner)
 	inst := token.NewTransferInstruction(amount, sourcePublicKey, destinationPublicKey, ownerPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
@@ -351,20 +382,28 @@ func (t *RawTransaction) AppendTokenTransferCheckedInstruction(amount uint64, de
 	source string,
 	mint string,
 	destination string,
-	owner string) {
+	owner string,
+	options ...string) {
 	sourcePublicKey := base.MustPublicKeyFromBase58(source)
 	mintPublicKey := base.MustPublicKeyFromBase58(mint)
 	destinationPublicKey := base.MustPublicKeyFromBase58(destination)
 	ownerPublicKey := base.MustPublicKeyFromBase58(owner)
 	inst := token.NewTransferCheckedInstruction(amount, decimals, sourcePublicKey, mintPublicKey, destinationPublicKey, ownerPublicKey, []base.PublicKey{}).Build()
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		inst.SetProgramID(base.Token2022ProgramID)
+	}
 	t.instructions = append(t.instructions, inst)
 }
 
-func (t *RawTransaction) AppendAssociatedTokenAccountCreateInstruction(payer string, walletAddress string, splTokenMintAddress string) {
+func (t *RawTransaction) AppendAssociatedTokenAccountCreateInstruction(payer string, walletAddress string, splTokenMintAddress string, options ...string) {
 	payerPublicKey := base.MustPublicKeyFromBase58(payer)
 	walletPublicKey := base.MustPublicKeyFromBase58(walletAddress)
 	splTokenMintPublicKey := base.MustPublicKeyFromBase58(splTokenMintAddress)
-	inst := associatedtokenaccount.NewCreateInstruction(payerPublicKey, walletPublicKey, splTokenMintPublicKey).Build()
+	create := associatedtokenaccount.NewCreateInstruction(payerPublicKey, walletPublicKey, splTokenMintPublicKey)
+	if len(options) > 0 && options[0] == base.TOKEN2022 {
+		create.SetTokenProgramID(base.Token2022ProgramID)
+	}
+	inst := create.Build()
 	t.instructions = append(t.instructions, inst)
 }
 

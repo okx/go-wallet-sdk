@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -26,6 +27,7 @@ type PrevOutput struct {
 	Amount     int64  `json:"amount"`
 	Address    string `json:"address"`
 	PrivateKey string `json:"privateKey"`
+	PublicKey  string `json:"publicKey"`
 }
 
 type InscriptionRequest struct {
@@ -69,6 +71,15 @@ type InscribeTxs struct {
 	CommitAddrs  []string `json:"commitAddrs"`
 }
 
+type InscribeForMPCRes struct {
+	SigHashList  []string `json:"sigHashList"`
+	CommitTx     string   `json:"commitTx"`
+	RevealTxs    []string `json:"revealTxs"`
+	CommitTxFee  int64    `json:"commitTxFee"`
+	RevealTxFees []int64  `json:"revealTxFees"`
+	CommitAddrs  []string `json:"commitAddrs"`
+}
+
 const (
 	DefaultTxVersion      = 2
 	DefaultSequenceNum    = 0xfffffffd
@@ -77,6 +88,8 @@ const (
 
 	MaxStandardTxWeight = 4000000 / 10
 	WitnessScaleFactor  = 4
+
+	OrdPrefix = "ord"
 )
 
 func NewInscriptionTool(network *chaincfg.Params, request *InscriptionRequest) (*InscriptionBuilder, error) {
@@ -148,7 +161,7 @@ func newInscriptionTxCtxData(network *chaincfg.Params, inscriptionRequest *Inscr
 		AddOp(txscript.OP_CHECKSIG).
 		AddOp(txscript.OP_FALSE).
 		AddOp(txscript.OP_IF).
-		AddData([]byte("ord")).
+		AddData([]byte(OrdPrefix)).
 		AddOp(txscript.OP_DATA_1).
 		AddOp(txscript.OP_DATA_1).
 		AddData([]byte(inscriptionRequest.InscriptionDataList[indexOfInscriptionDataList].ContentType)).
@@ -488,4 +501,304 @@ func GetTxVirtualSize(tx *btcutil.Tx) int64 {
 	// We add 3 here as a way to compute the ceiling of the prior arithmetic
 	// to 4. The division by 4 creates a discount for wit witness data.
 	return (GetTransactionWeight(tx) + (WitnessScaleFactor - 1)) / WitnessScaleFactor
+}
+func InscribeForMPCUnsigned(request *InscriptionRequest, network *chaincfg.Params, unsignedCommitHash, signedCommitTxHash *chainhash.Hash) (*InscribeForMPCRes, error) {
+
+	wif, err := btcutil.DecodeWIF(request.CommitTxPrevOutputList[0].PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	randPrvKey := wif.PrivKey
+	scriptCtxList, err := buildInscriptionScriptCtxList(request, network)
+	if err != nil {
+		return nil, err
+	}
+
+	// build reveal tx list
+	revealTxList := make([]*wire.MsgTx, len(scriptCtxList))
+	commitTxOutList := make([]*wire.TxOut, 0)
+	totalRevealInValue := int64(0)
+	for i, ctx := range scriptCtxList {
+		revealTx := wire.NewMsgTx(DefaultTxVersion)
+
+		in := wire.NewTxIn(&wire.OutPoint{Index: uint32(i)}, nil, nil)
+		in.Sequence = DefaultSequenceNum
+		revealTx.AddTxIn(in)
+
+		scriptPubKey, err := AddrToPkScript(request.InscriptionDataList[i].RevealAddr, network)
+		if err != nil {
+			return nil, err
+		}
+		revealOutValue := DefaultRevealOutValue
+		if request.RevealOutValue > 0 {
+			revealOutValue = request.RevealOutValue
+		}
+		out := wire.NewTxOut(revealOutValue, scriptPubKey)
+		revealTx.AddTxOut(out)
+
+		revealTxList[i] = revealTx
+
+		emptySignature := make([]byte, 64)
+		emptyControlBlockWitness := make([]byte, 33)
+		fakeWitness := wire.TxWitness{emptySignature, ctx.InscriptionScript, emptyControlBlockWitness}
+		revealFee := int64(revealTx.SerializeSize()+((fakeWitness.SerializeSize()+2+3)/4)) * request.RevealFeeRate
+		revealInValue := revealOutValue + revealFee
+
+		ctx.RevealTxPrevOutput = &wire.TxOut{
+			PkScript: ctx.CommitTxAddressPkScript,
+			Value:    revealInValue,
+		}
+		totalRevealInValue += revealInValue
+
+		commitTxOutList = append(commitTxOutList, wire.NewTxOut(revealInValue, ctx.CommitTxAddressPkScript))
+	}
+
+	// build commit tx
+	commitTx := wire.NewMsgTx(DefaultTxVersion)
+	prevOutFetcher := txscript.NewMultiPrevOutFetcher(nil)
+	totalCommitInValue := int64(0)
+	for _, utxo := range request.CommitTxPrevOutputList {
+		txHash, err := chainhash.NewHashFromStr(utxo.TxId)
+		if err != nil {
+			return nil, err
+		}
+		outPoint := wire.NewOutPoint(txHash, utxo.VOut)
+
+		in := wire.NewTxIn(outPoint, nil, nil)
+		in.Sequence = DefaultSequenceNum
+		commitTx.AddTxIn(in)
+
+		pkScript, err := AddrToPkScript(utxo.Address, network)
+		if err != nil {
+			return nil, err
+		}
+		txOut := wire.NewTxOut(utxo.Amount, pkScript)
+		prevOutFetcher.AddPrevOut(*outPoint, txOut)
+
+		totalCommitInValue += utxo.Amount
+	}
+
+	for _, commitTxOut := range commitTxOutList {
+		commitTx.AddTxOut(commitTxOut)
+	}
+
+	changePkScript, err := AddrToPkScript(request.ChangeAddress, network)
+	if err != nil {
+		return nil, err
+	}
+	commitTx.AddTxOut(wire.NewTxOut(0, changePkScript))
+
+	estimateTx := commitTx.Copy()
+	fakePrvKeyList := make([]*btcec.PrivateKey, len(estimateTx.TxIn))
+	fakePrvKey, err := btcec.NewPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+	for i := range fakePrvKeyList {
+		fakePrvKeyList[i] = fakePrvKey
+	}
+	if err := Sign(estimateTx, fakePrvKeyList, prevOutFetcher); err != nil {
+		return nil, err
+	}
+
+	commitFee := GetTxVirtualSize(btcutil.NewTx(estimateTx)) * request.CommitFeeRate
+	changeValue := totalCommitInValue - totalRevealInValue - commitFee
+	minChangeValue := DefaultMinChangeValue
+	if request.MinChangeValue > 0 {
+		minChangeValue = request.MinChangeValue
+	}
+	if changeValue >= minChangeValue {
+		commitTx.TxOut[len(commitTx.TxOut)-1].Value = changeValue
+	} else {
+		commitTx.TxOut = commitTx.TxOut[:len(commitTx.TxOut)-1]
+		estimateTx.TxOut = estimateTx.TxOut[:len(estimateTx.TxOut)-1]
+		feeWithoutChange := GetTxVirtualSize(btcutil.NewTx(estimateTx)) * request.CommitFeeRate
+		if totalCommitInValue-totalRevealInValue-feeWithoutChange < 0 {
+			return nil, errors.New("insufficient balance")
+		}
+	}
+
+	sigHashList, err := calcSigHash(commitTx, prevOutFetcher, request)
+	if err != nil {
+		return nil, err
+	}
+	// sign reveal tx
+	commitTxHash := commitTx.TxHash()
+	if signedCommitTxHash != nil {
+		commitTxHash = *signedCommitTxHash
+	}
+	revealTxFees := make([]int64, 0)
+	commitAddrs := make([]string, len(scriptCtxList))
+	for i, ctx := range scriptCtxList {
+		revealTxList[i].TxIn[0].PreviousOutPoint.Hash = commitTxHash
+		outPoint := wire.NewOutPoint(&commitTxHash, uint32(i))
+		revealTxPrevOutFetcher := txscript.NewMultiPrevOutFetcher(nil)
+		revealTxPrevOutFetcher.AddPrevOut(*outPoint, ctx.RevealTxPrevOutput)
+		txSigHashes := txscript.NewTxSigHashes(revealTxList[i], revealTxPrevOutFetcher)
+		tapLeaf := txscript.NewBaseTapLeaf(ctx.InscriptionScript)
+
+		signature, err := txscript.RawTxInTapscriptSignature(revealTxList[i], txSigHashes, 0,
+			ctx.RevealTxPrevOutput.Value, ctx.RevealTxPrevOutput.PkScript, tapLeaf, txscript.SigHashDefault, randPrvKey)
+		if err != nil {
+			return nil, err
+		}
+		revealTxList[i].TxIn[0].Witness = wire.TxWitness{signature, ctx.InscriptionScript, ctx.ControlBlockWitness}
+
+		revealTxFee := int64(0)
+		tx := revealTxList[i]
+		for k, in := range tx.TxIn {
+			revealTxFee += revealTxPrevOutFetcher.FetchPrevOutput(in.PreviousOutPoint).Value
+			revealTxFee -= tx.TxOut[k].Value
+			revealTxFees = append(revealTxFees, revealTxFee)
+		}
+		commitAddrs[i] = ctx.CommitTxAddress
+	}
+
+	commitTxFee := int64(0)
+	for _, in := range commitTx.TxIn {
+		commitTxFee += prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint).Value
+	}
+	for _, out := range commitTx.TxOut {
+		commitTxFee -= out.Value
+	}
+	unsignedCommitTxHex, err := GetTxHex(commitTx)
+	if err != nil {
+		return nil, err
+	}
+	revealTxHexList := make([]string, 0)
+	for _, tx := range revealTxList {
+		s, err := GetTxHex(tx)
+		if err != nil {
+			return nil, err
+		}
+		revealTxHexList = append(revealTxHexList, s)
+	}
+	res := &InscribeForMPCRes{
+		SigHashList:  sigHashList,
+		CommitTx:     unsignedCommitTxHex,
+		RevealTxs:    revealTxHexList,
+		CommitTxFee:  commitTxFee,
+		RevealTxFees: revealTxFees,
+		CommitAddrs:  commitAddrs,
+	}
+	return res, nil
+}
+
+func InscribeForMPCSigned(request *InscriptionRequest, network *chaincfg.Params, commitTx string, signatures []string) (*InscribeForMPCRes, error) {
+	var tx wire.MsgTx
+	buf, err := hex.DecodeString(commitTx)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Deserialize(bytes.NewReader(buf))
+	if err != nil {
+		return nil, err
+	}
+	unsignedCommitTxHash := tx.TxHash()
+
+	for i, in := range tx.TxIn {
+		rBytes, err := hex.DecodeString(signatures[i][:64])
+		if err != nil {
+			return nil, err
+		}
+		sBytes, err := hex.DecodeString(signatures[i][64:128])
+		if err != nil {
+			return nil, err
+		}
+
+		r := new(btcec.ModNScalar)
+		r.SetByteSlice(rBytes)
+		s := new(btcec.ModNScalar)
+		s.SetByteSlice(sBytes)
+		signature := append(ecdsa.NewSignature(r, s).Serialize(), byte(txscript.SigHashAll))
+
+		if len(in.Witness) == 0 {
+			pubKey := in.SignatureScript
+			script, err := txscript.NewScriptBuilder().AddData(signature).AddData(pubKey).Script()
+			if err != nil {
+				return nil, err
+			}
+			in.SignatureScript = script
+		} else {
+			pubKey := in.Witness[0]
+			in.Witness = wire.TxWitness{signature, pubKey}
+		}
+	}
+	signedCommitTxHash := tx.TxHash()
+	var buffer bytes.Buffer
+	if err := tx.Serialize(&buffer); err != nil {
+		return nil, err
+	}
+	signedCommitTxHex := hex.EncodeToString(buffer.Bytes())
+	res, err := InscribeForMPCUnsigned(request, network, &unsignedCommitTxHash, &signedCommitTxHash)
+	if err != nil {
+		return nil, err
+	}
+	res.SigHashList = nil
+	res.CommitTx = signedCommitTxHex
+	return res, nil
+}
+
+func buildInscriptionScriptCtxList(request *InscriptionRequest, network *chaincfg.Params) ([]*inscriptionTxCtxData, error) {
+	var scriptCtxList []*inscriptionTxCtxData
+	for i := range request.InscriptionDataList {
+		scriptCtx, err := newInscriptionTxCtxData(network, request, i)
+		if err != nil {
+			return nil, err
+		}
+
+		scriptCtxList = append(scriptCtxList, scriptCtx)
+	}
+
+	return scriptCtxList, nil
+}
+
+func calcSigHash(tx *wire.MsgTx, prevOutFetcher txscript.PrevOutputFetcher, request *InscriptionRequest) ([]string, error) {
+	sigHashList := make([]string, len(tx.TxIn))
+
+	txSigHashes := txscript.NewTxSigHashes(tx, prevOutFetcher)
+	for i, in := range tx.TxIn {
+		pubKeyBytes, err := hex.DecodeString(request.CommitTxPrevOutputList[i].PublicKey)
+		if err != nil {
+			return nil, err
+		}
+		prevOut := prevOutFetcher.FetchPrevOutput(in.PreviousOutPoint)
+		var sigHash []byte
+		if txscript.IsPayToTaproot(prevOut.PkScript) {
+			sigHash, err = txscript.CalcTaprootSignatureHash(txSigHashes, txscript.SigHashDefault, tx, i, prevOutFetcher)
+			if err != nil {
+				return nil, err
+			}
+		} else if txscript.IsPayToPubKeyHash(prevOut.PkScript) {
+			sigHash, err = txscript.CalcSignatureHash(prevOut.PkScript, txscript.SigHashAll, tx, i)
+			if err != nil {
+				return nil, err
+			}
+			// store publicKey
+			in.SignatureScript = pubKeyBytes
+		} else {
+			script, err := PayToPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
+			if err != nil {
+				return nil, err
+			}
+			sigHash, err = txscript.CalcWitnessSigHash(script, txSigHashes, txscript.SigHashAll, tx, i, prevOut.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			// store publicKey
+			in.Witness = wire.TxWitness{pubKeyBytes}
+			if txscript.IsPayToScriptHash(prevOut.PkScript) {
+				redeemScript, err := PayToWitnessPubKeyHashScript(btcutil.Hash160(pubKeyBytes))
+				if err != nil {
+					return nil, err
+				}
+				in.SignatureScript = append([]byte{byte(len(redeemScript))}, redeemScript...)
+			}
+		}
+
+		sigHashList[i] = hex.EncodeToString(sigHash)
+	}
+
+	return sigHashList, nil
 }

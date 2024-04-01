@@ -63,8 +63,18 @@ func TestBtcTx(t *testing.T) {
 	txBuild.AddOutput("mvNnCR7EJS4aUReLEw2sL2ZtTZh8CAP8Gp", 10000)
 	txHex, err := txBuild.SingleBuild()
 	require.Nil(t, err)
-	t.Log(txHex)
 	assert.Equal(t, "01000000012258bcdf8563608ffdf86aca3580b0f4830d5b92d3a1cf906c32e6c2f5232c0b010000006a473044022028022b1b92fa0a10927e5ffa26da98aba737eeed6485b92af38071349a0cf1cd02202119a5b8b33f4a186d061f08e800f7dd1d9b908048035bb42516a1706278914d0121031053e9ef0295d334b6bb22e20cc717eb1a16a546f692572c8830b4bc14c13676ffffffff0208cf0000000000001976a914a2fe215e4789e607401a4bf85358cbbfae13a97e88ac10270000000000001976a914a2fe215e4789e607401a4bf85358cbbfae13a97e88ac00000000", txHex)
+}
+
+func TestBtcScript(t *testing.T) {
+	txBuild := NewTxBuild(1, &chaincfg.TestNet3Params)
+	txBuild.AddInput2("02133b22fdd190519ef9b49aca9a8dfdcbab0197c77109bb829cd51e17debed1", 0, "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22", "tb1qtsq9c4fje6qsmheql8gajwtrrdrs38kdzeersc", 8000)
+	txBuild.AddOutput("tb1qtsq9c4fje6qsmheql8gajwtrrdrs38kdzeersc", 6000)
+	txBuild.AddOutput2("", "6a01520b0080c7f6cf9b7c858c2002", 0)
+	tx, err := txBuild.Build()
+	assert.Nil(t, err)
+	txHex, err := GetTxHex(tx)
+	assert.Equal(t, "01000000000101d1bede171ed59c82bb0971c79701abcbfd8d9aca9ab4f99e5190d1fd223b13020000000000ffffffff0270170000000000001600145c005c5532ce810ddf20f9d1d939631b47089ecd00000000000000000f6a01520b0080c7f6cf9b7c858c20020248304502210082fe8e18b707302c253f7fd9e8ffdd25204986d754675ffbedd08031b4e0708302200ff3ae7e9f1e4d4bcd9182237e8c39577eb2a0242fc8e3c6a646646fa8efe3d201210357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f00000000", txHex)
 }
 
 func TestMultiAddress(t *testing.T) {
@@ -83,7 +93,6 @@ func TestMultiTx(t *testing.T) {
 	txBuild.AddOutput("2NCVwfBKJ3zQBz1bimvKHC4kW7XHwbtQvF7", 2698100000)
 	firstHex, err := txBuild.SingleBuild()
 	require.Nil(t, err)
-	t.Log(firstHex)
 	assert.Equal(t, "0100000001773363d2bbc9495ac1ec50e3cf8123a6e3772c91f9841bcda1c0433fcb99c1f900000000b40047304402203f4ea02bc3ec719a4c1c5a3f798f613ae80fc4a3e03c6199c78fe31808912a4d02201c419de2ac9d1e4b2d8369a9205ac9a6da8ee69cfc421e73e98f6245aa40617f014c695221022bc0ca1d6aea1c1e523bfcb33f46131bd1a3240aa04f71c34b1a177cfd5ff93321035dc63727e7719824978161cdd94609db5235537bc8339a07b6838a6075f0253021033eeee979afb70450d2aebb17ace1b170a96199b495cdf3dd0631eb96aa21e6a853aeffffffff0120bdd1a00000000017a914d332ff8b6514f0b5fb07f090c5022d3d1c6c4bdf8700000000", firstHex)
 
 	tx, err := NewTxFromHex(firstHex)
@@ -92,7 +101,6 @@ func TestMultiTx(t *testing.T) {
 	priKeyList = append(priKeyList, "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37") // replace to your private key
 	secondHex, err := MultiSignBuild(tx, priKeyList)
 	require.Nil(t, err)
-	t.Log(secondHex)
 	assert.Equal(t, "0100000001773363d2bbc9495ac1ec50e3cf8123a6e3772c91f9841bcda1c0433fcb99c1f900000000fc0047304402203f4ea02bc3ec719a4c1c5a3f798f613ae80fc4a3e03c6199c78fe31808912a4d02201c419de2ac9d1e4b2d8369a9205ac9a6da8ee69cfc421e73e98f6245aa40617f0147304402203f4ea02bc3ec719a4c1c5a3f798f613ae80fc4a3e03c6199c78fe31808912a4d02201c419de2ac9d1e4b2d8369a9205ac9a6da8ee69cfc421e73e98f6245aa40617f014c695221022bc0ca1d6aea1c1e523bfcb33f46131bd1a3240aa04f71c34b1a177cfd5ff93321035dc63727e7719824978161cdd94609db5235537bc8339a07b6838a6075f0253021033eeee979afb70450d2aebb17ace1b170a96199b495cdf3dd0631eb96aa21e6a853aeffffffff0120bdd1a00000000017a914d332ff8b6514f0b5fb07f090c5022d3d1c6c4bdf8700000000", secondHex)
 }
 
@@ -118,7 +126,8 @@ func TestSingTx(t *testing.T) {
 	require.Nil(t, err)
 	signatureMap := make(map[int]string)
 	for i, h := range hashes {
-		privateBytes, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+		privateBytes, err := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+		require.Nil(t, err)
 		prvKey, _ := btcec.PrivKeyFromBytes(privateBytes)
 		sign := ecdsa.Sign(prvKey, util.RemoveZeroHex(h))
 		signatureMap[i] = hex.EncodeToString(sign.Serialize())

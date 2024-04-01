@@ -432,7 +432,6 @@ func parseTypeArguments(data string) *aptos_types.TypeTagStruct {
 
 func String2U128(str string) (*serde.Uint128, error) {
 	ii := big.Int{}
-	// str可以是10进制串，获取16进制串
 	_, ret := ii.SetString(str, 0)
 	if !ret {
 		return nil, fmt.Errorf("unknown argument for u128")
@@ -813,7 +812,6 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-// GetSigningHash 获取交易的hash
 func GetSigningHash(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
 	to string, amount uint64) (string, error) {
 	payload, err := TransferPayload(to, amount)
@@ -839,7 +837,6 @@ func GetRawTxHash(rawTxn *aptos_types.RawTransaction) (string, error) {
 	return hex.EncodeToString(rawTxHash), nil
 }
 
-// 组装交易
 func SignedTx(rawTxn *aptos_types.RawTransaction, signDataHex string, pubKey string) (string, error) {
 	pb, err := hex.DecodeString(pubKey)
 	if err != nil {
@@ -860,7 +857,6 @@ func SignedTx(rawTxn *aptos_types.RawTransaction, signDataHex string, pubKey str
 	return hex.EncodeToString(txBytes), nil
 }
 
-// --质押相关
 func AddStake(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
 	poolAddress string, amount uint64, seedHex string) (string, error) {
 	payload, err := AddStakePayload(poolAddress, amount)

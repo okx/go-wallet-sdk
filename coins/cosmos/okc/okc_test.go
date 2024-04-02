@@ -1,13 +1,14 @@
 package okc
 
 import (
+	"testing"
+	"time"
+
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/common/types"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/token"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 // /// note that one public key may be against two accounts
@@ -70,14 +71,14 @@ func TestIbcTransfer(t *testing.T) {
 	p.CommonParam.ChainId = "exchain-65"
 	p.CommonParam.Sequence = 0
 	p.CommonParam.AccountNumber = 32190628
-	p.CommonParam.FeeDemon = "wei"
+	p.CommonParam.FeeDenom = "wei"
 	p.CommonParam.FeeAmount = "100000000000000"
 	p.CommonParam.GasLimit = 200000
 	p.CommonParam.Memo = "test"
 	p.CommonParam.TimeoutHeight = 0
 	p.FromAddress = address
 	p.ToAddress = "cosmos145q0tcdur4tcx2ya5cphqx96e54yflfyqjrdt5"
-	p.Demon = "wei"
+	p.Denom = "wei"
 	p.Amount = "1000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"

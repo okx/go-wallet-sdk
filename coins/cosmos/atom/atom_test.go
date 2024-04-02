@@ -2,11 +2,12 @@ package atom
 
 import (
 	"encoding/hex"
+	"math/big"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestGetSignedTx(t *testing.T) {
@@ -24,14 +25,14 @@ func TestGetSignedTx(t *testing.T) {
 	chainId := "cosmoshub-4"
 	from := "cosmos145q0tcdur4tcx2ya5cphqx96e54yflfyqjrdt5"
 	to := "cosmos1jun53r4ycc8g2v6tffp4cmxjjhv6y7ntat62wn"
-	demon := "uatom"
+	denom := "uatom"
 	memo := "memo"
 	amount := big.NewInt(10000)
 	sequence := 0
 	accountNumber := 623151
 	feeAmount := big.NewInt(10)
 	gasLimit := 100
-	hexStr, err := SignStart(chainId, from, to, demon, memo, amount, 0, uint64(sequence), uint64(accountNumber), feeAmount, uint64(gasLimit), k)
+	hexStr, err := SignStart(chainId, from, to, denom, memo, amount, 0, uint64(sequence), uint64(accountNumber), feeAmount, uint64(gasLimit), k)
 	require.Nil(t, err)
 	expected = "0a97010a8e010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e64126e0a2d636f736d6f733134357130746364757234746378327961356370687178393665353479666c6679716a72647435122d636f736d6f73316a756e3533723479636338673276367466667034636d786a6a68763679376e7461743632776e1a0e0a057561746f6d1205313030303012046d656d6f12610a4e0a460a1f2f636f736d6f732e63727970746f2e736563703235366b312e5075624b657912230a21031053e9ef0295d334b6bb22e20cc717eb1a16a546f692572c8830b4bc14c1367612040a020801120f0a0b0a057561746f6d1202313010641a0b636f736d6f736875622d3420af8426"
 	require.Equal(t, expected, hexStr)
@@ -56,12 +57,12 @@ func TestGetSignedTransaction(t *testing.T) {
 	param := cosmos.TransferParam{}
 	param.FromAddress = "cosmos145q0tcdur4tcx2ya5cphqx96e54yflfyqjrdt5"
 	param.ToAddress = "cosmos1jun53r4ycc8g2v6tffp4cmxjjhv6y7ntat62wn"
-	param.Demon = "uatom"
+	param.Denom = "uatom"
 	param.Amount = "10000"
 	param.CommonParam.ChainId = "cosmoshub-4"
 	param.CommonParam.Sequence = 0
 	param.CommonParam.AccountNumber = 623151
-	param.CommonParam.FeeDemon = "uatom"
+	param.CommonParam.FeeDenom = "uatom"
 	param.CommonParam.FeeAmount = "10"
 	param.CommonParam.GasLimit = 100
 	param.CommonParam.Memo = "memo"
@@ -90,12 +91,12 @@ func TestGetSignedJsonTransaction(t *testing.T) {
 	param := cosmos.TransferParam{}
 	param.FromAddress = "cosmos1rvs5xph4l3px2efynqsthus8p6r4exyr7ckyxv"
 	param.ToAddress = "cosmos1rvs5xph4l3px2efynqsthus8p6r4exyr7ckyxv"
-	param.Demon = "uatom"
+	param.Denom = "uatom"
 	param.Amount = "1000"
 	param.CommonParam.ChainId = "cosmoshub-4"
 	param.CommonParam.Sequence = 2
 	param.CommonParam.AccountNumber = 1225716
-	param.CommonParam.FeeDemon = "uatom"
+	param.CommonParam.FeeDenom = "uatom"
 	param.CommonParam.FeeAmount = "130"
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""

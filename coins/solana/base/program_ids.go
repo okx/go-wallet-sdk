@@ -37,6 +37,8 @@ var (
 	Secp256k1ProgramID = MustPublicKeyFromBase58("KeccakSecp256k11111111111111111111111111111")
 
 	FeatureProgramID = MustPublicKeyFromBase58("Feature111111111111111111111111111111111111")
+
+	ComputeBudget = MustPublicKeyFromBase58("ComputeBudget111111111111111111111111111111")
 )
 
 // SPL:
@@ -44,6 +46,8 @@ var (
 	// A Token program on the Solana blockchain.
 	// This program defines a common implementation for Fungible and Non Fungible tokens.
 	TokenProgramID = MustPublicKeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+
+	Token2022ProgramID = MustPublicKeyFromBase58("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
 
 	// A Uniswap-like exchange for the Token program on the Solana blockchain,
 	// implementing multiple automated market maker (AMM) curves.
@@ -68,7 +72,10 @@ var (
 
 var (
 	// The Mint for native SOL Token accounts
-	SolMint    = MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
+	SolMint = MustPublicKeyFromBase58("So11111111111111111111111111111111111111112")
+
+	SolMint2022 = MustPublicKeyFromBase58("9pan9bMn5HatX4EJdBwg9VgCa7Uz5HL8N1m5D3NdXejP")
+
 	WrappedSol = SolMint
 )
 

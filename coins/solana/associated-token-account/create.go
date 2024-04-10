@@ -19,9 +19,10 @@ import (
 )
 
 type Create struct {
-	Payer  base.PublicKey `bin:"-" borsh_skip:"true"`
-	Wallet base.PublicKey `bin:"-" borsh_skip:"true"`
-	Mint   base.PublicKey `bin:"-" borsh_skip:"true"`
+	Payer          base.PublicKey `bin:"-" borsh_skip:"true"`
+	Wallet         base.PublicKey `bin:"-" borsh_skip:"true"`
+	Mint           base.PublicKey `bin:"-" borsh_skip:"true"`
+	TokenProgramID base.PublicKey `bin:"-" borsh_skip:"true"`
 
 	// [0] = [WRITE, SIGNER] Payer
 	// ··········· Funding account
@@ -67,6 +68,11 @@ func (inst *Create) SetMint(mint base.PublicKey) *Create {
 	return inst
 }
 
+func (inst *Create) SetTokenProgramID(tokenProgramID base.PublicKey) *Create {
+	inst.TokenProgramID = tokenProgramID
+	return inst
+}
+
 func (inst Create) Build() *Instruction {
 
 	// Find the associatedTokenAddress;
@@ -74,6 +80,9 @@ func (inst Create) Build() *Instruction {
 		inst.Wallet,
 		inst.Mint,
 	)
+	if inst.TokenProgramID.Equals(base.Token2022ProgramID) {
+		associatedTokenAddress, _, _ = base.FindAssociatedTokenAddress(inst.Wallet, inst.Mint, base.TOKEN2022)
+	}
 
 	keys := []*base.AccountMeta{
 		{
@@ -102,7 +111,7 @@ func (inst Create) Build() *Instruction {
 			IsWritable: false,
 		},
 		{
-			PublicKey:  base.TokenProgramID,
+			PublicKey:  inst.TokenProgramID,
 			IsSigner:   false,
 			IsWritable: false,
 		},
@@ -133,5 +142,6 @@ func NewCreateInstruction(
 	return NewCreateInstructionBuilder().
 		SetPayer(payer).
 		SetWallet(walletAddress).
-		SetMint(splTokenMintAddress)
+		SetMint(splTokenMintAddress).
+		SetTokenProgramID(base.TokenProgramID)
 }

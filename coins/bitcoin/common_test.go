@@ -1,0 +1,11 @@
+package bitcoin
+
+import (
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
+func TestIsHexString(t *testing.T) {
+	s := "70736274ff01003d00000000012eb1ba16cbc7659ece4a151926de839f94e3e988c73ae6290af9d668f3b61061000000000000000000010000000000000000016a000000000001011f000000000000000016001480cd4b68ad2abace26a975b27b4689f91cd2c5f9010304010000000000"
+	require.True(t, IsHexString(s))
+}

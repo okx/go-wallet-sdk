@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// BinarySerializer `BinarySerializer` is a partial implementation of the `Serializer` interface.
+// BinarySerializer is a partial implementation of the `Serializer` interface.
 // It is used as an embedded struct by the Bincode and BCS serializers.
 type BinarySerializer struct {
 	Buffer               bytes.Buffer
@@ -18,21 +18,24 @@ func NewBinarySerializer(max_container_depth uint64) *BinarySerializer {
 	return s
 }
 
-func (d *BinarySerializer) IncreaseContainerDepth() error {
-	if d.containerDepthBudget == 0 {
+func (s *BinarySerializer) IncreaseContainerDepth() error {
+	if s.containerDepthBudget == 0 {
 		return errors.New("exceeded maximum container depth")
 	}
-	d.containerDepthBudget -= 1
+	s.containerDepthBudget -= 1
 	return nil
 }
 
-func (d *BinarySerializer) DecreaseContainerDepth() {
-	d.containerDepthBudget += 1
+func (s *BinarySerializer) DecreaseContainerDepth() {
+	s.containerDepthBudget += 1
 }
 
 // SerializeBytes `serializeLen` to be provided by the extending struct.
 func (s *BinarySerializer) SerializeBytes(value []byte, serializeLen func(uint64) error) error {
-	serializeLen(uint64(len(value)))
+	err := serializeLen(uint64(len(value)))
+	if err != nil {
+		return err
+	}
 	s.Buffer.Write(value)
 	return nil
 }
@@ -64,7 +67,7 @@ func (s *BinarySerializer) SerializeChar(value rune) error {
 }
 
 func (s *BinarySerializer) SerializeU8(value uint8) error {
-	s.Buffer.WriteByte(byte(value))
+	s.Buffer.WriteByte(value)
 	return nil
 }
 
@@ -95,34 +98,70 @@ func (s *BinarySerializer) SerializeU64(value uint64) error {
 }
 
 func (s *BinarySerializer) SerializeU128(value Uint128) error {
-	s.SerializeU64(value.Low)
-	s.SerializeU64(value.High)
+	err := s.SerializeU64(value.Low)
+	if err != nil {
+		return err
+	}
+	err = s.SerializeU64(value.High)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *BinarySerializer) SerializeU256(value Uint256) error {
+	err := s.SerializeU128(value.Low)
+	if err != nil {
+		return err
+	}
+	err = s.SerializeU128(value.High)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *BinarySerializer) SerializeI8(value int8) error {
-	s.SerializeU8(uint8(value))
+	err := s.SerializeU8(uint8(value))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *BinarySerializer) SerializeI16(value int16) error {
-	s.SerializeU16(uint16(value))
+	err := s.SerializeU16(uint16(value))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *BinarySerializer) SerializeI32(value int32) error {
-	s.SerializeU32(uint32(value))
+	err := s.SerializeU32(uint32(value))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *BinarySerializer) SerializeI64(value int64) error {
-	s.SerializeU64(uint64(value))
+	err := s.SerializeU64(uint64(value))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *BinarySerializer) SerializeI128(value Int128) error {
-	s.SerializeU64(value.Low)
-	s.SerializeI64(value.High)
+	err := s.SerializeU64(value.Low)
+	if err != nil {
+		return err
+	}
+	err = s.SerializeI64(value.High)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

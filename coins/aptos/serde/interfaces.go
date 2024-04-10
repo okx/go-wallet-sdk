@@ -27,6 +27,8 @@ type Serializer interface {
 
 	SerializeU128(value Uint128) error
 
+	SerializeU256(value Uint256) error
+
 	SerializeI8(value int8) error
 
 	SerializeI16(value int16) error

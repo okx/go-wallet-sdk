@@ -1,6 +1,7 @@
 package serde
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -9,6 +10,11 @@ import (
 type Uint128 struct {
 	High uint64
 	Low  uint64
+}
+
+type Uint256 struct {
+	High Uint128
+	Low  Uint128
 }
 
 type Int128 struct {
@@ -32,6 +38,10 @@ func Zero() Uint128 {
 	return From64(0)
 }
 
+func ZeroUint256() Uint256 {
+	return Uint256{Low: Zero()}
+}
+
 // From64 converts 64-bit value v to a Uint128 value.
 // Upper 64-bit half will be zero.
 func From64(v uint64) Uint128 {
@@ -43,6 +53,13 @@ func Max() Uint128 {
 	return Uint128{
 		Low:  math.MaxUint64,
 		High: math.MaxUint64,
+	}
+}
+
+func MaxUint256() Uint256 {
+	return Uint256{
+		Low:  Max(),
+		High: Max(),
 	}
 }
 
@@ -70,4 +87,35 @@ func FromBigX(i *big.Int) (Uint128, bool) {
 		Low:  lo,
 		High: hi,
 	}, true
+}
+func BigInt2U256(n *big.Int) (*Uint256, error) {
+	m, ok := BigIntX2Uint256(n)
+	if !ok {
+		return nil, errors.New("BigInt2U256 not ok")
+	}
+	return &m, nil
+}
+func BigIntX2Uint256(i *big.Int) (Uint256, bool) {
+	switch {
+	case i == nil:
+		return ZeroUint256(), true // assuming nil === 0
+	case i.Sign() < 0:
+		return ZeroUint256(), false // value cannot be negative!
+	case i.BitLen() > 256:
+		return MaxUint256(), false // value overflows 256bit!
+	}
+
+	t := new(big.Int)
+
+	if i.BitLen() <= 128 {
+		lo, ok := FromBigX(i)
+		return Uint256{Low: lo}, ok
+	}
+	low := new(big.Int).SetBytes(i.Bytes()[16:])
+	lo, ok := FromBigX(low)
+	hi, ok := FromBigX(t.Rsh(i, 128))
+	return Uint256{
+		Low:  lo,
+		High: hi,
+	}, ok
 }

@@ -58,7 +58,7 @@ func TestTron_Decode(t *testing.T) {
 
 	currentTime := time.Now()
 	a, _ := abi.ParseBig256("1000000")
-	d1, _ := newTRC20TokenTransfer(
+	d1, _ := NewTRC20TokenTransfer(
 		"TWhevFCRWEMAu9gqJ2Wymba3QbvKaBR3z4",
 		"TEjxQjU3CxkFrSDcPfHwZXSuPpCpdQ27NJ",
 		"TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7",
@@ -69,7 +69,7 @@ func TestTron_Decode(t *testing.T) {
 		currentTime.UnixMilli()+3600*1000,
 		currentTime.UnixMilli())
 
-	d2, _ := newTransfer(
+	d2, _ := NewTransfer(
 		"TEjxQjU3CxkFrSDcPfHwZXSuPpCpdQ27NJ",
 		"TWhevFCRWEMAu9gqJ2Wymba3QbvKaBR3z4",
 		10000000,
@@ -87,7 +87,7 @@ func TestTron_Sign(t *testing.T) {
 	k1 := make([]byte, 8)
 	binary.BigEndian.PutUint64(k1, 47102802)
 	k2, _ := hex.DecodeString("0000000002cebb52bb1c53a37236902bac251e302a4541452b6df63f594562b9")
-	d2, _ := newTransfer(
+	d2, _ := NewTransfer(
 		"TSAaoJuxBUxSqU7JGxzTH3gx237PTJxfwV",
 		"TWYrgz7RDP2NpumQRPY1jBmPKLWVSnrzWZ",
 		10000000,

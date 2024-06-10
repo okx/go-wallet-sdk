@@ -3,7 +3,9 @@ package bitcoin
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
@@ -20,6 +22,13 @@ import (
 	"reflect"
 )
 
+var (
+	ErrInvalidPsbtHex = errors.New("invalid psbt hex")
+)
+var (
+	emptyHash = chainhash.Hash{}
+)
+
 type TxInput struct {
 	TxId              string
 	VOut              uint32
@@ -31,6 +40,23 @@ type TxInput struct {
 	MasterFingerprint uint32
 	DerivationPath    string
 	PublicKey         string
+}
+type TxInputs []*TxInput
+
+func (inputs TxInputs) UtxoViewpoint(net *chaincfg.Params) (UtxoViewpoint, error) {
+	view := make(UtxoViewpoint, len(inputs))
+	for _, v := range inputs {
+		h, err := chainhash.NewHashFromStr(v.TxId)
+		if err != nil {
+			return nil, err
+		}
+		changePkScript, err := AddrToPkScript(v.Address, net)
+		if err != nil {
+			return nil, err
+		}
+		view[wire.OutPoint{Index: v.VOut, Hash: *h}] = changePkScript
+	}
+	return view, nil
 }
 
 type TxOutput struct {
@@ -303,7 +329,7 @@ func signInput(updater *psbt.Updater, i int, in *TxInput, prevOutFetcher *txscri
 	return nil
 }
 
-func CalcFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, feeRate int64, network *chaincfg.Params) (int64, error) {
+func CalcFee(ins TxInputs, outs []*TxOutput, sellerPsbt string, feeRate int64, network *chaincfg.Params) (int64, error) {
 	txHex, err := GenerateSignedBuyingTx(ins, outs, sellerPsbt, network)
 
 	tx := wire.NewMsgTx(2)
@@ -316,7 +342,8 @@ func CalcFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, feeRate int64,
 		return 0, err
 	}
 
-	return GetTxVirtualSize(btcutil.NewTx(tx)) * feeRate, nil
+	view, _ := ins.UtxoViewpoint(network)
+	return GetTxVirtualSizeByView(btcutil.NewTx(tx), view) * feeRate, nil
 }
 
 func AddrToPkScript(addr string, network *chaincfg.Params) ([]byte, error) {
@@ -442,6 +469,151 @@ func GenerateUnsignedPSBTHex(ins []*TxInput, outs []*TxOutput, network *chaincfg
 	return hex.EncodeToString(b.Bytes()), nil
 }
 
+type OutPoint struct {
+	TxId string `json:"txId"`
+	VOut uint32 `json:"vOut"`
+}
+
+func DecodeFromSignedPSBT(psbtHex string) ([]*OutPoint, error) {
+	ps := make([]*OutPoint, 0)
+	psbtBytes, err := hex.DecodeString(psbtHex)
+	if err != nil {
+		return ps, ErrInvalidPsbtHex
+	}
+	p, err := psbt.NewFromRawBytes(bytes.NewReader(psbtBytes), false)
+	if err != nil {
+		return ps, ErrInvalidPsbtHex
+	}
+	if p == nil {
+		return ps, ErrInvalidPsbtHex
+	}
+	if p.UnsignedTx != nil {
+		for _, v := range p.UnsignedTx.TxIn {
+			if v.PreviousOutPoint.Hash == emptyHash {
+				continue
+			}
+			ps = append(ps, &OutPoint{TxId: v.PreviousOutPoint.Hash.String(), VOut: v.PreviousOutPoint.Index})
+		}
+	}
+	return ps, nil
+}
+
+type PsbtInput struct {
+	TxId   string `json:"txId"`
+	Amount int64  `json:"amount"`
+	VOut   uint32 `json:"vOut"`
+}
+
+type PsbtOutput struct {
+	VOut     uint32 `json:"vOut"`
+	Amount   int64  `json:"amount"`
+	Address  string `json:"address"`
+	PkScript string `json:"pkScript"`
+}
+
+type PsbtInputOutputs struct {
+	UnSignedTx string        `json:"un_signed_tx"`
+	Input      []*PsbtInput  `json:"input"`
+	Output     []*PsbtOutput `json:"output"`
+}
+
+func parsePsbt(psbtHex string) (*psbt.Packet, error) {
+	psbtBytes, err := hex.DecodeString(psbtHex)
+	if err == nil {
+		if r, err := psbt.NewFromRawBytes(bytes.NewReader(psbtBytes), false); err == nil {
+			return r, nil
+		}
+	}
+	psbtBytes, err = base64.StdEncoding.DecodeString(psbtHex)
+	if err != nil {
+		return nil, err
+	}
+	return psbt.NewFromRawBytes(bytes.NewReader(psbtBytes), false)
+}
+
+func DecodePSBTsInputOutputs(psbtHexs []string, params *chaincfg.Params) ([]*PsbtInputOutputs, error) {
+	r := make([]*PsbtInputOutputs, len(psbtHexs))
+	for k, psbtHex := range psbtHexs {
+		p, err := parsePsbt(psbtHex)
+		if err != nil || p == nil {
+			return nil, ErrInvalidPsbtHex
+		}
+		is := make([]*PsbtInput, 0)
+		outs := make([]*PsbtOutput, 0)
+		if p.UnsignedTx != nil {
+			for k1, v1 := range p.UnsignedTx.TxIn {
+				if v1.PreviousOutPoint.Hash == emptyHash {
+					continue
+				}
+				var value int64
+				if p.Inputs[k1].NonWitnessUtxo != nil {
+					index := p.UnsignedTx.TxIn[k1].PreviousOutPoint.Index
+					value = p.Inputs[k1].NonWitnessUtxo.TxOut[index].Value
+				}
+				if p.Inputs[k1].WitnessUtxo != nil {
+					value = p.Inputs[k1].WitnessUtxo.Value
+				}
+				is = append(is, &PsbtInput{TxId: v1.PreviousOutPoint.Hash.String(), Amount: value, VOut: v1.PreviousOutPoint.Index})
+			}
+			for k1, v1 := range p.UnsignedTx.TxOut {
+				_, addrs, _, err := txscript.ExtractPkScriptAddrs(v1.PkScript, params)
+				if err != nil {
+					continue
+				}
+				var addr string
+				if len(addrs) > 0 {
+					addr = addrs[0].EncodeAddress()
+				}
+				outs = append(outs, &PsbtOutput{VOut: uint32(k1), Amount: v1.Value, Address: addr})
+			}
+			r[k] = &PsbtInputOutputs{Input: is, Output: outs}
+		}
+	}
+	return r, nil
+}
+
+func DecodePSBTInputOutputs(psbtHex string, params *chaincfg.Params) (*PsbtInputOutputs, error) {
+	p, err := parsePsbt(psbtHex)
+	if err != nil || p == nil {
+		return nil, ErrInvalidPsbtHex
+	}
+	is := make([]*PsbtInput, 0)
+	outs := make([]*PsbtOutput, 0)
+	var unSignedTx string
+	if p.UnsignedTx != nil {
+		var buf bytes.Buffer
+		if err := p.UnsignedTx.Serialize(&buf); err == nil {
+			unSignedTx = hex.EncodeToString(buf.Bytes())
+		}
+		for k1, v1 := range p.UnsignedTx.TxIn {
+			if v1.PreviousOutPoint.Hash == emptyHash {
+				continue
+			}
+			var value int64
+			if p.Inputs[k1].NonWitnessUtxo != nil {
+				index := p.UnsignedTx.TxIn[k1].PreviousOutPoint.Index
+				value = p.Inputs[k1].NonWitnessUtxo.TxOut[index].Value
+			}
+			if p.Inputs[k1].WitnessUtxo != nil {
+				value = p.Inputs[k1].WitnessUtxo.Value
+			}
+			is = append(is, &PsbtInput{TxId: v1.PreviousOutPoint.Hash.String(), Amount: value, VOut: v1.PreviousOutPoint.Index})
+		}
+		for k1, v1 := range p.UnsignedTx.TxOut {
+			_, addrs, _, err := txscript.ExtractPkScriptAddrs(v1.PkScript, params)
+			if err != nil {
+				continue
+			}
+			var addr string
+			if len(addrs) > 0 {
+				addr = addrs[0].EncodeAddress()
+			}
+			outs = append(outs, &PsbtOutput{VOut: uint32(k1), Amount: v1.Value, PkScript: hex.EncodeToString(v1.PkScript), Address: addr})
+		}
+	}
+
+	return &PsbtInputOutputs{Input: is, UnSignedTx: unSignedTx, Output: outs}, nil
+}
 func ExtractTxFromSignedPSBT(psbtHex string) (string, error) {
 	psbtBytes, err := hex.DecodeString(psbtHex)
 	if err != nil {
@@ -813,7 +985,7 @@ func GenerateBatchBuyingTxPsbt(ins []*TxInput, outs []*TxOutput, sellerPSBTList 
 	return hex.EncodeToString(buf.Bytes()), hex.EncodeToString(buf.Bytes()), nil
 }
 
-func CalcFeeForBatchBuy(ins []*TxInput, outs []*TxOutput, sellerPSBTList []string, feeRate int64, network *chaincfg.Params) (int64, error) {
+func CalcFeeForBatchBuy(ins TxInputs, outs []*TxOutput, sellerPSBTList []string, feeRate int64, network *chaincfg.Params) (int64, error) {
 	txHex, err := GenerateBatchBuyingTx(ins, outs, sellerPSBTList, network)
 
 	tx := wire.NewMsgTx(2)
@@ -828,10 +1000,11 @@ func CalcFeeForBatchBuy(ins []*TxInput, outs []*TxOutput, sellerPSBTList []strin
 	if network != nil && network.PubKeyHashAddrID == doginals.PubKeyHashAddrID && network.ScriptHashAddrID == doginals.ScriptHashAddrID {
 		return doginals.GetTxVirtualSize(btcutil.NewTx(tx)) * feeRate, nil
 	}
-	return GetTxVirtualSize(btcutil.NewTx(tx)) * feeRate, nil
+	view, _ := ins.UtxoViewpoint(network)
+	return GetTxVirtualSizeByView(btcutil.NewTx(tx), view) * feeRate, nil
 }
 
-func CalcFeeForBatchBuyWithMPC(ins []*TxInput, outs []*TxOutput, sellerPSBTList []string, feeRate int64, network *chaincfg.Params, ops ...string) (int64, error) {
+func CalcFeeForBatchBuyWithMPC(ins TxInputs, outs []*TxOutput, sellerPSBTList []string, feeRate int64, network *chaincfg.Params, ops ...string) (int64, error) {
 	var txHex string
 	var err error
 	if len(ops) > 0 {
@@ -855,7 +1028,8 @@ func CalcFeeForBatchBuyWithMPC(ins []*TxInput, outs []*TxOutput, sellerPSBTList 
 	if network != nil && network.PubKeyHashAddrID == doginals.PubKeyHashAddrID && network.ScriptHashAddrID == doginals.ScriptHashAddrID {
 		return doginals.GetTxVirtualSize(btcutil.NewTx(tx)) * feeRate, nil
 	}
-	return GetTxVirtualSize(btcutil.NewTx(tx)) * feeRate, nil
+	view, _ := ins.UtxoViewpoint(network)
+	return GetTxVirtualSizeByView(btcutil.NewTx(tx), view) * feeRate, nil
 }
 
 type GenerateMPCPSbtTxRes struct {

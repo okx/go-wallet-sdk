@@ -1,4 +1,4 @@
-package atomical
+package bitcoin
 
 import (
 	"bytes"
@@ -39,7 +39,9 @@ type TxOutput struct {
 
 const SellerSignatureIndex = 1
 
-func GenerateAtomicalSignedListingPSBTBase64(in *TxInput, out *TxOutput, network *chaincfg.Params) (string, error) {
+const ErInsufficientBalance = "Insufficient Balance"
+
+func GenerateRunesSignedListingPSBTBase64(in *TxInput, out *TxOutput, network *chaincfg.Params) (string, error) {
 	txHash, err := chainhash.NewHashFromStr(in.TxId)
 	if err != nil {
 		return "", err
@@ -98,21 +100,22 @@ func GenerateAtomicalSignedListingPSBTBase64(in *TxInput, out *TxOutput, network
 	return p.B64Encode()
 }
 
-func GenerateAtomicalSignedBuyingTx(ins []*TxInput, outs []*TxOutput, dustSize, feePerB int64, sellerPsbt string, network *chaincfg.Params) (int64, string, error) {
-	// Include change and calculate whether the handling fee is sufficient
-	totalInput, totalOutput, vsize, err := calFee(ins, outs, sellerPsbt, network)
+func GenerateRunesSignedBuyingTx(ins []*TxInput, outs []*TxOutput, dustSize, feePerB int64, sellerPsbt []string, network *chaincfg.Params) (int64, string, error) {
+	//首先包含找零,计算手续费是否足够.
+	totalinput, totaloutput, vsize, err := calFee(ins, outs, sellerPsbt, network)
 	if err != nil {
 		return 0, "", err
 	}
 	fee := vsize * feePerB
-	if totalInput-totalOutput > fee && totalInput-totalOutput-fee >= dustSize {
-		outs[len(outs)-1].Amount = totalInput - totalOutput - fee
+	if totalinput-totaloutput > fee && totalinput-totaloutput-fee >= dustSize {
+		outs[len(outs)-1].Amount = totalinput - totaloutput - fee
+
 	} else {
 		outs = outs[0 : len(outs)-1]
-		totalInput, totalOutput, vsize, err = calFee(ins, outs, sellerPsbt, network)
+		totalinput, totaloutput, vsize, err = calFee(ins, outs, sellerPsbt, network)
 		feeWithoutChange := vsize * feePerB
-		if totalInput-totalOutput < feeWithoutChange {
-			return totalOutput + fee, "", errors.New(ErInsufficientBalance)
+		if totalinput-totaloutput < feeWithoutChange {
+			return totaloutput + fee, "", errors.New(ErInsufficientBalance)
 		}
 		fee = feeWithoutChange
 	}
@@ -123,25 +126,30 @@ func GenerateAtomicalSignedBuyingTx(ins []*TxInput, outs []*TxOutput, dustSize, 
 	return fee, tx, err
 }
 
-func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chaincfg.Params) (int64, int64, int64, error) {
-	sp, err := psbt.NewFromRawBytes(bytes.NewReader([]byte(sellerPsbt)), true)
-	if err != nil {
-		return 0, 0, 0, err
+func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbts []string, network *chaincfg.Params) (int64, int64, int64, error) {
+	var spList []*psbt.Packet
+	for _, sellerPSBT := range sellerPsbts {
+		sp, err := psbt.NewFromRawBytes(bytes.NewReader([]byte(sellerPSBT)), true)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		spList = append(spList, sp)
 	}
-	dummyPrivKey := "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22"
 
 	txBuild := bitcoin.NewTxBuild(2, network)
-	txBuild.AddInput2(ins[0].TxId, ins[0].VOut, dummyPrivKey, ins[0].Address, ins[0].Amount)
+	txBuild.AddInput2(ins[0].TxId, ins[0].VOut, "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22", ins[0].Address, ins[0].Amount)
 	txBuild.AddOutput2(outs[0].Address, outs[0].PkScript, outs[0].Amount)
 
-	txBuild.AddInput2(sp.UnsignedTx.TxIn[SellerSignatureIndex].PreviousOutPoint.Hash.String(), sp.UnsignedTx.TxIn[SellerSignatureIndex].PreviousOutPoint.Index, dummyPrivKey, ins[1].Address, ins[1].Amount)
-	txBuild.AddOutput2("", hex.EncodeToString(sp.UnsignedTx.TxOut[SellerSignatureIndex].PkScript), sp.UnsignedTx.TxOut[SellerSignatureIndex].Value)
-
-	for i := 2; i < len(ins); i++ {
-		txBuild.AddInput2(ins[i].TxId, ins[i].VOut, dummyPrivKey, ins[i].Address, ins[i].Amount)
+	for _, sp := range spList {
+		txBuild.AddInput2(sp.UnsignedTx.TxIn[SellerSignatureIndex].PreviousOutPoint.Hash.String(), sp.UnsignedTx.TxIn[SellerSignatureIndex].PreviousOutPoint.Index, "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22", ins[1].Address, ins[1].Amount)
+		txBuild.AddOutput2("", hex.EncodeToString(sp.UnsignedTx.TxOut[SellerSignatureIndex].PkScript), sp.UnsignedTx.TxOut[SellerSignatureIndex].Value)
 	}
 
-	for i := 2; i < len(outs); i++ {
+	for i := 1 + len(spList); i < len(ins); i++ {
+		txBuild.AddInput2(ins[i].TxId, ins[i].VOut, "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22", ins[i].Address, ins[i].Amount)
+	}
+
+	for i := 1 + len(spList); i < len(outs); i++ {
 		txBuild.AddOutput2(outs[i].Address, outs[i].PkScript, outs[i].Amount)
 	}
 	tx, err := txBuild.Build()
@@ -153,10 +161,14 @@ func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chainc
 	return txBuild.TotalInputAmount(), txBuild.TotalOutputAmount(), vsize, nil
 }
 
-func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chaincfg.Params, finalize bool) (string, error) {
-	sp, err := psbt.NewFromRawBytes(bytes.NewReader([]byte(sellerPsbt)), true)
-	if err != nil {
-		return "", err
+func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbts []string, network *chaincfg.Params, finalize bool) (string, error) {
+	var spList []*psbt.Packet
+	for _, sellerPSBT := range sellerPsbts {
+		sp, err := psbt.NewFromRawBytes(bytes.NewReader([]byte(sellerPSBT)), true)
+		if err != nil {
+			return "", err
+		}
+		spList = append(spList, sp)
 	}
 
 	var inputs []*wire.OutPoint
@@ -164,8 +176,8 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 	prevOuts := make(map[wire.OutPoint]*wire.TxOut)
 	for i, in := range ins {
 		var prevOut *wire.OutPoint
-		if i == SellerSignatureIndex {
-			prevOut = &sp.UnsignedTx.TxIn[i].PreviousOutPoint
+		if i >= SellerSignatureIndex && i < SellerSignatureIndex+len(sellerPsbts) {
+			prevOut = &spList[i-SellerSignatureIndex].UnsignedTx.TxIn[SellerSignatureIndex].PreviousOutPoint
 		} else {
 			txHash, err := chainhash.NewHashFromStr(in.TxId)
 			if err != nil {
@@ -187,10 +199,11 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 
 	var outputs []*wire.TxOut
 	for i, out := range outs {
-		if i == SellerSignatureIndex {
-			outputs = append(outputs, sp.UnsignedTx.TxOut[i])
+		if i >= SellerSignatureIndex && i < SellerSignatureIndex+len(sellerPsbts) {
+			outputs = append(outputs, spList[i-SellerSignatureIndex].UnsignedTx.TxOut[SellerSignatureIndex])
 		} else {
 			var pkScript []byte
+			var err error // 添加这行来声明err
 			if len(out.PkScript) > 0 {
 				pkScript, err = hex.DecodeString(out.PkScript)
 				if err != nil {
@@ -219,7 +232,7 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 	prevOutputFetcher := txscript.NewMultiPrevOutFetcher(prevOuts)
 
 	for i, in := range ins {
-		if i == SellerSignatureIndex {
+		if i >= SellerSignatureIndex && i < SellerSignatureIndex+len(sellerPsbts) {
 			continue
 		}
 
@@ -228,6 +241,7 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 			return "", err
 		}
 
+		//这里要注销掉.
 		if finalize {
 			err = psbt.Finalize(bp, i)
 			if err != nil {
@@ -235,7 +249,9 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbt string, networ
 			}
 		}
 	}
-	bp.Inputs[SellerSignatureIndex] = sp.Inputs[SellerSignatureIndex]
+	for i, sp := range spList {
+		bp.Inputs[SellerSignatureIndex+i] = sp.Inputs[SellerSignatureIndex]
+	}
 	if !finalize {
 		r, err := bp.B64Encode()
 		return r, err

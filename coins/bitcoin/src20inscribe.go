@@ -15,9 +15,10 @@ import (
 )
 
 const PART_LEN = 31
+const Five = 5 //It has to be multiplied by five
 
 type Src20InscriptionRequest struct {
-	CommitTxPrevOutputList []*PrevOutput    `json:"commitTxPrevOutputList"`
+	CommitTxPrevOutputList PrevOutputs      `json:"commitTxPrevOutputList"`
 	CommitFeeRate          int64            `json:"commitFeeRate"`
 	InscriptionData        *InscriptionData `json:"inscriptionDataList"`
 	RevealOutValue         int64            `json:"revealOutValue"`
@@ -76,7 +77,7 @@ func (tool *Src20InscriptionTool) _initTool(network *chaincfg.Params, request *S
 	return err
 }
 
-func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList []*PrevOutput, inscriptionData *InscriptionData, changeAddress string, revealOutValue, commitFeeRate int64, minChangeValue int64) error {
+func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList PrevOutputs, inscriptionData *InscriptionData, changeAddress string, revealOutValue, commitFeeRate int64, minChangeValue int64) error {
 	bf := make([]byte, 0, len(inscriptionData.ContentType)+len(inscriptionData.Body))
 	bf = append(bf, inscriptionData.ContentType...)
 	bf = append(bf, inscriptionData.Body...)
@@ -177,14 +178,16 @@ func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList []*PrevOu
 		return err
 	}
 
-	fee := btcutil.Amount(GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(commitFeeRate)
+	view, _ := commitTxPrevOutputList.UtxoViewpoint(tool.Network)
+	vsize := GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)
+	fee := btcutil.Amount(vsize) * btcutil.Amount(commitFeeRate)
 	changeAmount := totalSenderAmount - btcutil.Amount(totalRevealPrevOutputValue) - fee
 	if int64(changeAmount) >= minChangeValue {
 		tx.TxOut[len(tx.TxOut)-1].Value = int64(changeAmount)
 	} else {
 		tx.TxOut = tx.TxOut[:len(tx.TxOut)-1]
 		txForEstimate.TxOut = txForEstimate.TxOut[:len(txForEstimate.TxOut)-1]
-		feeWithoutChange := btcutil.Amount(GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(commitFeeRate)
+		feeWithoutChange := btcutil.Amount(GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)) * btcutil.Amount(commitFeeRate)
 		if totalSenderAmount-btcutil.Amount(totalRevealPrevOutputValue)-feeWithoutChange < 0 {
 			tool.MustCommitTxFee = int64(btcutil.Amount(totalRevealPrevOutputValue) + fee)
 			return errors.New("insufficient balance")
@@ -192,6 +195,19 @@ func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList []*PrevOu
 	}
 	tool.CommitTx = tx
 	return nil
+}
+
+func GetSigOps(tx *btcutil.Tx, view UtxoViewpoint) (f int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			f = 0
+		}
+	}()
+	sigops, err := GetSigOpCost(tx, false, view, true, true)
+	if err != nil {
+		return 0
+	}
+	return int64(sigops) * Five
 }
 
 func (tool *Src20InscriptionTool) signCommitTx() error {

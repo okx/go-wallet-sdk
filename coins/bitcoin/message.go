@@ -19,6 +19,7 @@ import (
 	"github.com/okx/go-wallet-sdk/crypto"
 	"io"
 	"math/big"
+	"reflect"
 )
 
 const (
@@ -32,6 +33,12 @@ const (
 	Bip0322Tag          = "BIP0322-signed-message"
 	Bip0322Opt          = "bip0322-simple"
 	SignedMessagePrefix = "Bitcoin Signed Message:\n"
+)
+
+var (
+	ErrNonSupportedAddrType = errors.New("non-supported address type")
+	ErrInvalidSignature     = errors.New("invalid signature")
+	ErrInvalidPubKey        = errors.New("invalid public key")
 )
 
 func Bip0322Hash(message string) string {
@@ -238,6 +245,133 @@ func BtcEncodeBip322(w io.Writer, pver uint32, enc wire.MessageEncoding, msg *wi
 	return nil
 }
 
+const (
+	freeListMaxItems        = 125
+	binaryFreeListMaxItems  = 1024
+	maxWitnessItemSize      = 4_000_000
+	maxWitnessItemsPerInput = 4_000_000
+)
+
+type binaryFreeList chan []byte
+
+// Borrow returns a byte slice from the free list with a length of 8.  A new
+// buffer is allocated if there are not any available on the free list.
+func (l binaryFreeList) Borrow() []byte {
+	var buf []byte
+	select {
+	case buf = <-l:
+	default:
+		buf = make([]byte, 8)
+	}
+	return buf[:8]
+}
+
+// Return puts the provided byte slice back on the free list.  The buffer MUST
+// have been obtained via the Borrow function and therefore have a cap of 8.
+func (l binaryFreeList) Return(buf []byte) {
+	select {
+	case l <- buf:
+	default:
+		// Let it go to the garbage collector.
+	}
+}
+
+type scriptFreeList chan *scriptSlab
+
+const scriptSlabSize = 1 << 22
+
+type scriptSlab [scriptSlabSize]byte
+
+var binarySerializer binaryFreeList = make(chan []byte, binaryFreeListMaxItems)
+var scriptPool = make(scriptFreeList, freeListMaxItems)
+
+// ignored and allowed to go the garbage collector.
+func (c scriptFreeList) Borrow() *scriptSlab {
+	var buf *scriptSlab
+	select {
+	case buf = <-c:
+	default:
+		buf = new(scriptSlab)
+	}
+	return buf
+}
+
+// Return puts the provided byte slice back on the free list when it has a cap
+// of the expected length.  The buffer is expected to have been obtained via
+// the Borrow function.  Any slices that are not of the appropriate size, such
+// as those whose size is greater than the largest allowed free list item size
+// are simply ignored so they can go to the garbage collector.
+func (c scriptFreeList) Return(buf *scriptSlab) {
+	// Return the buffer to the free list when it's not full.  Otherwise let
+	// it be garbage collected.
+	select {
+	case c <- buf:
+	default:
+		// Let it go to the garbage collector.
+	}
+}
+
+func BtcDecodeWitnessForBip0322(r io.Reader, pver uint32, enc wire.MessageEncoding, msg *wire.MsgTx) error {
+	if enc == wire.WitnessEncoding {
+		buf := binarySerializer.Borrow()
+		defer binarySerializer.Return(buf)
+
+		sbufP := scriptPool.Borrow()
+		defer scriptPool.Return(sbufP)
+		sbuf := sbufP[:]
+		for _, ti := range msg.TxIn {
+			witCount, err := wire.ReadVarInt(r, pver)
+			if err != nil {
+				return err
+			}
+			if witCount > maxWitnessItemsPerInput {
+				str := fmt.Sprintf("too many witness items to fit "+
+					"into max message size [count %d, max %d]",
+					witCount, maxWitnessItemsPerInput)
+				return fmt.Errorf("MsgTx.BtcDecode %s", str)
+			}
+			ti.Witness = make([][]byte, witCount)
+			for j := uint64(0); j < witCount; j++ {
+				ti.Witness[j], err = readScriptBuf(
+					r, pver, buf, sbuf, maxWitnessItemSize,
+					"script witness item",
+				)
+				if err != nil {
+					return err
+				}
+				sbuf = sbuf[len(ti.Witness[j]):]
+			}
+		}
+	} else {
+		return errors.New("do not support nonwithness decode")
+	}
+	return nil
+}
+
+func readScriptBuf(r io.Reader, pver uint32, buf, s []byte,
+	maxAllowed uint32, fieldName string) ([]byte, error) {
+
+	count, err := ReadVarIntBuf(r, pver, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prevent byte array larger than the max message size.  It would
+	// be possible to cause memory exhaustion and panics without a sane
+	// upper bound on this count.
+	if count > uint64(maxAllowed) {
+		str := fmt.Sprintf("%s is larger than the max allowed size "+
+			"[count %d, max %d]", fieldName, count, maxAllowed)
+		return nil, fmt.Errorf("readScript %s", str)
+	}
+
+	_, err = io.ReadFull(r, s[:count])
+	if err != nil {
+		return nil, err
+	}
+	return s[:count], nil
+}
+
 func MPCUnsignedBip0322(message string, address string, publicKey string, network *chaincfg.Params) (*GenerateMPCPSbtTxRes, error) {
 	if network == nil {
 		network = &chaincfg.MainNetParams
@@ -391,31 +525,33 @@ func MPCSignedBip0322(message string, address string, publicKey string, signatur
 	return res, nil
 }
 
-func SignMessage(wif string, message string) (string, error) {
+func SignMessage(wif string, prefix, message string) (string, error) {
 	var buf bytes.Buffer
-	err := wire.WriteVarString(&buf, 0, SignedMessagePrefix)
-	if err != nil {
-		return "", err
-	}
-	err = wire.WriteVarString(&buf, 0, message)
-	if err != nil {
-		return "", err
-	}
+	wire.WriteVarString(&buf, 0, prepareMessage(prefix))
+	wire.WriteVarString(&buf, 0, message)
 	messageHash := chainhash.DoubleHashB(buf.Bytes())
 	w, err := btcutil.DecodeWIF(wif)
 	if err != nil {
 		return "", err
 	}
-	sig, err := ecdsa.SignCompact(w.PrivKey, messageHash, w.CompressPubKey)
+	sig, err := ecdsa.SignCompact(w.PrivKey, messageHash, true)
 	if err != nil {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(sig), nil
 }
 
-func MPCUnsignedMessage(message string) string {
+func prepareMessage(prefix string) string {
+	first := "Bitcoin Signed Message:\n"
+	if len(prefix) > 0 {
+		first = prefix + " Signed Message:\n"
+	}
+	return first
+}
+
+func MPCUnsignedMessage(prefix string, message string) string {
 	var buf bytes.Buffer
-	err := wire.WriteVarString(&buf, 0, SignedMessagePrefix)
+	err := wire.WriteVarString(&buf, 0, prepareMessage(prefix))
 	if err != nil {
 		return ""
 	}
@@ -427,11 +563,11 @@ func MPCUnsignedMessage(message string) string {
 	return hex.EncodeToString(messageHash)
 }
 
-func MPCSignedMessageCompat(message string, signature string, publicKeyHex string, network *chaincfg.Params) (string, error) {
+func MPCSignedMessageCompat(prefix, message string, signature string, publicKeyHex string, network *chaincfg.Params) (string, error) {
 	if network == nil {
 		network = &chaincfg.MainNetParams
 	}
-	msgHash := MPCUnsignedMessage(message)
+	msgHash := MPCUnsignedMessage(prefix, message)
 	r, ok := new(big.Int).SetString(signature[0:64], 16)
 	if !ok {
 		return "", errors.New("parse r failed")
@@ -494,9 +630,12 @@ func MPCSignedMessage(signature string, publicKeyHex string, network *chaincfg.P
 	return base64.StdEncoding.EncodeToString(b[:]), nil
 }
 
-func VerifyMessage(signatureStr, message, publicKeyHex, signType string) (bool, error) {
+func VerifyMessage(signatureStr, prefix, message, publicKeyHex, address, signType string, network *chaincfg.Params) error {
 	if signType == "bip322-simple" {
-		return false, nil
+		return VerifySimpleForBip0322(message, address, signatureStr, publicKeyHex, network)
+	}
+	if network == nil {
+		network = &chaincfg.MainNetParams
 	}
 	var signature []byte
 	var err error
@@ -506,24 +645,315 @@ func VerifyMessage(signatureStr, message, publicKeyHex, signType string) (bool, 
 		signature, err = base64.StdEncoding.DecodeString(signatureStr)
 	}
 	if err != nil {
-		return false, err
+		return err
 	}
-	messageHash := MPCUnsignedMessage(message)
+	messageHash := MPCUnsignedMessage(prefix, message)
 
 	h, err := hex.DecodeString(messageHash)
 	if err != nil {
-		return false, err
+		return err
 	}
 	p, ok, err := ecdsa.RecoverCompact(signature, h)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if !ok {
-		return false, errors.New("invalid signature")
+		return errors.New("invalid signature")
 	}
-	ph := hex.EncodeToString(p.SerializeCompressed())
-	if ph != publicKeyHex {
-		return false, fmt.Errorf("invalid public Key %s, given publicKeyHex %s", ph, publicKeyHex)
+	if err := checkPublicKeyHex(p, publicKeyHex); err != nil {
+		return err
 	}
-	return ok, nil
+	if err := checkAddr(p, address, network); err != nil {
+		return err
+	}
+	return nil
+}
+
+func NewPossibleAddrs(pub *btcec.PublicKey, network *chaincfg.Params) ([]string, error) {
+	addrs := make([]string, 0)
+	newAddr, err := btcutil.NewAddressPubKey(pub.SerializeUncompressed(), network)
+	if err != nil {
+		return addrs, err
+	}
+	addrs = append(addrs, newAddr.EncodeAddress())
+	newAddr, err = btcutil.NewAddressPubKey(pub.SerializeCompressed(), network)
+	if err != nil {
+		return addrs, err
+	}
+	addrs = append(addrs, newAddr.EncodeAddress())
+
+	pkHash := btcutil.Hash160(pub.SerializeUncompressed())
+	newAddr2, err := btcutil.NewAddressPubKeyHash(pkHash, network)
+	if err != nil {
+		return addrs, err
+	}
+
+	addrs = append(addrs, newAddr2.EncodeAddress())
+	pkHash = btcutil.Hash160(pub.SerializeCompressed())
+	newAddr3, err := btcutil.NewAddressPubKeyHash(pkHash, network)
+	if err != nil {
+		return addrs, err
+	}
+
+	addrs = append(addrs, newAddr3.EncodeAddress())
+	pkHash2 := btcutil.Hash160(pub.SerializeUncompressed())
+	newAddr4, err := btcutil.NewAddressWitnessPubKeyHash(pkHash2, network)
+	if err != nil {
+		return addrs, err
+	}
+
+	addrs = append(addrs, newAddr4.EncodeAddress())
+	pkHash = btcutil.Hash160(pub.SerializeCompressed())
+	newAddr5, err := btcutil.NewAddressWitnessPubKeyHash(pkHash, network)
+	if err != nil {
+		return addrs, err
+	}
+
+	addrs = append(addrs, newAddr5.EncodeAddress())
+
+	rootKey := txscript.ComputeTaprootKeyNoScript(pub)
+	newAddr6, err := btcutil.NewAddressTaproot(schnorr.SerializePubKey(rootKey), network)
+	if err != nil {
+		return addrs, err
+	}
+	addrs = append(addrs, newAddr6.EncodeAddress())
+	return addrs, nil
+}
+
+func checkPublicKeyHex(pub *btcec.PublicKey, publicKeyHex string) error {
+	if ph := hex.EncodeToString(pub.SerializeCompressed()); ph == publicKeyHex {
+		return nil
+	}
+	if ph := hex.EncodeToString(pub.SerializeUncompressed()); ph == publicKeyHex {
+		return nil
+	}
+	return ErrInvalidPubKey
+}
+
+func NewAddressPubKeyHashFromWif(wif string, network *chaincfg.Params) (string, error) {
+	w, err := btcutil.DecodeWIF(wif)
+	if err != nil {
+		return "", err
+	}
+	return NewAddressPubKeyHash(w.PrivKey.PubKey(), network)
+}
+
+func NewAddressPubKeyHash(pub *btcec.PublicKey, network *chaincfg.Params) (string, error) {
+	if pub == nil {
+		return "", ErrInvalidPubKey
+	}
+	if network != nil && network.Net == zecNet {
+		return NewZECAddr(pub.SerializeCompressed()), nil
+	}
+	pkHash := btcutil.Hash160(pub.SerializeUncompressed())
+	newAddr, err := btcutil.NewAddressPubKeyHash(pkHash, network)
+	if err != nil {
+		return "", err
+	}
+	return newAddr.EncodeAddress(), nil
+}
+
+func checkAddr(pub *btcec.PublicKey, addr string, network *chaincfg.Params) error {
+	if len(addr) == 0 {
+		return ErrNonSupportedAddrType
+	}
+	//zec address is different from other address types.
+	if network != nil && network.Net == zecNet {
+		if addr == NewZECAddr(pub.SerializeCompressed()) {
+			return nil
+		}
+		if addr == NewZECAddr(pub.SerializeUncompressed()) {
+			return nil
+		}
+		return ErrInvalidSignature
+	}
+	a, err := btcutil.DecodeAddress(addr, network)
+	if err != nil {
+		return err
+	}
+	switch a.(type) {
+	case *btcutil.AddressPubKey:
+		newAddr, err := btcutil.NewAddressPubKey(pub.SerializeUncompressed(), network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		newAddr, err = btcutil.NewAddressPubKey(pub.SerializeCompressed(), network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		return ErrInvalidSignature
+
+	case *btcutil.AddressPubKeyHash:
+		pkHash := btcutil.Hash160(pub.SerializeUncompressed())
+		newAddr, err := btcutil.NewAddressPubKeyHash(pkHash, network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		pkHash = btcutil.Hash160(pub.SerializeCompressed())
+		newAddr, err = btcutil.NewAddressPubKeyHash(pkHash, network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		return ErrInvalidSignature
+	case *btcutil.AddressWitnessPubKeyHash:
+		pkHash := btcutil.Hash160(pub.SerializeUncompressed())
+		newAddr, err := btcutil.NewAddressWitnessPubKeyHash(pkHash, network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		pkHash = btcutil.Hash160(pub.SerializeCompressed())
+		newAddr, err = btcutil.NewAddressWitnessPubKeyHash(pkHash, network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		return ErrInvalidSignature
+	case *btcutil.AddressTaproot:
+		rootKey := txscript.ComputeTaprootKeyNoScript(pub)
+		newAddr, err := btcutil.NewAddressTaproot(schnorr.SerializePubKey(rootKey), network)
+		if err != nil {
+			return err
+		}
+		if newAddr.EncodeAddress() == addr {
+			return nil
+		}
+		return ErrInvalidSignature
+	default:
+		return ErrNonSupportedAddrType
+	}
+}
+
+func Wif2PubKeyHex(wif string) (string, error) {
+	w, err := btcutil.DecodeWIF(wif)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(w.PrivKey.PubKey().SerializeCompressed()), nil
+}
+
+func VerifySimpleForBip0322(message, address, signature, publicKey string, network *chaincfg.Params) error {
+	if network == nil {
+		network = &chaincfg.MainNetParams
+	}
+	txId, err := BuildToSpend(message, address, network)
+	if err != nil {
+		return err
+	}
+
+	txHash, err := chainhash.NewHashFromStr(txId)
+	if err != nil {
+		return err
+	}
+
+	prevOut := wire.NewOutPoint(txHash, 0)
+	inputs := []*wire.OutPoint{prevOut}
+	script, _ := hex.DecodeString("6a")
+	outputs := []*wire.TxOut{wire.NewTxOut(0, script)}
+	nSequences := []uint32{uint32(0)}
+	p, err := NewPsbt(inputs, outputs, int32(0), uint32(0), nSequences, "bip0322-simple")
+	if err != nil {
+		return err
+	}
+
+	updater, err := psbt.NewUpdater(p)
+	if err != nil {
+		return err
+	}
+
+	dummyPkScript, _ := AddrToPkScript(address, network)
+	dummyWitnessUtxo := wire.NewTxOut(0, dummyPkScript)
+
+	err = updater.AddInWitnessUtxo(dummyWitnessUtxo, 0)
+	if err != nil {
+		return err
+	}
+
+	prevPkScript, err := AddrToPkScript(address, network)
+	witnessUtxo := wire.NewTxOut(0, prevPkScript)
+	prevOuts := map[wire.OutPoint]*wire.TxOut{
+		*prevOut: witnessUtxo,
+	}
+	prevOutputFetcher := txscript.NewMultiPrevOutFetcher(prevOuts)
+	publicKeyBs, err := hex.DecodeString(publicKey)
+	if err != nil {
+		return err
+	}
+	pub, err := btcec.ParsePubKey(publicKeyBs)
+	if err != nil {
+		return err
+	}
+	tx := updater.Upsbt.UnsignedTx
+	sigB64, err := base64.StdEncoding.DecodeString(signature)
+	if err != nil {
+		return err
+	}
+	r := bytes.NewReader(sigB64)
+	sigHashes := txscript.NewTxSigHashes(updater.Upsbt.UnsignedTx, prevOutputFetcher)
+	if txscript.IsPayToTaproot(prevPkScript) {
+		internalPubKey := schnorr.SerializePubKey(pub)
+		updater.Upsbt.Inputs[0].TaprootInternalKey = internalPubKey
+
+		sigHash, err := txscript.CalcTaprootSignatureHash(sigHashes, txscript.SigHashDefault, tx, 0, prevOutputFetcher)
+		if err != nil {
+			return err
+		}
+		err = BtcDecodeWitnessForBip0322(r, 0, wire.WitnessEncoding, tx)
+		if err != nil {
+			return err
+		}
+		sig, err := schnorr.ParseSignature(tx.TxIn[0].Witness[0])
+		if err != nil {
+			return err
+		}
+		tweakedPublicKey := txscript.ComputeTaprootKeyNoScript(pub)
+		if sig.Verify(sigHash, tweakedPublicKey) {
+			return nil
+		}
+		return ErrInvalidSignature
+	} else if txscript.IsPayToPubKeyHash(prevPkScript) {
+		// todo
+		return nil
+	} else {
+		script, err := PayToPubKeyHashScript(btcutil.Hash160(publicKeyBs))
+		if err != nil {
+			return err
+		}
+		sigHash, err := txscript.CalcWitnessSigHash(script, sigHashes, txscript.SigHashAll, tx, 0, 0)
+		if err != nil {
+			return err
+		}
+		err = BtcDecodeWitnessForBip0322(r, 0, wire.WitnessEncoding, tx)
+		if err != nil {
+			return err
+		}
+		sig, err := ecdsa.ParseSignature(tx.TxIn[0].Witness[0])
+		if err != nil {
+			return err
+		}
+		pubInWitnessStack := tx.TxIn[0].Witness[1]
+		if !reflect.DeepEqual(publicKeyBs, pubInWitnessStack) {
+			return fmt.Errorf("pubInWitnessStack is wrong %s", publicKey)
+		}
+		if sig.Verify(sigHash, pub) {
+			return nil
+		}
+		return ErrInvalidSignature
+	}
 }

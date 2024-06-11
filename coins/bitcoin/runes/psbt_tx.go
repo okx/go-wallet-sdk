@@ -203,7 +203,7 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbts []string, net
 			outputs = append(outputs, spList[i-SellerSignatureIndex].UnsignedTx.TxOut[SellerSignatureIndex])
 		} else {
 			var pkScript []byte
-			var err error // 添加这行来声明err
+			var err error
 			if len(out.PkScript) > 0 {
 				pkScript, err = hex.DecodeString(out.PkScript)
 				if err != nil {

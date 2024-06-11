@@ -1,4 +1,9 @@
-package aptos
+package aptos_types
+
+import (
+	"github.com/okx/go-wallet-sdk/coins/aptos/bcs"
+	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+)
 
 /**
  * Hex encoded 32 byte Aptos account address
@@ -66,6 +71,10 @@ type MoveFunctionGenericTypeParam struct {
 	Constraints []MoveAbility `json:"constraints"`
 }
 
+type MoveFunctionFullName struct {
+	FullName string
+	MoveFunction
+}
 type MoveFunction struct {
 	Name              IdentifierWrapper              `json:"name"`
 	Visibility        MoveFunctionVisibility         `json:"visibility"`
@@ -110,4 +119,34 @@ type EntryFunctionPayload struct {
 	TypeArguments []string      `json:"type_arguments"`
 	Arguments     []interface{} `json:"arguments"`
 	Type          string        `json:"type"`
+}
+
+type ArgumentABI struct {
+	Name    string
+	TypeTag TypeTag
+}
+
+func (o *ArgumentABI) Serialize(serializer serde.Serializer) error {
+	if err := serializer.IncreaseContainerDepth(); err != nil {
+		return err
+	}
+	if err := serializer.SerializeStr(o.Name); err != nil {
+		return err
+	}
+	if err := o.TypeTag.Serialize(serializer); err != nil {
+		return err
+	}
+	serializer.DecreaseContainerDepth()
+	return nil
+}
+
+func (o *ArgumentABI) BcsSerialize() ([]byte, error) {
+	if o == nil {
+		return nil, ErrNullObject
+	}
+	serializer := bcs.NewSerializer()
+	if err := o.Serialize(serializer); err != nil {
+		return nil, err
+	}
+	return serializer.GetBytes(), nil
 }

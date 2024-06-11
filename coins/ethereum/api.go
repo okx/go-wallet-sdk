@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -191,29 +190,6 @@ func DecodeTx(rawTx string) (string, error) {
 	}
 	b, err := json.Marshal(txData)
 	return string(b), err
-}
-
-func EcRecover(signature, message string, addPrefix bool) string {
-	signatureData := util.RemoveZeroHex(signature)
-	R := signatureData[:32]
-	S := signatureData[32:64]
-	V := signatureData[64:65]
-	var err error
-	realData, _ := hex.DecodeString(hex.EncodeToString(V) + hex.EncodeToString(R) + hex.EncodeToString(S))
-	var hash []byte
-	if addPrefix {
-		hash = calMessageHash(message)
-	} else {
-		hash, err = util.DecodeHexString(message)
-		if err != nil {
-			return ""
-		}
-	}
-	publicKey, _, err := ecdsa.RecoverCompact(realData, hash)
-	if err != nil {
-		return ""
-	}
-	return util.EncodeHexWith0x(getEthGroupPubHash(publicKey)[12:])
 }
 
 func GetAddress(pubkeyHex string) string {

@@ -140,6 +140,7 @@ func signHash(data []byte, addPrefix bool) []byte {
 	}
 	return data
 }
+
 func NewEthTransaction(nonce, gasLimit, gasPrice, value *big.Int, to, data string) *EthTransaction {
 	toBytes := util.RemoveZeroHex(to)
 	dataBytes := util.RemoveZeroHex(data)

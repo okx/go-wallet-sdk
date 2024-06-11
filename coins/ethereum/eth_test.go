@@ -70,15 +70,17 @@ func TestSignMessage(t *testing.T) {
 	prv := "49c0722d56d6bac802bdf5c480a17c870d1d18bc4355d8344aa05390eb778280"
 	prvB, err := hex.DecodeString(prv)
 	assert.NoError(t, err)
-	d := "0x49c0722d56d6bac802bdf5c480a17c870d1d18bc4355d8344aa05390eb778280"
+	msg := "0x49c0722d56d6bac802bdf5c480a17c870d1d18bc4355d8344aa05390eb778280"
 	prvKey, pub := btcec.PrivKeyFromBytes(prvB)
 	addr := GetNewAddress(pub)
-	sig, err := SignEthTypeMessage(d, prvKey, true)
+	sig, err := SignEthTypeMessage(msg, prvKey, true)
 	fmt.Println(sig, err)
 	assert.Equal(t, `d87758593e0b89f8a2deef5e053ce484fe971a75124bf5d89d6f4d4f586604120d0110d03c91260fec9ec917354caae50c1744d246e30ff48def277d7d9aec831b`, sig)
-	addr2, err := EcRecover(sig, d, true)
+	addr2, err := EcRecover(sig, msg, true)
 	assert.NoError(t, err)
 	assert.Equal(t, addr2, addr)
+	err = VerifySignMsg(sig, msg, addr, true)
+	assert.NoError(t, err)
 }
 
 func TestEth2(t *testing.T) {

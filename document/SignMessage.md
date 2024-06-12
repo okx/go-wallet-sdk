@@ -137,10 +137,7 @@ func main() {
 ## output
 
 >
-> sign msg success.msg:`im from okx`
->
-,sign:`ae3363a92811dcaa19676490423caa46c07140f51e047b662433ef1940afd4ff1db880f4a632f7d776b603f038ed894e2d695c9291754807d7451daff9a5026f1c`
-> ,address:`0xd74c65ad81aa8537327e9ba943011a8cec7a7b6b`
+> sign msg success.msg:`im from okx`,sign:`ae3363a92811dcaa19676490423caa46c07140f51e047b662433ef1940afd4ff1db880f4a632f7d776b603f038ed894e2d695c9291754807d7451daff9a5026f1c` ,address:`0xd74c65ad81aa8537327e9ba943011a8cec7a7b6b`
 > verify signed msg success.
 >
 >
@@ -230,9 +227,7 @@ func main() {
 ### output
 
 >
-> sign msg success.msg:`im from okx`
-> ,sign:`H5lIZuepl9PgjHqmhSNS8gcQvHdjwqHMWdsw+xpcYOpoZGeKgw+KrIwYlP46LcCE+SaUYemLojvCR0gUh+rR1Co=`
-> ,address:`1F4skTsARmoJ3HQK94th7rzbteo4Rdkic9`
+> sign msg success.msg:`im from okx`,sign:`H5lIZuepl9PgjHqmhSNS8gcQvHdjwqHMWdsw+xpcYOpoZGeKgw+KrIwYlP46LcCE+SaUYemLojvCR0gUh+rR1Co=` ,address:`1F4skTsARmoJ3HQK94th7rzbteo4Rdkic9`
 > verify signed msg success.
 >
 > 

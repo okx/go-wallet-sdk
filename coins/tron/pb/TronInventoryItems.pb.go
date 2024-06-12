@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v4.24.4
-// source: TronInventoryItems.proto
+// source: core/TronInventoryItems.proto
 
 package pb
 

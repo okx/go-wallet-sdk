@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v4.24.4
-// source: Discover.proto
+// source: core/Discover.proto
 
 package pb
 

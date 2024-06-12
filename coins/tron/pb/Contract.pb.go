@@ -20,34 +20,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-
-func (x AccountType) Enum() *AccountType {
-	p := new(AccountType)
-	*p = x
-	return p
-}
-
-func (x AccountType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (AccountType) Descriptor() protoreflect.EnumDescriptor {
-	return file_core_Contract_proto_enumTypes[0].Descriptor()
-}
-
-func (AccountType) Type() protoreflect.EnumType {
-	return &file_core_Contract_proto_enumTypes[0]
-}
-
-func (x AccountType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use AccountType.Descriptor instead.
-func (AccountType) EnumDescriptor() ([]byte, []int) {
-	return file_core_Contract_proto_rawDescGZIP(), []int{0}
-}
-
 type ResourceCode int32
 
 const (
@@ -95,33 +67,6 @@ func (x ResourceCode) Number() protoreflect.EnumNumber {
 // Deprecated: Use ResourceCode.Descriptor instead.
 func (ResourceCode) EnumDescriptor() ([]byte, []int) {
 	return file_core_Contract_proto_rawDescGZIP(), []int{1}
-}
-
-func (x Permission_PermissionType) Enum() *Permission_PermissionType {
-	p := new(Permission_PermissionType)
-	*p = x
-	return p
-}
-
-func (x Permission_PermissionType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Permission_PermissionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_core_Contract_proto_enumTypes[2].Descriptor()
-}
-
-func (Permission_PermissionType) Type() protoreflect.EnumType {
-	return &file_core_Contract_proto_enumTypes[2]
-}
-
-func (x Permission_PermissionType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Permission_PermissionType.Descriptor instead.
-func (Permission_PermissionType) EnumDescriptor() ([]byte, []int) {
-	return file_core_Contract_proto_rawDescGZIP(), []int{0, 0}
 }
 
 type SmartContract_ABI_Entry_EntryType int32

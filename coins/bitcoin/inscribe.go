@@ -30,8 +30,29 @@ type PrevOutput struct {
 	PublicKey  string `json:"publicKey"`
 }
 
+type PrevOutputs []*PrevOutput
+
+type UtxoViewpoint map[wire.OutPoint][]byte
+
+func (s PrevOutputs) UtxoViewpoint(net *chaincfg.Params) (UtxoViewpoint, error) {
+	view := make(UtxoViewpoint, len(s))
+	for _, v := range s {
+		h, err := chainhash.NewHashFromStr(v.TxId)
+		if err != nil {
+			return nil, err
+		}
+
+		changePkScript, err := AddrToPkScript(v.Address, net)
+		if err != nil {
+			return nil, err
+		}
+		view[wire.OutPoint{Index: v.VOut, Hash: *h}] = changePkScript
+	}
+	return view, nil
+}
+
 type InscriptionRequest struct {
-	CommitTxPrevOutputList []*PrevOutput     `json:"commitTxPrevOutputList"`
+	CommitTxPrevOutputList PrevOutputs       `json:"commitTxPrevOutputList"`
 	CommitFeeRate          int64             `json:"commitFeeRate"`
 	RevealFeeRate          int64             `json:"revealFeeRate"`
 	InscriptionDataList    []InscriptionData `json:"inscriptionDataList"`
@@ -259,7 +280,7 @@ func (builder *InscriptionBuilder) buildEmptyRevealTx(destination []string, reve
 	return totalPrevOutputValue, nil
 }
 
-func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList []*PrevOutput, changeAddress string, totalRevealPrevOutputValue, commitFeeRate int64, minChangeValue int64) error {
+func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList PrevOutputs, changeAddress string, totalRevealPrevOutputValue, commitFeeRate int64, minChangeValue int64) error {
 	totalSenderAmount := btcutil.Amount(0)
 	tx := wire.NewMsgTx(DefaultTxVersion)
 	changePkScript, err := AddrToPkScript(changeAddress, builder.Network)
@@ -298,7 +319,8 @@ func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList []*PrevO
 		return err
 	}
 
-	fee := btcutil.Amount(GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(commitFeeRate)
+	view, _ := commitTxPrevOutputList.UtxoViewpoint(builder.Network)
+	fee := btcutil.Amount(GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)) * btcutil.Amount(commitFeeRate)
 	changeAmount := totalSenderAmount - btcutil.Amount(totalRevealPrevOutputValue) - fee
 	if int64(changeAmount) >= minChangeValue {
 		tx.TxOut[len(tx.TxOut)-1].Value = int64(changeAmount)
@@ -306,7 +328,7 @@ func (builder *InscriptionBuilder) buildCommitTx(commitTxPrevOutputList []*PrevO
 		tx.TxOut = tx.TxOut[:len(tx.TxOut)-1]
 		if changeAmount < 0 {
 			txForEstimate.TxOut = txForEstimate.TxOut[:len(txForEstimate.TxOut)-1]
-			feeWithoutChange := btcutil.Amount(GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(commitFeeRate)
+			feeWithoutChange := btcutil.Amount(GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)) * btcutil.Amount(commitFeeRate)
 			if totalSenderAmount-btcutil.Amount(totalRevealPrevOutputValue)-feeWithoutChange < 0 {
 				builder.MustCommitTxFee = int64(fee)
 				return errors.New("insufficient balance")
@@ -496,6 +518,22 @@ func GetTransactionWeight(tx *btcutil.Tx) int64 {
 // any witness data it contains, proportional to the current
 // blockchain.WitnessScaleFactor value.
 func GetTxVirtualSize(tx *btcutil.Tx) int64 {
+	return GetTxVirtualSizeByView(tx, nil)
+}
+
+func GetTxVirtualSizeByView(tx *btcutil.Tx, view UtxoViewpoint) int64 {
+	weight := getTxVirtualSize(tx)
+	if len(view) == 0 {
+		return weight
+	}
+	sigCost := GetSigOps(tx, view)
+	if sigCost > weight {
+		return sigCost
+	}
+	return weight
+}
+
+func getTxVirtualSize(tx *btcutil.Tx) int64 {
 	// vSize := (weight(tx) + 3) / 4
 	//       := (((baseSize * 3) + totalSize) + 3) / 4
 	// We add 3 here as a way to compute the ceiling of the prior arithmetic
@@ -601,7 +639,8 @@ func InscribeForMPCUnsigned(request *InscriptionRequest, network *chaincfg.Param
 		return nil, err
 	}
 
-	commitFee := GetTxVirtualSize(btcutil.NewTx(estimateTx)) * request.CommitFeeRate
+	view, _ := request.CommitTxPrevOutputList.UtxoViewpoint(network)
+	commitFee := GetTxVirtualSizeByView(btcutil.NewTx(estimateTx), view) * request.CommitFeeRate
 	changeValue := totalCommitInValue - totalRevealInValue - commitFee
 	minChangeValue := DefaultMinChangeValue
 	if request.MinChangeValue > 0 {
@@ -612,7 +651,7 @@ func InscribeForMPCUnsigned(request *InscriptionRequest, network *chaincfg.Param
 	} else {
 		commitTx.TxOut = commitTx.TxOut[:len(commitTx.TxOut)-1]
 		estimateTx.TxOut = estimateTx.TxOut[:len(estimateTx.TxOut)-1]
-		feeWithoutChange := GetTxVirtualSize(btcutil.NewTx(estimateTx)) * request.CommitFeeRate
+		feeWithoutChange := GetTxVirtualSizeByView(btcutil.NewTx(estimateTx), view) * request.CommitFeeRate
 		if totalCommitInValue-totalRevealInValue-feeWithoutChange < 0 {
 			return nil, errors.New("insufficient balance")
 		}
@@ -801,4 +840,139 @@ func calcSigHash(tx *wire.MsgTx, prevOutFetcher txscript.PrevOutputFetcher, requ
 	}
 
 	return sigHashList, nil
+}
+
+// RuleError identifies a rule violation.  It is used to indicate that
+// processing of a block or transaction failed due to one of the many validation
+// rules.  The caller can use type assertions to determine if a failure was
+// specifically due to a rule violation and access the ErrorCode field to
+// ascertain the specific reason for the rule violation.
+type RuleError struct {
+	ErrorCode   ErrorCode // Describes the kind of error
+	Description string    // Human readable description of the issue
+}
+
+// Error satisfies the error interface and prints human-readable errors.
+func (e RuleError) Error() string {
+	return e.Description
+}
+
+// ruleError creates an RuleError given a set of arguments.
+func ruleError(c ErrorCode, desc string) RuleError {
+	return RuleError{ErrorCode: c, Description: desc}
+}
+
+// CountP2SHSigOps returns the number of signature operations for all input
+// transactions which are of the pay-to-script-hash type.  This uses the
+// precise, signature operation counting mechanism from the script engine which
+// requires access to the input transaction scripts.
+func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView map[wire.OutPoint][]byte) (int, error) {
+	// Coinbase transactions have no interesting inputs.
+	if isCoinBaseTx {
+		return 0, nil
+	}
+
+	// Accumulate the number of signature operations in all transaction
+	// inputs.
+	msgTx := tx.MsgTx()
+	totalSigOps := 0
+	for txInIndex, txIn := range msgTx.TxIn {
+		// Ensure the referenced input transaction is available.
+		pkScript := utxoView[txIn.PreviousOutPoint]
+		if pkScript == nil {
+			str := fmt.Sprintf("output %v referenced from "+
+				"transaction %s:%d either does not exist or "+
+				"has already been spent", txIn.PreviousOutPoint,
+				tx.Hash(), txInIndex)
+			return 0, ruleError(ErrMissingTxOut, str)
+		}
+
+		if !txscript.IsPayToScriptHash(pkScript) {
+			continue
+		}
+
+		// Count the precise number of signature operations in the
+		// referenced public key script.
+		sigScript := txIn.SignatureScript
+		numSigOps := txscript.GetPreciseSigOpCount(sigScript, pkScript,
+			true)
+
+		// We could potentially overflow the accumulator so check for
+		// overflow.
+		lastSigOps := totalSigOps
+		totalSigOps += numSigOps
+		if totalSigOps < lastSigOps {
+			str := fmt.Sprintf("the public key script from output "+
+				"%v contains too many signature operations - "+
+				"overflow", txIn.PreviousOutPoint)
+			return 0, ruleError(ErrTooManySigOps, str)
+		}
+	}
+
+	return totalSigOps, nil
+}
+
+// GetSigOpCost returns the unified sig op cost for the passed transaction
+// respecting current active soft-forks which modified sig op cost counting.
+// The unified sig op cost for a transaction is computed as the sum of: the
+// legacy sig op count scaled according to the WitnessScaleFactor, the sig op
+// count for all p2sh inputs scaled by the WitnessScaleFactor, and finally the
+// unscaled sig op count for any inputs spending witness programs.
+func GetSigOpCost(tx *btcutil.Tx, isCoinBaseTx bool, utxoView map[wire.OutPoint][]byte, bip16, segWit bool) (int, error) {
+	numSigOps := CountSigOps(tx) * WitnessScaleFactor
+	if bip16 {
+		numP2SHSigOps, err := CountP2SHSigOps(tx, isCoinBaseTx, utxoView)
+		if err != nil {
+			return 0, nil
+		}
+		numSigOps += (numP2SHSigOps * WitnessScaleFactor)
+	}
+
+	if segWit && !isCoinBaseTx && utxoView != nil {
+		msgTx := tx.MsgTx()
+		for txInIndex, txIn := range msgTx.TxIn {
+			// Ensure the referenced output is available and hasn't
+			// already been spent.
+			pkScript := utxoView[txIn.PreviousOutPoint]
+			if pkScript == nil {
+				str := fmt.Sprintf("output %v referenced from "+
+					"transaction %s:%d either does not "+
+					"exist or has already been spent",
+					txIn.PreviousOutPoint, tx.Hash(),
+					txInIndex)
+				return 0, ruleError(ErrMissingTxOut, str)
+			}
+			witness := txIn.Witness
+			sigScript := txIn.SignatureScript
+			numSigOps += txscript.GetWitnessSigOpCount(sigScript, pkScript, witness)
+		}
+
+	}
+
+	return numSigOps, nil
+}
+
+// CountSigOps returns the number of signature operations for all transaction
+// input and output scripts in the provided transaction.  This uses the
+// quicker, but imprecise, signature operation counting mechanism from
+// txscript.
+func CountSigOps(tx *btcutil.Tx) int {
+	msgTx := tx.MsgTx()
+
+	// Accumulate the number of signature operations in all transaction
+	// inputs.
+	totalSigOps := 0
+	for _, txIn := range msgTx.TxIn {
+		numSigOps := txscript.GetSigOpCount(txIn.SignatureScript)
+		totalSigOps += numSigOps
+	}
+
+	// Accumulate the number of signature operations in all transaction
+	// outputs.
+	for _, txOut := range msgTx.TxOut {
+		numSigOps := txscript.GetSigOpCount(txOut.PkScript)
+		totalSigOps += numSigOps
+	}
+
+	return totalSigOps
 }

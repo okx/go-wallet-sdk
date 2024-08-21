@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"math/big"
@@ -11,6 +12,10 @@ import (
 	"github.com/okx/go-wallet-sdk/crypto"
 	"github.com/okx/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
+)
+
+var (
+	ErrInvalidSignature = errors.New("invalid signature")
 )
 
 type EthTransaction struct {
@@ -104,6 +109,38 @@ func SignMessage(message []byte, prvKey *btcec.PrivateKey) (*SignatureData, erro
 	return SignAsRecoverable(messageHash, prvKey)
 }
 
+func SignEthTypeMessage(message string, prvKey *btcec.PrivateKey, addPrefix bool) (string, error) {
+	// support hex message and non-hex message
+	msg := OnlyRemovePrefix(message)
+	msgData, err := hex.DecodeString(msg)
+	if err != nil {
+		msgData = []byte(msg)
+	}
+	res, err := SignAsRecoverable(signHash(msgData, addPrefix), prvKey)
+	if err != nil {
+		return "", err
+	}
+	minV := big.NewInt(27)
+	if res.V.Cmp(minV) == -1 {
+		res.V.Add(res.V, minV)
+	}
+	r, err := hex.DecodeString(hex.EncodeToString(res.ByteR) + hex.EncodeToString(res.ByteS) + hex.EncodeToString(res.V.Bytes()))
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(r), nil
+}
+
+func signHash(data []byte, addPrefix bool) []byte {
+	if addPrefix {
+		msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+		s := sha3.NewLegacyKeccak256()
+		s.Write([]byte(msg))
+		return s.Sum(nil)
+	}
+	return data
+}
+
 func NewEthTransaction(nonce, gasLimit, gasPrice, value *big.Int, to, data string) *EthTransaction {
 	toBytes := util.RemoveZeroHex(to)
 	dataBytes := util.RemoveZeroHex(data)
@@ -152,6 +189,61 @@ func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) (*SignatureData, 
 		ByteR: R,
 		ByteS: S,
 	}, nil
+}
+
+func VerifySignMsg(signature, message, address string, addPrefix bool) error {
+	addr, err := EcRecover(signature, message, addPrefix)
+	if err != nil {
+		return err
+	}
+	if addr == address {
+		return nil
+	}
+	return errors.New("invali sign")
+}
+
+func EcRecover(signature, message string, addPrefix bool) (string, error) {
+	publicKey, err := EcRecoverPubKey(signature, message, addPrefix)
+	if publicKey == nil {
+		return "", err
+	}
+	return GetNewAddress(publicKey), nil
+}
+
+func GetEthGroupAddress(prefix string, pubKey *btcec.PublicKey) string {
+	addressByte := GetEthGroupPubHash(pubKey)
+	return prefix + hex.EncodeToString(addressByte[12:])
+}
+
+func GetEthGroupPubHash(pubKey *btcec.PublicKey) []byte {
+	pubBytes := pubKey.SerializeUncompressed()
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(pubBytes[1:])
+	addressByte := hash.Sum(nil)
+	return addressByte
+}
+
+func EcRecoverPubKey(signature, message string, addPrefix bool) (*btcec.PublicKey, error) {
+	signatureData := util.RemoveZeroHex(signature)
+	R := signatureData[:33]
+	S := signatureData[33:64]
+	V := signatureData[64:65]
+	realData, err := hex.DecodeString(hex.EncodeToString(V) + hex.EncodeToString(R) + hex.EncodeToString(S))
+	if err != nil {
+		return nil, err
+	}
+	// support hex message or non-hex message
+	msg := OnlyRemovePrefix(message)
+	msgData, err := hex.DecodeString(msg)
+	if err != nil {
+		msgData = []byte(msg)
+	}
+	hash := signHash(msgData, addPrefix)
+	publicKey, _, err := ecdsa.RecoverCompact(realData, hash)
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
 }
 
 type SignatureData struct {
@@ -205,12 +297,16 @@ func (sd SignatureData) ToBytes() []byte {
 	return bytes
 }
 
-func GetNewAddress(pubKey *btcec.PublicKey) string {
+func GetNewAddressBytes(pubKey *btcec.PublicKey) []byte {
 	pubBytes := pubKey.SerializeUncompressed()
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(pubBytes[1:])
 	addressByte := hash.Sum(nil)
-	return util.EncodeHexWith0x(addressByte[12:])
+	return addressByte[12:]
+}
+
+func GetNewAddress(pubKey *btcec.PublicKey) string {
+	return "0x" + hex.EncodeToString(GetNewAddressBytes(pubKey))
 }
 
 func GetEthereumMessagePrefix(message string) string {

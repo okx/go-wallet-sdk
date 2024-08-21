@@ -74,6 +74,24 @@ type PrevOutput struct {
 	PrivateKey string        `json:"privateKey"`
 }
 
+type PrevOutputs []*PrevOutput
+
+func (s PrevOutputs) UtxoViewpoint(net *chaincfg.Params) (bitcoin.UtxoViewpoint, error) {
+	view := make(bitcoin.UtxoViewpoint, len(s))
+	for _, v := range s {
+		h, err := chainhash.NewHashFromStr(v.TxId)
+		if err != nil {
+			return nil, err
+		}
+		changePkScript, err := AddrToPkScript(v.Address, net)
+		if err != nil {
+			return nil, err
+		}
+		view[wire.OutPoint{Index: v.VOut, Hash: *h}] = changePkScript
+	}
+	return view, nil
+}
+
 type Output struct {
 	Amount  int64         `json:"amount"`
 	Address string        `json:"address"`
@@ -81,11 +99,11 @@ type Output struct {
 }
 
 type AtomicalRequest struct {
-	Inputs   []*PrevOutput `json:"inputs"`
-	Outputs  []*Output     `json:"outputs"`
-	FeePerB  int64         `json:"feePerB"`
-	Address  string        `json:"address"`
-	DustSize int64         `json:"dustSize"`
+	Inputs   PrevOutputs `json:"inputs"`
+	Outputs  []*Output   `json:"outputs"`
+	FeePerB  int64       `json:"feePerB"`
+	Address  string      `json:"address"`
+	DustSize int64       `json:"dustSize"`
 }
 
 func (a *AtomicalRequest) Check(network *chaincfg.Params, minChangeValue int64) *Err {
@@ -318,17 +336,18 @@ func (tool *AtomicalTransferTool) buildCommitTx(network *chaincfg.Params, reques
 	txForEstimate := wire.NewMsgTx(bitcoin.DefaultTxVersion)
 	txForEstimate.TxIn = tx.TxIn
 	txForEstimate.TxOut = tx.TxOut
+	view, _ := request.Inputs.UtxoViewpoint(network)
 	if err := bitcoin.Sign(txForEstimate, tool.CommitTxPrivateKeyList, tool.CommitTxPrevOutputFetcher); err != nil {
 		return err
 	}
-	fee := btcutil.Amount(bitcoin.GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(request.FeePerB)
+	fee := btcutil.Amount(bitcoin.GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)) * btcutil.Amount(request.FeePerB)
 	changeAmount := totalSenderAmount - cost - fee
 	if int64(changeAmount) >= minChangeValue {
 		tx.TxOut[len(tx.TxOut)-1].Value = int64(changeAmount)
 	} else {
 		tx.TxOut = tx.TxOut[:len(tx.TxOut)-1]
 		txForEstimate.TxOut = txForEstimate.TxOut[:len(txForEstimate.TxOut)-1]
-		feeWithoutChange := btcutil.Amount(bitcoin.GetTxVirtualSize(btcutil.NewTx(txForEstimate))) * btcutil.Amount(request.FeePerB)
+		feeWithoutChange := btcutil.Amount(bitcoin.GetTxVirtualSizeByView(btcutil.NewTx(txForEstimate), view)) * btcutil.Amount(request.FeePerB)
 		if totalSenderAmount-cost-feeWithoutChange < 0 {
 			tool.MustCommitTxFee = int64(cost + fee)
 			return errors.New(ErInsufficientBalance)

@@ -12,6 +12,15 @@ import (
 
 const AddressLength = 20
 
+func OnlyRemovePrefix(s string) string {
+	if len(s) > 1 {
+		if s[0:2] == "0x" || s[0:2] == "0X" {
+			return s[2:]
+		}
+	}
+	return s
+}
+
 func encodeRSV(r, s, v *big.Int) []byte {
 	sig := make([]byte, 65)
 	copy(sig[0:32], r.Bytes())

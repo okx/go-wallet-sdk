@@ -51,6 +51,7 @@ func NewPsbt(inputs []*wire.OutPoint,
 	// minimum allowed transaction version. There must be one sequence
 	// number per input.
 	if version < psbt.MinTxVersion || len(nSequences) != len(inputs) {
+		//support bip0322
 		if version < psbt.MinTxVersion {
 			if len(opts) == 0 || opts[0] != Bip0322Opt {
 				return nil, psbt.ErrInvalidPsbtFormat

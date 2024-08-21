@@ -21,11 +21,13 @@ func TestMessageHash(t *testing.T) {
 }
 
 func TestEcRecover(t *testing.T) {
-	validRes := EcRecover("25064ca2f492d0a8a99801e57e5f30fc6c69335e02487d652dc98448145866556007ddc34a0ccdce592176f022e05d3e83b83a039d97aae86c1c7839cb44221e1b", "data", true)
+	validRes, err := EcRecover("25064ca2f492d0a8a99801e57e5f30fc6c69335e02487d652dc98448145866556007ddc34a0ccdce592176f022e05d3e83b83a039d97aae86c1c7839cb44221e1b", "data", true)
+	assert.NoError(t, err)
 	expected := "0xdcab8e02b4d06d0a07ddb1dfa6e2c94cf2da2356"
 	require.Equal(t, expected, validRes)
 
-	res := EcRecover("0xb715378a9d1cce098c27399f40e408fe1ac314aac8ced9704905f14d0d6840c7027fdfffb800958ba826ecbdcc411571af9a348e2a78166b3f8518ce77b35c701b", "0x214f333f99d572b10721be1024700ba551b1b18ecd9072c2975cc82da63cc631", false)
+	res, err := EcRecover("0xb715378a9d1cce098c27399f40e408fe1ac314aac8ced9704905f14d0d6840c7027fdfffb800958ba826ecbdcc411571af9a348e2a78166b3f8518ce77b35c701b", "0x214f333f99d572b10721be1024700ba551b1b18ecd9072c2975cc82da63cc631", false)
+	assert.NoError(t, err)
 	expected = "0xb8cf89fa8f3a0ddcda3d8fdb9006859628665ef4"
 	require.Equal(t, expected, res)
 }

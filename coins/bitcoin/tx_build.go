@@ -70,6 +70,33 @@ func (build *TransactionBuilder) AppendInput(input Input) {
 	build.inputs = append(build.inputs, input)
 }
 
+func (build *TransactionBuilder) UtxoViewpoint() (UtxoViewpoint, error) {
+	if build == nil {
+		return nil, nil
+	}
+	view := make(UtxoViewpoint, len(build.inputs))
+	for _, v := range build.inputs {
+		h, err := chainhash.NewHashFromStr(v.txId)
+		if err != nil {
+			return nil, err
+		}
+		var script []byte
+		if len(v.redeemScript) > 0 {
+			script, err = hex.DecodeString(v.redeemScript)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			script, err = AddrToPkScript(v.address, build.netParams)
+			if err != nil {
+				return nil, err
+			}
+		}
+		view[wire.OutPoint{Index: v.vOut, Hash: *h}] = script
+	}
+	return view, nil
+}
+
 func (build *TransactionBuilder) AppendOutput(o Output) {
 	build.outputs = append(build.outputs, o)
 }
@@ -406,7 +433,7 @@ func SignTx(raw string, pubKeyMap map[int]string, signatureMap map[int]string) (
 	}
 	return hex.EncodeToString(buf.Bytes()), nil
 }
-func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, changeAddress string, minChangeValue int64, network *chaincfg.Params) (int64, error) {
+func CalcTxVirtualSize(inputs TxInputs, outputs []*TxOutput, changeAddress string, minChangeValue int64, network *chaincfg.Params) (int64, error) {
 	if network == nil {
 		network = &chaincfg.MainNetParams
 	}
@@ -436,5 +463,6 @@ func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, changeAddress str
 		return 0, err
 	}
 
-	return GetTxVirtualSize(btcutil.NewTx(tx)), nil
+	view, _ := inputs.UtxoViewpoint(network)
+	return GetTxVirtualSizeByView(btcutil.NewTx(tx), view), nil
 }

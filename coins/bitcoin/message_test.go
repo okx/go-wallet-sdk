@@ -76,14 +76,14 @@ func TestMPCSignedBip0322(t *testing.T) {
 func TestSignMessage(t *testing.T) {
 	wif := "cPnvkvUYyHcSSS26iD1dkrJdV7k1RoUqJLhn3CYxpo398PdLVE22"
 	message := "Hello World"
-	res, err := SignMessage(wif, message)
+	res, err := SignMessage(wif, "", message)
 	require.NoError(t, err)
 	require.Equal(t, "INPqXlpr5h2xvRzKk4BLCcMNgCm5Xv062zebU8JN6EMAdJegfIVF//gpna+DBR+zQztxi/d/WNFZ6QRxQDWMEAo=", res)
 }
 
 func TestMPCUnsignedMessage(t *testing.T) {
 	message := "Hello World"
-	hash := MPCUnsignedMessage(message)
+	hash := MPCUnsignedMessage("", message)
 	require.Equal(t, "a7af0baad5ae99b97fc69b3a0d1abcf3ef17f131cc4776e1bc11933ec8550f49", hash)
 }
 
@@ -99,16 +99,33 @@ func TestVerifyMessage(t *testing.T) {
 	signatureB64 := "HzS54lJsvripU/LXSGrDTEsv47zy2S5M/UD2F+jRRwv4QNuncyUHraa9FAio8SZJfHM4sqKw/khRBwUkhpGLloI="
 	message := "Hello World"
 	publicKeyHex := "024f1bd355a61ec33cabdb7251f050fcbd922bbd0fae48743fe925b0b324493c77"
-	ok, err := VerifyMessage(signatureB64, message, publicKeyHex, "")
+	err := VerifyMessage(signatureB64, "", message, publicKeyHex, "1LrCJN5FVSNinDvqYtRHeEVnf6Dt5e8HUz", "", &chaincfg.MainNetParams)
 	require.NoError(t, err)
-	require.True(t, ok)
 }
 
 func TestMPCSignedMessageCompat(t *testing.T) {
 	message := "Hello World"
 	signature := "34b9e2526cbeb8a953f2d7486ac34c4b2fe3bcf2d92e4cfd40f617e8d1470bf840dba7732507ada6bd1408a8f126497c7338b2a2b0fe485107052486918b9682"
 	publicKeyHex := "024f1bd355a61ec33cabdb7251f050fcbd922bbd0fae48743fe925b0b324493c77"
-	res, err := MPCSignedMessageCompat(message, signature, publicKeyHex, nil)
+	res, err := MPCSignedMessageCompat("", message, signature, publicKeyHex, nil)
 	require.NoError(t, err)
 	require.Equal(t, "HzS54lJsvripU/LXSGrDTEsv47zy2S5M/UD2F+jRRwv4QNuncyUHraa9FAio8SZJfHM4sqKw/khRBwUkhpGLloI=", res)
+}
+
+func TestVerifySimpleForBip0322(t *testing.T) {
+	// test for taproot
+	signatureB64 := "AUD5MwxtURP3tAip3fS5vVRwa4L15wEyTIG0BQ3DPktJpXvQe7Sh8kf+mVaO4ldEP+vhiVZ/sXvOHEbQQnsiYpCq"
+	address := "bc1ppv609nr0vr25u07u95waq5lucwfm6tde4nydujnu8npg4q75mr5sxq8lt3"
+	message := "Hello World"
+	publicKeyHex := "02c7f12003196442943d8588e01aee840423cc54fc1521526a3b85c2b0cbd58872"
+	err := VerifySimpleForBip0322(message, address, signatureB64, publicKeyHex, &chaincfg.MainNetParams)
+	require.NoError(t, err)
+
+	// test for segwit
+	signatureB64 = "AkgwRQIhAOzyynlqt93lOKJr+wmmxIens//zPzl9tqIOua93wO6MAiBi5n5EyAcPScOjf1lAqIUIQtr3zKNeavYabHyR8eGhowEhAsfxIAMZZEKUPYWI4BruhAQjzFT8FSFSajuFwrDL1Yhy"
+	address = "bc1q9vza2e8x573nczrlzms0wvx3gsqjx7vavgkx0l"
+	message = "Hello World"
+	publicKeyHex = "02c7f12003196442943d8588e01aee840423cc54fc1521526a3b85c2b0cbd58872"
+	err = VerifySimpleForBip0322(message, address, signatureB64, publicKeyHex, &chaincfg.MainNetParams)
+	require.NoError(t, err)
 }

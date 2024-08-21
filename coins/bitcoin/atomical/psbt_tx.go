@@ -138,6 +138,7 @@ func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chainc
 	txBuild.AddOutput2("", hex.EncodeToString(sp.UnsignedTx.TxOut[SellerSignatureIndex].PkScript), sp.UnsignedTx.TxOut[SellerSignatureIndex].Value)
 
 	for i := 2; i < len(ins); i++ {
+		txBuild.AddInput2(ins[i].TxId, ins[i].VOut, dummyPrivKey, ins[i].Address, ins[i].Amount)
 	}
 
 	for i := 2; i < len(outs); i++ {
@@ -147,7 +148,8 @@ func calFee(ins []*TxInput, outs []*TxOutput, sellerPsbt string, network *chainc
 	if err != nil {
 		return 0, 0, 0, err
 	}
-	vsize := bitcoin.GetTxVirtualSize(btcutil.NewTx(tx))
+	view, _ := txBuild.UtxoViewpoint()
+	vsize := bitcoin.GetTxVirtualSizeByView(btcutil.NewTx(tx), view)
 	return txBuild.TotalInputAmount(), txBuild.TotalOutputAmount(), vsize, nil
 }
 

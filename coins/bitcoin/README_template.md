@@ -26,12 +26,12 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
   * [3.1 GenerateUnsignedPSBTHex](#31-GenerateUnsignedPSBTHex)
 
 ### 1. PubKeyToAddr
-* description: 根据公钥、地址类型和网络类型计算出来bitcoin地址
-* input parameter:
+根据公钥、地址类型和网络类型计算出来bitcoin地址
+* Parameters:
     1. **publicKey**: `[]byte`, 必须是长度为65或33的字节数组
     2. **addrType**: `string`,  地址类型，目前支持的地址类型有`LEGACY`,`SEGWIT_NATIVE`,`SEGWIT_NESTED`和`SEGWIT_NESTED`，共4中类型的地址。
     3. **network**: `*chaincfg.Params`, bitcoin链参数，`chaincfg.MainNetParams`或者`chaincfg.TestNet3Params`等
-* output:
+* Returns:
     1. `string`,  根据输入参数的不同生成不同的bitcoin地址
     2. `error`, 
 * example
@@ -49,12 +49,12 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 ```
 
 ### 2. SignTx
-* description: 签名交易
-* input parameter://方法输入参数介绍，格式为，参数名：类型，描述
+签名交易
+* Parameters://方法输入参数介绍，格式为，参数名：类型，描述
     1. **raw**: `string`, 待签名的btc交易，`&wire.MsgTx`类型的序列化结果。
     2. **pubKeyMap**: `map[int]string`,  公钥列表。
     3. **signatureMap**: `map[int]string`, 签名列表。
-* output:
+* Returns:
     1. `string`,  返回签好名的交易，hex编码的字符串
     2. `error`,
 * example
@@ -87,8 +87,9 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 构建psbt交易
 
 #### 3.1 GenerateUnsignedPSBTHex
-* description: 生成未签名的psbt交易
-* input parameter://方法输入参数介绍，格式为，参数名：类型，描述
+生成未签名的psbt交易
+
+* Parameters://方法输入参数介绍，格式为，参数名：类型，描述
     1. **ins**: `[]*TxInput`,  交易输入参数。
         1. **TxId**: `string`, utxo交易ID
         2. **VOut**: `uint32`, utxo交易输出index
@@ -101,7 +102,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
         9. **PublicKey**: `string`,
     2. **outs**: `[]*TxOutput`,  交易输出参数。
     3. **network**: `*chaincfg.Params`, bitcoin网络参数。
-* output:
+* Returns:
     1. `string`,  返回签好名的交易，hex编码的字符串
     2. `error`,
 * example

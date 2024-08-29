@@ -34,7 +34,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 * Returns:
     1. `string`,  根据输入参数的不同生成不同的bitcoin地址
     2. `error`, 
-* example
+* Example
 ```golang
 	// address
 	network := &chaincfg.TestNet3Params
@@ -57,7 +57,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 * Returns:
     1. `string`,  返回签好名的交易，hex编码的字符串
     2. `error`,
-* example
+* Example
 ```golang
 	// transfer btc
 	txBuild := bitcoin.NewTxBuild(1, &chaincfg.TestNet3Params)
@@ -105,7 +105,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 * Returns:
     1. `string`,  返回签好名的交易，hex编码的字符串
     2. `error`,
-* example
+* Example
 ```golang
 	// psbt
 	var inputs []*bitcoin.TxInput

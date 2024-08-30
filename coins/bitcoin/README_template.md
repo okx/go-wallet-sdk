@@ -102,8 +102,8 @@ func main() {
 
 A Partially Signed Bitcoin Transaction (PSBT) is a Bitcoin standard that facilitates portability of unsigned transactions, which allows multiple parties to easily sign the same transaction. This is most useful when multiple parties wish to add inputs to the same transaction.
 
-* [技术背景](#https://bitcoinops.org/en/topics/psbt/)
-* [github资源](#https://github.com/bitcoin/bitcoin/blob/master/doc/psbt.md)
+* [技术背景](https://bitcoinops.org/en/topics/psbt/)
+* [github资源](https://github.com/bitcoin/bitcoin/blob/master/doc/psbt.md)
 
 #### 3.1 GenerateUnsignedPSBTHex
 生成未签名的psbt交易

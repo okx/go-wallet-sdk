@@ -8,6 +8,14 @@ The SDK not only support Bitcoin, it also supports following chains:
 - LTC
 - TBTC
 
+## Features
+
+* Supported address types `LEGACY`/`SEGWIT_NATIVE`/`SEGWIT_NESTED`/`TAPROOT` 
+* BTC transfer
+* BRC20 mint and transfer
+* ARC FT/NFT transfer
+* Support building PSBT transaction
+
 ## Installation
 
 ### go get
@@ -36,17 +44,25 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
     2. `error`, 
 * Example
 ```golang
-	// address
-	network := &chaincfg.TestNet3Params
-	pubKeyHex := "0357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f"
-	publicKey, err := hex.DecodeString(pubKeyHex)
-	p2pkh, err := bitcoin.PubKeyToAddr(publicKey, bitcoin.LEGACY, network)
-	if err != nil {
-		// todo
-		fmt.Println(err)
-	}
-	fmt.Println(p2pkh)
+import (
+    "encoding/hex"
+    "fmt"
+    "github.com/btcsuite/btcd/chaincfg"
+    "github.com/okx/go-wallet-sdk/coins/bitcoin"
+)
+
+func main() {
+    network := &chaincfg.TestNet3Params
+    pubKeyHex := "0357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f"
+    publicKey, err := hex.DecodeString(pubKeyHex)
+    p2pkh, err := bitcoin.PubKeyToAddr(publicKey, bitcoin.LEGACY, network)
+    if err != nil {
+        fmt.Println(err)
+    }
+    fmt.Println(p2pkh)
+}
 ```
+
 
 ### 2. SignTx
 签名交易
@@ -84,7 +100,10 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 
 ### 3. PSBT
 
-构建psbt交易
+A Partially Signed Bitcoin Transaction (PSBT) is a Bitcoin standard that facilitates portability of unsigned transactions, which allows multiple parties to easily sign the same transaction. This is most useful when multiple parties wish to add inputs to the same transaction.
+
+* [技术背景](#https://bitcoinops.org/en/topics/psbt/)
+* [github资源](#https://github.com/bitcoin/bitcoin/blob/master/doc/psbt.md)
 
 #### 3.1 GenerateUnsignedPSBTHex
 生成未签名的psbt交易
@@ -133,6 +152,27 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 	}
 	fmt.Println(psbtHex)
 ```
+
+## ErrorCode
+
+| ErrCode | desc |
+| :--- | :--- |
+|||
+
+## 常见问题
+
+1. `ecdsa.SignCompact`方法返回值数量不对的问题
+如果遇到 `ecdsa.SignCompact`方法返回值数量不对的问题，是因为`github.com/btcsuite/btcd/btcec/v2`依赖的版本不对
+```golang
+//不同的依赖版本，返回的参数数量可能会不一样
+sig, err := ecdsa.SignCompact(w.PrivKey, messageHash, true)
+```
+
+* 解决办法
+```shell
+go get github.com/btcsuite/btcd/btcec/v2@v2.3.2
+```
+
 
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/bitcoin/LICENSE>) licensed, see package or folder for the respective license.

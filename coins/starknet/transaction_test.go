@@ -167,3 +167,16 @@ func TestGetTxHash(t *testing.T) {
 	fmt.Println(GetTxHash(txStr))
 	fmt.Println(GetTxHash(deployStr))
 }
+
+func TestVerifyMessageHash(t *testing.T) {
+	curve := SC()
+	pub := "0x346262ffa4ec2f40feb9ae81e416af7cca9fcfa8871f1f9169e6dccd63aa667"
+	pubX, pubY := curve.XToPubKey(pub)
+
+	messageHash := "0x45514f85d4e7e2d3db3aac059a5d937f6c5d0f61f87ba25fa138c038248ce7a"
+	sigR := "03da226bd3985e75d344ecc653967fdf13647773a537845ae8cbd9c62e3e5208"
+	sigS := "04c6be1b89be6f86ad3cdb13ac5b55c05df9b1076a0adce73c058225a652c17a"
+
+	b := curve.Verify(HexToBig(messageHash), HexToBig(sigR), HexToBig(sigS), pubX, pubY)
+	assert.True(t, b)
+}

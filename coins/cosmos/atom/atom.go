@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/tx"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
-	"math/big"
 )
 
 const (
@@ -32,9 +33,9 @@ func ValidateAddress(address string) bool {
 	return err == nil && hrp == HRP
 }
 
-func SignStart(chainId string, from string, to string, demon string, memo string,
+func SignStart(chainId string, from string, to string, denom string, memo string,
 	amount *big.Int, timeoutHeight uint64, sequence uint64, accountNumber uint64, feeAmount *big.Int, gasLimit uint64, privateKey *btcec.PrivateKey) (string, error) {
-	coin := types.NewCoin(demon, types.NewIntFromBigInt(amount))
+	coin := types.NewCoin(denom, types.NewIntFromBigInt(amount))
 	coins := types.NewCoins(coin)
 	sendMsg := types.MsgSend{FromAddress: from, ToAddress: to, Amount: coins}
 
@@ -62,7 +63,7 @@ func SignStart(chainId string, from string, to string, demon string, memo string
 	signerInfo := make([]*tx.SignerInfo, 0)
 	signerInfo = append(signerInfo, &tx.SignerInfo{PublicKey: anyPubkey, ModeInfo: &modeInfo, Sequence: sequence})
 
-	feeCoin := types.NewCoin(demon, types.NewIntFromBigInt(feeAmount))
+	feeCoin := types.NewCoin(denom, types.NewIntFromBigInt(feeAmount))
 	feeCoins := types.NewCoins(feeCoin)
 	fee := tx.Fee{Amount: feeCoins, GasLimit: gasLimit}
 	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}

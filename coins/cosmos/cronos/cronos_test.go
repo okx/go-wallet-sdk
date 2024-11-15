@@ -1,10 +1,11 @@
 package cronos
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/require"
 )
 
 // https://testnet-croeseid-4.crypto.org:1317/cosmos/auth/v1beta1/accounts/tcro1rvs5xph4l3px2efynqsthus8p6r4exyrgkhe6v
@@ -23,12 +24,12 @@ func TestTransfer(t *testing.T) {
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
 	param.ToAddress = address
-	param.Demon = "basecro"
+	param.Denom = "basecro"
 	param.Amount = "1000000"
 	param.CommonParam.ChainId = "crypto-org-chain-mainnet-1"
 	param.CommonParam.Sequence = 0
 	param.CommonParam.AccountNumber = 554047
-	param.CommonParam.FeeDemon = "basecro"
+	param.CommonParam.FeeDenom = "basecro"
 	param.CommonParam.FeeAmount = "20000"
 	param.CommonParam.GasLimit = 500000
 	param.CommonParam.Memo = ""
@@ -44,14 +45,14 @@ func TestIbcTransfer(t *testing.T) {
 	p.CommonParam.ChainId = "crypto-org-chain-mainnet-1"
 	p.CommonParam.Sequence = 1
 	p.CommonParam.AccountNumber = 554047
-	p.CommonParam.FeeDemon = "basecro"
+	p.CommonParam.FeeDenom = "basecro"
 	p.CommonParam.FeeAmount = "20000"
 	p.CommonParam.GasLimit = 500000
 	p.CommonParam.Memo = ""
 	p.CommonParam.TimeoutHeight = 0
 	p.FromAddress = "cro1rvs5xph4l3px2efynqsthus8p6r4exyrxr7a6a"
 	p.ToAddress = "osmo1rvs5xph4l3px2efynqsthus8p6r4exyrkr95s7"
-	p.Demon = "basecro"
+	p.Denom = "basecro"
 	p.Amount = "100000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-10"

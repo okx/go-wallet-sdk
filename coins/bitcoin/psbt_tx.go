@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil"
@@ -16,7 +15,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin/doginals"
 	"io"
 	"reflect"
@@ -393,73 +391,6 @@ func GenerateUnsignedPSBTHex(ins []*TxInput, outs []*TxOutput, network *chaincfg
 	p, err := psbt.New(inputs, outputs, int32(2), uint32(0), nSequences)
 	if err != nil {
 		return "", err
-	}
-
-	updater, err := psbt.NewUpdater(p)
-	if err != nil {
-		return "", err
-	}
-
-	for i, in := range ins {
-		publicKeyBytes, err := hex.DecodeString(in.PublicKey)
-		if err != nil {
-			return "", err
-		}
-		prevPkScript, err := AddrToPkScript(in.Address, network)
-		if err != nil {
-			return "", err
-		}
-		if txscript.IsPayToPubKeyHash(prevPkScript) {
-			prevTx := wire.NewMsgTx(2)
-			txBytes, err := hex.DecodeString(in.NonWitnessUtxo)
-			if err != nil {
-				return "", err
-			}
-			if err := prevTx.Deserialize(bytes.NewReader(txBytes)); err != nil {
-				return "", err
-			}
-			if err := updater.AddInNonWitnessUtxo(prevTx, i); err != nil {
-				return "", err
-			}
-		} else {
-			witnessUtxo := wire.NewTxOut(in.Amount, prevPkScript)
-			if err := updater.AddInWitnessUtxo(witnessUtxo, i); err != nil {
-				return "", err
-			}
-			if txscript.IsPayToScriptHash(prevPkScript) {
-				redeemScript, err := PayToWitnessPubKeyHashScript(btcutil.Hash160(publicKeyBytes))
-				if err != nil {
-					return "", err
-				}
-				if err := updater.AddInRedeemScript(redeemScript, i); err != nil {
-					return "", err
-				}
-			}
-		}
-
-		derivationPath, err := accounts.ParseDerivationPath(in.DerivationPath)
-		if err != nil {
-			return "", err
-		}
-		if err := updater.AddInBip32Derivation(in.MasterFingerprint, derivationPath, publicKeyBytes, i); err != nil {
-			return "", err
-		}
-	}
-
-	for i, out := range outs {
-		if out.IsChange {
-			derivationPath, err := accounts.ParseDerivationPath(out.DerivationPath)
-			if err != nil {
-				return "", err
-			}
-			publicKeyBytes, err := hex.DecodeString(out.PublicKey)
-			if err != nil {
-				return "", err
-			}
-			if err := updater.AddOutBip32Derivation(out.MasterFingerprint, derivationPath, publicKeyBytes, i); err != nil {
-				return "", err
-			}
-		}
 	}
 
 	var b bytes.Buffer

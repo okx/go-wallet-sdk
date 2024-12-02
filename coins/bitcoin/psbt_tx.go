@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil"
@@ -393,6 +394,49 @@ func GenerateUnsignedPSBTHex(ins []*TxInput, outs []*TxOutput, network *chaincfg
 		return "", err
 	}
 
+	updater, err := psbt.NewUpdater(p)
+	if err != nil {
+		return "", err
+	}
+
+	for i, in := range ins {
+		publicKeyBytes, err := hex.DecodeString(in.PublicKey)
+		if err != nil {
+			return "", err
+		}
+		prevPkScript, err := AddrToPkScript(in.Address, network)
+		if err != nil {
+			return "", err
+		}
+		if txscript.IsPayToPubKeyHash(prevPkScript) {
+			prevTx := wire.NewMsgTx(2)
+			txBytes, err := hex.DecodeString(in.NonWitnessUtxo)
+			if err != nil {
+				return "", err
+			}
+			if err := prevTx.Deserialize(bytes.NewReader(txBytes)); err != nil {
+				return "", err
+			}
+			if err := updater.AddInNonWitnessUtxo(prevTx, i); err != nil {
+				return "", err
+			}
+		} else {
+			witnessUtxo := wire.NewTxOut(in.Amount, prevPkScript)
+			if err := updater.AddInWitnessUtxo(witnessUtxo, i); err != nil {
+				return "", err
+			}
+			if txscript.IsPayToScriptHash(prevPkScript) {
+				redeemScript, err := PayToWitnessPubKeyHashScript(btcutil.Hash160(publicKeyBytes))
+				if err != nil {
+					return "", err
+				}
+				if err := updater.AddInRedeemScript(redeemScript, i); err != nil {
+					return "", err
+				}
+			}
+		}
+	}
+
 	var b bytes.Buffer
 	if err := p.Serialize(&b); err != nil {
 		return "", err
@@ -590,13 +634,14 @@ func SignRawPSBTTransaction(psbtHex string, privKey string) (string, error) {
 	for i, pIn := range p.Inputs {
 		err = signPSBTPacket(updater, privKey, i, p, prevOutputFetcher, pIn.SighashType)
 		if err != nil {
-			//return "", err
+			return "", fmt.Errorf("ошибка подписания входа %d: %v", i, err)
 		}
 	}
 
+	// Сериализуем подписанный PSBT обратно в hex
 	var b bytes.Buffer
 	if err := p.Serialize(&b); err != nil {
-		return "", err
+		return "", fmt.Errorf("ошибка сериализации PSBT: %v", err)
 	}
 	return hex.EncodeToString(b.Bytes()), nil
 }
@@ -621,8 +666,14 @@ func signPSBTPacket(updater *psbt.Updater, priv string, i int, packet *psbt.Pack
 	}
 
 	if txscript.IsPayToTaproot(prevPkScript) {
-		internalPubKey := schnorr.SerializePubKey(privKey.PubKey())
-		updater.Upsbt.Inputs[i].TaprootInternalKey = internalPubKey
+		//internalPubKey := privKey.PubKey().SerializeCompressed()[1:33]
+
+		compressedPubKey := privKey.PubKey().SerializeCompressed()
+		if len(compressedPubKey) != 33 {
+			return fmt.Errorf("неожиданная длина сжатого публичного ключа: %d байт", len(compressedPubKey))
+		}
+		xOnlyPubKey := compressedPubKey[1:33] // Извлекаем 32 байта без префикса
+		updater.Upsbt.Inputs[i].TaprootInternalKey = xOnlyPubKey
 
 		sigHashes := txscript.NewTxSigHashes(updater.Upsbt.UnsignedTx, prevOutFetcher)
 		if hashType == txscript.SigHashAll {
@@ -637,6 +688,10 @@ func signPSBTPacket(updater *psbt.Updater, priv string, i int, packet *psbt.Pack
 		if err != nil {
 			return err
 		}
+		if len(witness) != 1 {
+			return fmt.Errorf("ожидалась одна подпись, получено %d элементов", len(witness))
+		}
+
 		updater.Upsbt.Inputs[i].TaprootKeySpendSig = witness[0]
 	} else if txscript.IsPayToPubKeyHash(prevPkScript) {
 		if hashType == txscript.SigHashDefault {

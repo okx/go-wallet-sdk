@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/near
+module github.com/Inscripedia/go-wallet-sdk/coins/near
 
 go 1.19
 

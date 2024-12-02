@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/filecoin
+module github.com/Inscripedia/go-wallet-sdk/coins/filecoin
 
 go 1.19
 

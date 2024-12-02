@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/waves
+module github.com/Inscripedia/go-wallet-sdk/coins/waves
 
 go 1.19
 

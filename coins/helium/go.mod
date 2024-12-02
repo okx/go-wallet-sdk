@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/helium
+module github.com/Inscripedia/go-wallet-sdk/coins/helium
 
 go 1.19
 

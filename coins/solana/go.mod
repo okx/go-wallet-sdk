@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/solana
+module github.com/Inscripedia/go-wallet-sdk/coins/solana
 
 go 1.19
 

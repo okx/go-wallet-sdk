@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/aptos
+module github.com/Inscripedia/go-wallet-sdk/coins/aptos
 
 go 1.19
 

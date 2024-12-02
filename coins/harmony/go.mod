@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/harmony
+module github.com/Inscripedia/go-wallet-sdk/coins/harmony
 
 go 1.19
 

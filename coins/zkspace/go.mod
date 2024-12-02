@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/zkspace
+module github.com/Inscripedia/go-wallet-sdk/coins/zkspace
 
 go 1.19
 

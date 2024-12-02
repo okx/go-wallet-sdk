@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/sui
+module github.com/Inscripedia/go-wallet-sdk/coins/sui
 
 go 1.19
 

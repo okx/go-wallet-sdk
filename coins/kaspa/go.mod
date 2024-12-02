@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/kaspa
+module github.com/Inscripedia/go-wallet-sdk/coins/kaspa
 
 go 1.19
 

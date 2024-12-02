@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/ethereum
+module github.com/Inscripedia/go-wallet-sdk/coins/ethereum
 
 go 1.19
 

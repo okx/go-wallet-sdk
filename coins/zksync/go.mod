@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/zksync
+module github.com/Inscripedia/go-wallet-sdk/coins/zksync
 
 go 1.19
 

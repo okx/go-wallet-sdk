@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/polkadot
+module github.com/Inscripedia/go-wallet-sdk/coins/polkadot
 
 go 1.19
 

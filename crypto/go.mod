@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/crypto
+module github.com/Inscripedia/go-wallet-sdk/crypto
 
 go 1.19
 

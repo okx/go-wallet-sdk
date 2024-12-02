@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/nostrassets
+module github.com/Inscripedia/go-wallet-sdk/coins/nostrassets
 
 go 1.19
 

@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/cosmos
+module github.com/Inscripedia/go-wallet-sdk/coins/cosmos
 
 go 1.19
 

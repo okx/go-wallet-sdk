@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/ton
+module github.com/Inscripedia/go-wallet-sdk/coins/ton
 
 go 1.19
 

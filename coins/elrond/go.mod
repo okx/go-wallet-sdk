@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/elrond
+module github.com/Inscripedia/go-wallet-sdk/coins/elrond
 
 go 1.19
 

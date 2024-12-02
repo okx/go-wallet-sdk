@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/tezos
+module github.com/Inscripedia/go-wallet-sdk/coins/tezos
 
 go 1.19
 

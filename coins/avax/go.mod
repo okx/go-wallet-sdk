@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/avax
+module github.com/Inscripedia/go-wallet-sdk/coins/avax
 
 go 1.19
 

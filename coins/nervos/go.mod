@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/nervos
+module github.com/Inscripedia/go-wallet-sdk/coins/nervos
 
 go 1.19
 

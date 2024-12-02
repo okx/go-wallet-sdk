@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk/coins/stacks
+module github.com/Inscripedia/go-wallet-sdk/coins/stacks
 
 go 1.19
 

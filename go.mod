@@ -1,3 +1,3 @@
-module github.com/Inscripedia/go-wallet-sdk
+module github.com/okx/go-wallet-sdk
 
 go 1.19

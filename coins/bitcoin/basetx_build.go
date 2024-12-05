@@ -16,23 +16,24 @@ import (
 )
 
 type TransactionBuilder struct {
-	inputs    []Input
-	outputs   []Output
-	netParams *chaincfg.Params
-	version   int32
+	inputs             []Input
+	outputs            []Output
+	transparentOutputs []*wire.TxOut
+	netParams          *chaincfg.Params
+	version            int32
 }
 
-func (t *TransactionBuilder) TotalInputAmount() int64 {
+func (build *TransactionBuilder) TotalInputAmount() int64 {
 	total := int64(0)
-	for _, v := range t.inputs {
+	for _, v := range build.inputs {
 		total += v.amount
 	}
 	return total
 }
 
-func (t *TransactionBuilder) TotalOutputAmount() int64 {
+func (build *TransactionBuilder) TotalOutputAmount() int64 {
 	total := int64(0)
-	for _, v := range t.outputs {
+	for _, v := range build.outputs {
 		total += v.amount
 	}
 	return total
@@ -72,6 +73,10 @@ func (build *TransactionBuilder) AppendInput(input Input) {
 
 func (build *TransactionBuilder) AppendOutput(o Output) {
 	build.outputs = append(build.outputs, o)
+}
+
+func (build *TransactionBuilder) AppendTransparentOutput(output *wire.TxOut) {
+	build.transparentOutputs = append(build.transparentOutputs, output)
 }
 
 func (build *TransactionBuilder) AddInput(txId string, vOut uint32, privateKeyHex string,
@@ -147,6 +152,9 @@ func (build *TransactionBuilder) Build() (*wire.MsgTx, error) {
 		txOut := wire.NewTxOut(output.amount, pkScript)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
+
+	tx.TxOut = append(tx.TxOut, build.transparentOutputs...)
+
 	if err := Sign(tx, privateKeys, prevOutFetcher); err != nil {
 		return nil, err
 	}
@@ -214,6 +222,8 @@ func (build *TransactionBuilder) SingleBuild() (string, error) {
 		txOut := wire.NewTxOut(output.amount, script)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
+
+	tx.TxOut = append(tx.TxOut, build.transparentOutputs...)
 
 	for i := 0; i < len(build.inputs); i++ {
 		ecKey := ecKeyArray[i]
@@ -347,6 +357,8 @@ func (build *TransactionBuilder) UnSignedTx(pubKeyMap map[int]string) (string, m
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
 
+	tx.TxOut = append(tx.TxOut, build.transparentOutputs...)
+
 	hashes := make(map[int]string)
 	for i := 0; i < len(build.inputs); i++ {
 		redeemScript := scriptArray[i]
@@ -409,7 +421,7 @@ func SignTx(raw string, pubKeyMap map[int]string, signatureMap map[int]string) (
 	}
 	return hex.EncodeToString(buf.Bytes()), nil
 }
-func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, changeAddress string, minChangeValue int64, network *chaincfg.Params) (int64, error) {
+func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, transparentOutputs []*wire.TxOut, changeAddress string, minChangeValue int64, network *chaincfg.Params) (int64, error) {
 	if network == nil {
 		network = &chaincfg.MainNetParams
 	}
@@ -426,6 +438,8 @@ func CalcTxVirtualSize(inputs []*TxInput, outputs []*TxOutput, changeAddress str
 		txBuild.AddOutput(out.Address, out.Amount)
 		outAmount += out.Amount
 	}
+
+	txBuild.transparentOutputs = transparentOutputs
 
 	if minChangeValue == 0 {
 		minChangeValue = DefaultMinChangeValue

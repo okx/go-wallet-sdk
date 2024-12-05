@@ -64,6 +64,8 @@ func (build *TransactionBuilder) Build2() (*wire.MsgTx, error) {
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
 
+	tx.TxOut = append(tx.TxOut, build.transparentOutputs...)
+
 	return tx, nil
 }
 
@@ -172,6 +174,8 @@ func (build *TransactionBuilder) SingleBuild2() (string, error) {
 		txOut := wire.NewTxOut(output.amount, script)
 		tx.TxOut = append(tx.TxOut, txOut)
 	}
+
+	tx.TxOut = append(tx.TxOut, build.transparentOutputs...)
 
 	for i := 0; i < len(build.inputs); i++ {
 		redeemScript := scriptArray[i]

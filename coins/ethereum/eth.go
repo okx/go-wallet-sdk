@@ -4,8 +4,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
 	"math/big"
+
+	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -174,10 +175,7 @@ func NewTransactionFromRaw(raw string) (*EthTransaction, error) {
 }
 
 func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) (*SignatureData, error) {
-	sig, err := ecdsa.SignCompact(prvKey, value, false)
-	if err != nil {
-		return nil, err
-	}
+	sig := ecdsa.SignCompact(prvKey, value, false)
 	V := sig[0]
 	R := sig[1:33]
 	S := sig[33:65]

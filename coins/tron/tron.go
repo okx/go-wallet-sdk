@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"golang.org/x/crypto/sha3"
-	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/golang/protobuf/proto"
@@ -92,10 +93,7 @@ func Sign(data string, privateKey *btcec.PrivateKey) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	signature, err := ecdsa.SignCompact(privateKey, hash, false)
-	if err != nil {
-		return "", err
-	}
+	signature := ecdsa.SignCompact(privateKey, hash, false)
 	return hex.EncodeToString(signature), nil
 }
 

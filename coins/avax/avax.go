@@ -4,12 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"strings"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
-	"strings"
 )
 
 func NewAddress(chainId string, hrp string, publicKey *btcec.PublicKey) (string, error) {
@@ -67,10 +68,7 @@ func NewTransferTransaction(netWorkId uint32, blockchainId string, inputs *[]Tra
 			return "", err
 		}
 		privateKey, _ := btcec.PrivKeyFromBytes(pk)
-		sig2, err := ecdsa.SignCompact(privateKey, hash[:], false)
-		if err != nil {
-			return "", err
-		}
+		sig2 := ecdsa.SignCompact(privateKey, hash[:], false)
 		sig := make([]byte, len(sig2))
 		copy(sig, sig2[1:])
 		sig[64] = sig2[0] - 27

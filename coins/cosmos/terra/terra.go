@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/tx"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
 	"golang.org/x/crypto/ripemd160"
-	"math/big"
 )
 
 type TransactionInput struct {
@@ -176,10 +177,7 @@ func Sign(rawHex string, privateKeyHex string) string {
 
 	signDocBtyes, _ := hex.DecodeString(rawHex)
 	hash := sha256.Sum256(signDocBtyes)
-	b, err := ecdsa.SignCompact(privateKey, hash[:], false)
-	if err != nil {
-		return ""
-	}
+	b := ecdsa.SignCompact(privateKey, hash[:], false)
 	return hex.EncodeToString(b[1:])
 }
 

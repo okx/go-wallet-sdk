@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	btcec_ecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -40,10 +41,7 @@ func ZeroBytes(bytes []byte) {
 }
 
 func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) *SignatureData {
-	sig, err := btcec_ecdsa.SignCompact(prvKey, value, false)
-	if err != nil {
-		return nil
-	}
+	sig := btcec_ecdsa.SignCompact(prvKey, value, false)
 	V := sig[0]
 	R := sig[1:33]
 	S := sig[33:65]

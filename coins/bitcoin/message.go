@@ -7,6 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"math/big"
+	"reflect"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -17,9 +21,6 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/okx/go-wallet-sdk/crypto"
-	"io"
-	"math/big"
-	"reflect"
 )
 
 const (
@@ -534,7 +535,7 @@ func SignMessage(wif string, prefix, message string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sig, err := ecdsa.SignCompact(w.PrivKey, messageHash, true)
+	sig := ecdsa.SignCompact(w.PrivKey, messageHash, true)
 	if err != nil {
 		return "", err
 	}

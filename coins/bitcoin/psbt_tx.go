@@ -7,6 +7,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"reflect"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -18,8 +21,6 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin/doginals"
-	"io"
-	"reflect"
 )
 
 var (
@@ -129,9 +130,9 @@ func GenerateSignedListingPSBTBase64(in *TxInput, out *TxOutput, network *chainc
 	}
 	witnessUtxo := wire.NewTxOut(in.Amount, prevPkScript)
 	prevOuts := map[wire.OutPoint]*wire.TxOut{
-		wire.OutPoint{Index: 0}: dummyWitnessUtxo,
-		wire.OutPoint{Index: 1}: dummyWitnessUtxo,
-		*prevOut:                witnessUtxo,
+		{Index: 0}: dummyWitnessUtxo,
+		{Index: 1}: dummyWitnessUtxo,
+		*prevOut:   witnessUtxo,
 	}
 	prevOutputFetcher := txscript.NewMultiPrevOutFetcher(prevOuts)
 
@@ -331,6 +332,9 @@ func signInput(updater *psbt.Updater, i int, in *TxInput, prevOutFetcher *txscri
 
 func CalcFee(ins TxInputs, outs []*TxOutput, sellerPsbt string, feeRate int64, network *chaincfg.Params) (int64, error) {
 	txHex, err := GenerateSignedBuyingTx(ins, outs, sellerPsbt, network)
+	if err != nil {
+		return 0, err
+	}
 
 	tx := wire.NewMsgTx(2)
 	txBytes, err := hex.DecodeString(txHex)
@@ -629,6 +633,9 @@ func ExtractTxFromSignedPSBT(psbtHex string) (string, error) {
 	}
 
 	tx, err := psbt.Extract(p)
+	if err != nil {
+		return "", err
+	}
 
 	return GetTxHex(tx)
 }
@@ -987,6 +994,9 @@ func GenerateBatchBuyingTxPsbt(ins []*TxInput, outs []*TxOutput, sellerPSBTList 
 
 func CalcFeeForBatchBuy(ins TxInputs, outs []*TxOutput, sellerPSBTList []string, feeRate int64, network *chaincfg.Params) (int64, error) {
 	txHex, err := GenerateBatchBuyingTx(ins, outs, sellerPSBTList, network)
+	if err != nil {
+		return 0, err
+	}
 
 	tx := wire.NewMsgTx(2)
 	txBytes, err := hex.DecodeString(txHex)
@@ -1084,9 +1094,9 @@ func GenerateMPCUnsignedListingPSBT(in *TxInput, out *TxOutput, network *chaincf
 	}
 	witnessUtxo := wire.NewTxOut(in.Amount, prevPkScript)
 	prevOuts := map[wire.OutPoint]*wire.TxOut{
-		wire.OutPoint{Index: 0}: dummyWitnessUtxo,
-		wire.OutPoint{Index: 1}: dummyWitnessUtxo,
-		*prevOut:                witnessUtxo,
+		{Index: 0}: dummyWitnessUtxo,
+		{Index: 1}: dummyWitnessUtxo,
+		*prevOut:   witnessUtxo,
 	}
 	prevOutputFetcher := txscript.NewMultiPrevOutFetcher(prevOuts)
 
@@ -1315,6 +1325,10 @@ func calcInputSigHash(updater *psbt.Updater, i int, in *TxInput, prevOutFetcher 
 	tx := updater.Upsbt.UnsignedTx
 	txSigHashes := txscript.NewTxSigHashes(updater.Upsbt.UnsignedTx, prevOutFetcher)
 	pubKeyBytes, err := hex.DecodeString(in.PublicKey)
+	if err != nil {
+		return "", err
+	}
+
 	var sigHash []byte
 	if txscript.IsPayToTaproot(prevPkScript) {
 		if hashType == txscript.SigHashAll {
@@ -1517,6 +1531,10 @@ func GetRandomHash() (string, error) {
 
 func GenerateMPCSignedPSBT(psbtStr string, pubKeyHex string, signatureList []string) (*GenerateMPCPSbtTxRes, error) {
 	unsignedPsbtInfor, err := GenerateMPCUnsignedPSBT(psbtStr, pubKeyHex)
+	if err != nil {
+		return nil, err
+	}
+
 	rawPsbtStr := unsignedPsbtInfor.PsbtTx
 	p, err := GetPsbtFromString(rawPsbtStr)
 	if err != nil {

@@ -3,6 +3,8 @@ package bitcoin
 import (
 	"encoding/hex"
 	"fmt"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
@@ -10,7 +12,6 @@ import (
 	"github.com/okx/go-wallet-sdk/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // support for single private key address formats (legacy/segwit_nested/segwit_native/taproot_keypath)
@@ -43,6 +44,7 @@ func TestSignTx(t *testing.T) {
 	tx, err = txBuild.Build()
 	assert.Nil(t, err)
 	txHex, err = GetTxHex(tx)
+	assert.Nil(t, err)
 	assert.Equal(t, "010000000001018cfe1307b028d2cec9eeba6f44d345fe47cd2daa719456b600ca95fd186fc60b0000000000ffffffff01140c0300000000001600145c005c5532ce810ddf20f9d1d939631b47089ecd0247304402200fcc9be29e3ab99b81f30fdf0788d883576d1a313fc809fce616813b8b2db62002207d199936c665f8e2c353c03d968f49dfcc16dacaf5877487c7d49f532180a6a101210357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f00000000", txHex)
 
 	// taproot_keypath address
@@ -74,6 +76,7 @@ func TestBtcScript(t *testing.T) {
 	tx, err := txBuild.Build()
 	assert.Nil(t, err)
 	txHex, err := GetTxHex(tx)
+	assert.Nil(t, err)
 	assert.Equal(t, "01000000000101d1bede171ed59c82bb0971c79701abcbfd8d9aca9ab4f99e5190d1fd223b13020000000000ffffffff0270170000000000001600145c005c5532ce810ddf20f9d1d939631b47089ecd00000000000000000f6a01520b0080c7f6cf9b7c858c20020248304502210082fe8e18b707302c253f7fd9e8ffdd25204986d754675ffbedd08031b4e0708302200ff3ae7e9f1e4d4bcd9182237e8c39577eb2a0242fc8e3c6a646646fa8efe3d201210357bbb2d4a9cb8a2357633f201b9c518c2795ded682b7913c6beef3fe23bd6d2f00000000", txHex)
 }
 

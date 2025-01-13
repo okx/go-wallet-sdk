@@ -3,9 +3,10 @@ package bitcoin
 import (
 	"bytes"
 	"encoding/hex"
+	"regexp"
+
 	"github.com/btcsuite/btcd/btcutil/psbt"
 	"github.com/btcsuite/btcd/wire"
-	"regexp"
 )
 
 func GetPsbtFromString(psbtStr string) (*psbt.Packet, error) {
@@ -14,6 +15,9 @@ func GetPsbtFromString(psbtStr string) (*psbt.Packet, error) {
 	var err error
 	if isHex {
 		bs, err = hex.DecodeString(psbtStr)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		bs = []byte(psbtStr)
 	}

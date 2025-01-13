@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -365,7 +366,7 @@ func (builder *InscriptionBuilder) completeRevealTx() error {
 	for i, tx := range builder.RevealTx {
 		revealWeight := GetTransactionWeight(btcutil.NewTx(tx))
 		if revealWeight > MaxStandardTxWeight {
-			return errors.New(fmt.Sprintf("reveal(index %d) transaction weight greater than %d (MAX_STANDARD_TX_WEIGHT): %d", i, MaxStandardTxWeight, revealWeight))
+			return fmt.Errorf("reveal(index %d) transaction weight greater than %d (MAX_STANDARD_TX_WEIGHT): %d", i, MaxStandardTxWeight, revealWeight)
 		}
 	}
 	return nil

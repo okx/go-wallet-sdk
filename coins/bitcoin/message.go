@@ -7,6 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"math/big"
+	"reflect"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -17,9 +21,6 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/okx/go-wallet-sdk/crypto"
-	"io"
-	"math/big"
-	"reflect"
 )
 
 const (
@@ -95,6 +96,10 @@ func SignBip0322(message string, address string, privateKey string) (string, err
 	privKey := wif.PrivKey
 
 	prevPkScript, err := AddrToPkScript(address, network)
+	if err != nil {
+		return "", err
+	}
+
 	witnessUtxo := wire.NewTxOut(0, prevPkScript)
 	prevOuts := map[wire.OutPoint]*wire.TxOut{
 		*prevOut: witnessUtxo,
@@ -214,6 +219,9 @@ func ExtractTxFromSignedPSBTBIP322(psbtHex string) (string, error) {
 	}
 
 	tx, err := psbt.Extract(p)
+	if err != nil {
+		return "", err
+	}
 
 	return GetTxHexBIP322(tx)
 }
@@ -886,6 +894,9 @@ func VerifySimpleForBip0322(message, address, signature, publicKey string, netwo
 	}
 
 	prevPkScript, err := AddrToPkScript(address, network)
+	if err != nil {
+		return err
+	}
 	witnessUtxo := wire.NewTxOut(0, prevPkScript)
 	prevOuts := map[wire.OutPoint]*wire.TxOut{
 		*prevOut: witnessUtxo,

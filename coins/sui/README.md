@@ -39,10 +39,20 @@ key := "b9e99803092fb1ffdaeead8376830a34758fec394384b2e681487a7284eda7de"
 tx, err := SignTransaction(base64.StdEncoding.EncodeToString(data), key)
 ```
 
-###  Sign message 
+###  Sign and Verify Message 
 ```golang
-b, err := base64.StdEncoding.DecodeString("uemYAwkvsf/a7q2DdoMKNHWP7DlDhLLmgUh6coTtp94=")
-r, err := SignMessage("im from okx", hex.EncodeToString(b[0:32]))
+	b, err := base64.StdEncoding.DecodeString(seed)
+    seedHex := hex.EncodeToString(b[0:32])
+    pubKey, err := ed25519.PublicKeyFromSeed(seedHex)
+
+    message := "im from okx"
+    signature, err := SignMessage(message, seedHex)
+
+    err = VerifyMessage(message, base64.StdEncoding.EncodeToString(pubKey), signature)
+
+    hash, err := hex.DecodeString("ddb521e9f8756257e16cbb657feb022ba4c270939990e3bf0194e1330be44082")
+    sign, err := base64.StdEncoding.DecodeString(signature)
+    err = VerifySign(pubKey, sign, hash)
 ```
 
 ###  Transfer amount
@@ -66,6 +76,7 @@ amount:=1
 pay := &PaySuiRequest{suiObjects, amount, 0}
 raw, err := json.Marshal(pay)
 res, err := Execute(&Request{Data: string(raw)}, addr, recipient, gasBudget, gasPrice, hex.EncodeToString(b[0:32]))
+
 ```
 
 ## License

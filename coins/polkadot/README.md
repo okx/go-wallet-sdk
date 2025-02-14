@@ -41,6 +41,8 @@ go get -u github.com/okx/go-wallet-sdk/coins/polkdot
 	if err != nil {
 		// todo
 	}
+    txHash, err := CalTxHash(signed)
+    hash, err 
 ```
 
 ## License

@@ -129,3 +129,15 @@ func TestVerifySimpleForBip0322(t *testing.T) {
 	err = VerifySimpleForBip0322(message, address, signatureB64, publicKeyHex, &chaincfg.MainNetParams)
 	require.NoError(t, err)
 }
+func TestPrivKeyToPubKeyHex(t *testing.T) {
+	privKeyHex := "bb051cd0dda0246f33c5a9e133ebd8e7bc02a92af6c41adc131ccd7826c5b004"
+	wif := "L3VFeEujGtevx9w18HD1fhRbCH67Az2dpCymeRE1SoPK6XQtaN2k"
+	pubKeyHex := "02c7f12003196442943d8588e01aee840423cc54fc1521526a3b85c2b0cbd58872"
+
+	pubKey, err := PrvKeyHex2PubKeyHex(privKeyHex)
+	require.NoError(t, err)
+	require.Equal(t, pubKeyHex, pubKey)
+	pubKey, err = Wif2PubKeyHex(wif)
+	require.NoError(t, err)
+	require.Equal(t, pubKeyHex, pubKey)
+}

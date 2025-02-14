@@ -30,3 +30,8 @@ func TestNewBsv(t *testing.T) {
 	_, err = btcutil.DecodeAddress("1KY9sjgdeGEerBcGUM1QFbsU3sh8sYKzN2", &chaincfg.MainNetParams)
 	assert.NoError(t, err)
 }
+
+func TestRegistNetParams(t *testing.T) {
+	net := GetLTCMainNetParams()
+	assert.Equal(t, 0xdbb6c0fb, int(net.Net))
+}

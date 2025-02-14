@@ -27,7 +27,7 @@ func TestNewKeyPair(t *testing.T) {
 func TestCalculateContractAddressFromHash(t *testing.T) {
 	curve := SC()
 	starkPub, _ := GetPubKey(curve, "0x01651242558d251b0daa72cdf11feb1713e47eb88fb55d0978a2625445a771ac")
-	calculateAddress, err := CalculateContractAddressFromHash(starkPub)
+	calculateAddress, err := CalculateContractAddressFromHash(starkPub, AccountClassHash, ProxyAccountClassHash)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestCreateSignedDeployAccountTx(t *testing.T) {
 	}
 	nonce := big.NewInt(0)
 	maxFee := big.NewInt(124621882791072)
-	tx, err := CreateSignedDeployAccountTx(curve, starkPub, nonce, maxFee, MAINNET_ID, pri)
+	tx, err := CreateSignedDeployAccountTx(curve, starkPub, AccountClassHash, ProxyAccountClassHash, nonce, maxFee, MAINNET_ID, pri)
 	if err != nil {
 		t.Fatal(err)
 	}

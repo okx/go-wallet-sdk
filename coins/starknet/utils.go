@@ -29,6 +29,18 @@ func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
 	return xin, yout
 }
 
+// given x will find corresponding public key coordinate on curve
+func (sc StarkCurve) XToPubKeyErr(x string) (*big.Int, *big.Int, error) {
+	xin, err := HexToBN(x)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	yout := sc.GetYCoordinate(xin)
+
+	return xin, yout, nil
+}
+
 // convert utf8 string to big int
 func UTF8StrToBig(str string) *big.Int {
 	hexStr := hex.EncodeToString([]byte(str))

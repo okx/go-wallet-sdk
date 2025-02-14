@@ -7,7 +7,6 @@ package tlb
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -91,7 +90,6 @@ func TestAccountStatus_LoadFromCell(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			fmt.Println(string(accStatus), test.want)
 			if string(accStatus) != test.want {
 				t.Errorf("got status %s, want status %s", accStatus, test.want)
 			}

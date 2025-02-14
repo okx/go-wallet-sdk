@@ -2,9 +2,9 @@ package juno
 
 import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // https://lcd-juno.itastakers.com/cosmos/auth/v1beta1/accounts/juno1rvs5xph4l3px2efynqsthus8p6r4exyrg24lps
@@ -31,7 +31,7 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.TimeoutHeight = 0
 	signedTx, err := cosmos.Transfer(param, privateKeyHex)
 	require.Nil(t, err)
-	t.Log("signedTx : ", signedTx)
+	assert.Equal(t, "Co0BCooBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmoKK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMSK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMaDgoFdWp1bm8SBTEwMDAwEmYKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMQU+nvApXTNLa7IuIMxxfrGhalRvaSVyyIMLS8FME2dhIECgIIARgBEhIKDAoFdWp1bm8SAzI1MBCQoQ8aQEjyKIoQHYAO/9UngelhKKLXRKCNE6PXxgsQ8znm1W0cf+p83KEbXwuKTRSquyA4mkQbZ4iKJ0C7T306iSYuHSw=", signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -51,8 +51,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "10000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-1"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
-	require.Nil(t, err)
-	t.Log("signedIBCTx : ", signedIBCTx)
+	p.TimeOutInSeconds = 1738641357
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	assert.Equal(t, "Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMRoOCgV1anVubxIFMTAwMDAiK2p1bm8xcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXJnMjRscHMqLWNvc21vczFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cjdja3l4djIAOICEp96jo7mQGBJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYAhISCgwKBXVqdW5vEgMyNTAQkKEPGkAqKFXYQ3RbaEWxolaX0yi950HM26o9ltS1p9u3hggGRFrURjsQA0ol6tvparY5ox8BqXGCc25bh26PvpzIvdBO", tt)
 }

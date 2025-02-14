@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	associatedtokenaccount "github.com/okx/go-wallet-sdk/coins/solana/associated-token-account"
 	computebudget "github.com/okx/go-wallet-sdk/coins/solana/compute-budget"
@@ -13,6 +14,13 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/solana/system"
 	"github.com/okx/go-wallet-sdk/coins/solana/token"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
+)
+
+var (
+	ErrInvalidPrvKey = errors.New("invalid private key")
+	ErrInvalidMsg    = errors.New("invalid message")
+	ErrInvalidSign   = errors.New("invalid signature")
+	ErrInvalidAddr   = errors.New("invalid address")
 )
 
 type RawTransaction struct {
@@ -445,6 +453,53 @@ func (t *RawTransaction) Sign(base58 bool) (string, error) {
 	}
 }
 
+func DecodeTxBase58(txRaw string) (string, error) {
+	tx := base.Transaction{}
+
+	err := tx.UnmarshalBase58(txRaw)
+	if err != nil {
+		return "", err
+	}
+
+	bytes, err := json.Marshal(tx)
+	if err != nil {
+		return "", err
+	}
+
+	var dataMap map[string]interface{}
+	_ = json.Unmarshal(bytes, &dataMap)
+
+	message := dataMap["message"].(map[string]interface{})
+	message["recentBlockhash"] = base58.Encode(tx.Message.RecentBlockhash[:])
+
+	idArray := make([]string, 0)
+	for _, signature := range tx.Signatures {
+		idArray = append(idArray, base58.Encode(signature[:]))
+	}
+	dataMap["signatures"] = idArray
+	if len(idArray) > 0 {
+		dataMap["transactionId"] = idArray[0]
+	}
+	bytes, err = json.Marshal(dataMap)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func CalTxHash(txRaw string) (string, error) {
+	tx := base.Transaction{}
+	err := tx.UnmarshalBase58(txRaw)
+	if err != nil {
+		return "", err
+	}
+
+	if len(tx.Signatures) > 0 {
+		return base58.Encode(tx.Signatures[0][:]), nil
+	}
+	return "", fmt.Errorf("miss signature")
+}
+
 func DecodeAndSign(txRaw string, signers []string, recentBlockHash string, base58 bool) (string, error) {
 	tx := base.Transaction{}
 	if base58 {
@@ -562,4 +617,83 @@ func SignedTx(hash, from, to, nonceAddress string, amount uint64, signData strin
 	tx.Signatures = append(tx.Signatures, signature)
 
 	return tx.ToBase58()
+}
+
+func SignMessage(prv string, msgBase58 string) (string, error) {
+	key := base58.Decode(prv)
+	if len(key) != ed25519.PrivateKeySize {
+		return "", ErrInvalidPrvKey
+	}
+	message := base58.Decode(msgBase58)
+	if len(message) == 0 {
+		return "", ErrInvalidMsg
+	}
+	priKey := ed25519.PrivateKey(key)
+	r := ed25519.Sign(priKey, message)
+	return base58.Encode(r), nil
+}
+
+func VerifySignedMessage(addr string, msgBase58 string, sign string) error {
+	if len(sign) == 0 {
+		return ErrInvalidSign
+	}
+	if len(addr) == 0 {
+		return ErrInvalidAddr
+	}
+	pub := base58.Decode(addr)
+	if len(pub) != ed25519.PublicKeySize {
+		return ErrInvalidAddr
+	}
+	sig := base58.Decode(sign)
+	if len(sig) == 0 {
+		return ErrInvalidSign
+	}
+	message := base58.Decode(msgBase58)
+	if len(message) == 0 {
+		return ErrInvalidMsg
+	}
+	pubKey := ed25519.PublicKey(pub)
+	if r := ed25519.Verify(pubKey, message, sig); !r {
+		return ErrInvalidSign
+	}
+	return nil
+}
+func SignUtf8Message(prv string, msg string) (string, error) {
+	key := base58.Decode(prv)
+	if len(key) != ed25519.PrivateKeySize {
+		return "", ErrInvalidPrvKey
+	}
+	message := []byte(msg)
+	if len(message) == 0 {
+		return "", ErrInvalidMsg
+	}
+	priKey := ed25519.PrivateKey(key)
+	r := ed25519.Sign(priKey, message)
+	return hex.EncodeToString(r), nil
+}
+
+func VerifySignedUtf8Message(addr string, msg string, sign string) error {
+	if len(sign) == 0 {
+		return ErrInvalidSign
+	}
+	if len(addr) == 0 {
+		return ErrInvalidAddr
+	}
+	pub := base58.Decode(addr)
+	if len(pub) != ed25519.PublicKeySize {
+		return ErrInvalidAddr
+	}
+	sig, err := hex.DecodeString(sign)
+	if err != nil {
+		return ErrInvalidSign
+	}
+	message := []byte(msg)
+	if len(message) == 0 {
+		return ErrInvalidMsg
+	}
+	pubKey := ed25519.PublicKey(pub)
+	if r := ed25519.Verify(pubKey, message, sig); !r {
+		return ErrInvalidSign
+	}
+	return nil
 }

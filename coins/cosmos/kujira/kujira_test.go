@@ -4,7 +4,6 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // https://rest.kujira.ccvalidators.com/cosmos/auth/v1beta1/accounts/kujira1rvs5xph4l3px2efynqsthus8p6r4exyr0s5utx
@@ -59,8 +58,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "10000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-3"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
-	require.Nil(t, err)
-	t.Log("signedIBCTx : ", signedIBCTx)
+	p.TimeOutInSeconds = 1738641357
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Equal(t, "Cr4BCrsBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKNAQoIdHJhbnNmZXISCWNoYW5uZWwtMxoOCgV1a3VqaRIFMTAwMDAiLWt1amlyYTE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeTM2cDR4Nyorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOICEp96jo7mQGBJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYARISCgwKBXVrdWppEgMyMDAQoI0GGkD+a5C8Zyc1tcbphNy7MJc5fsp1Mx3OpZbIQ6uPzpi8xWrFnc17uLuK2aqyxQAQzhOx8mk0bHFNh1qHqxg/favN", tt)
 }

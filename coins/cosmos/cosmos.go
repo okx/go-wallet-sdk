@@ -81,6 +81,76 @@ func NewAddress(privateKey string, hrp string, followETH bool) (string, error) {
 	}
 	return address, nil
 }
+
+func PubHex2AnyHex(publicKeyHex string, compress bool) (string, error) {
+	bb, err := hex.DecodeString(publicKeyHex)
+	if err != nil {
+		return "", err
+	}
+	publicKey, err := btcec.ParsePubKey(bb)
+	if err != nil {
+		return "", err
+	}
+	var pk []byte
+	if compress {
+		pk = publicKey.SerializeCompressed()
+	} else {
+		pk = publicKey.SerializeUncompressed()
+	}
+	pubkey := types.PubKey{Key: pk}
+	anyPubkey, err := types.NewAnyWithValue(&pubkey)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(anyPubkey.Value), nil
+}
+
+func Convert2AnyPubKey(pubKeyOrHex string, compress, eth bool) (string, error) {
+	pk, err := DecodeAnyOrPubKey(pubKeyOrHex)
+	if err != nil {
+		return "", err
+	}
+	pubKey, err := btcec.ParsePubKey(pk)
+	if err != nil {
+		return "", err
+	}
+	if eth {
+		if compress {
+			return hex.EncodeToString(pubKey.SerializeCompressed()), nil
+		}
+		return hex.EncodeToString(pubKey.SerializeUncompressed()), nil
+	}
+	var b []byte
+	if compress {
+		b = pubKey.SerializeCompressed()
+	} else {
+		b = pubKey.SerializeUncompressed()
+	}
+	pubkey := types.PubKey{Key: b}
+	anyPubkey, err := types.NewAnyWithValue(&pubkey)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(anyPubkey.Value), nil
+}
+
+func DecodeAnyOrPubKey(pubKeyHex string) ([]byte, error) {
+	b, err := hex.DecodeString(pubKeyHex)
+	if err != nil {
+		return nil, err
+	}
+	if len(b) == 33 || len(b) == 65 {
+		return b, nil
+	}
+
+	pubKey := types.PubKey{}
+	if err := pubKey.Unmarshal(b); err != nil {
+		return nil, err
+	}
+	//anyPubKey, _ := types.NewAnyWithValue(&pubKey)
+	return pubKey.GetKey(), nil
+}
+
 func GetAddressByPublicKey(pubKeyHex string, HRP string) (string, error) {
 	pb, err := hex.DecodeString(pubKeyHex)
 	if err != nil {

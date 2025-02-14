@@ -2,14 +2,12 @@ package aptos
 
 import (
 	cryptoed25519 "crypto/ed25519"
-	cryptorand "crypto/rand"
 	"encoding/hex"
 	"github.com/okx/go-wallet-sdk/coins/aptos/aptos_types"
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
 	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io"
 	"math"
 	"math/big"
 	"strconv"
@@ -17,41 +15,34 @@ import (
 	"testing"
 )
 
-func TestShortenAddress(t *testing.T) {
-	add := ShortenAddress("0x00000000000000000123")
-	expected := "0x123"
-	assert.Equal(t, expected, add)
+func TestValidateContractAddress(t *testing.T) {
+	assert.True(t, ValidateContractAddress("0x13d9d0cdc02debb99f7d8da33f19a0decbecaf4deb3312212b5db8e076739cc0::APSTONK::APSTONK"))
+	assert.True(t, ValidateContractAddress("0x61d2c22a6cb7831bee0f48363b0eec92369357aece0d1142062f7d5d85c7bef8::lp_coin::LP<0x2bc0a49d3fdb0b0719cd34206f14e99e54d277e006e8204087d5eee87bd62049::APSO::Coin, 0x1::aptos_coin::AptosCoin, 0x163df34fccbf003ce219d3f1d9e70d140b60622cb9dd47599c25fb2f797ba6e::curves::Uncorrelated>"))
+	assert.True(t, ValidateContractAddress("0"))
+	assert.True(t, ValidateContractAddress("0x"))
+	assert.True(t, ValidateContractAddress("0x0"))
+	assert.True(t, ValidateContractAddress("0X61D2C22A6CB7831BEE0F48363B0EEC92369357AECE0D1142062F7D5D85C7BEF8"))
+	assert.True(t, ValidateContractAddress("0X0"))
+	assert.True(t, !ValidateContractAddress("0xg"))
 }
 
-func TestExpandAddress(t *testing.T) {
-	addr := ExpandAddress("0x123")
-	expected := "0x0000000000000000000000000000000000000000000000000000000000000123"
-	assert.Equal(t, expected, addr)
+func TestAddress2(t *testing.T) {
+	addr := ShortenAddress("0x00000000000000000123")
+	assert.Equal(t, "0x123", addr)
+	addr = ExpandAddress(addr)
+	assert.Equal(t, "0x0000000000000000000000000000000000000000000000000000000000000123", addr)
 }
 
-func TestNewAddress(t *testing.T) {
+func TestAddress(t *testing.T) {
+	addr, err := NewAddress("a4d06f3f5a1585cf171b4982003306b4eef0670a2eb5d5483427e2c22b602c9e", false)
+	assert.NoError(t, err)
+	addr2, err := NewAddress("a4d06f3f5a1585cf171b4982003306b4eef0670a2eb5d5483427e2c22b602c9e", true)
+	assert.NoError(t, err)
 
-	seed := make([]byte, 32)
-	_, err := io.ReadFull(cryptorand.Reader, seed)
-	assert.Nil(t, err)
-	seedHex := hex.EncodeToString(seed)
-	t.Log("seed hex : ", seedHex)
-
-	addr, err := NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", false)
-	assert.Nil(t, err)
-	expected := "0x62ce47951b114b3bf91e179a368763d99d1adc59a3b17aed65f245c5977dde82"
-	assert.Equal(t, expected, addr)
-
-	addr, err = NewAddress("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37", true)
-	assert.Nil(t, err)
-	expected = "0x62ce47951b114b3bf91e179a368763d99d1adc59a3b17aed65f245c5977dde82"
-	assert.Equal(t, expected, addr)
-
-	ret := ValidateAddress(addr, false)
+	ret := ValidateAddress(addr2, false)
 	assert.True(t, ret)
 
 	addr = ExpandAddress(addr)
-	assert.Equal(t, expected, addr)
 
 	ret = ValidateAddress(addr, false)
 	assert.True(t, ret)
@@ -207,19 +198,42 @@ func TestBcsSerialize_TransactionPayload(t *testing.T) {
 	require.NoError(t, err)
 	p4, err := CoinTransferPayload("0x8e6d339ff6096080a4d91c291b297d3814ff9daa34e0f5562d4e7d442cafecdc", 1, tyArg)
 	require.NoError(t, err)
+	p5, err := OfferNFTTokenPayload(
+		"0xedc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28",
+		"0xedc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28",
+		"collect_test",
+		"nft_test",
+		1,
+		1,
+	)
+	require.NoError(t, err)
+	p6, err := ClaimNFTTokenPayload(
+		"0xedc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28",
+		"0xedc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28",
+		"collect_test",
+		"nft_test",
+		1,
+	)
+	require.NoError(t, err)
 	pb1, _ := p1.BcsSerialize()
 	pb2, _ := p2.BcsSerialize()
 	pb3, _ := p3.BcsSerialize()
 	pb4, _ := p4.BcsSerialize()
+	pb5, _ := p5.BcsSerialize()
+	pb6, _ := p6.BcsSerialize()
 	e1 := "0200000000000000000000000000000000000000000000000000000000000000010c6d616e616765645f636f696e08726567697374657201075e603a89cf690d7134cf2f24fdb16ba90c4f5686333721c12e835fb6c76bc7ba096d6f6f6e5f636f696e084d6f6f6e436f696e0000"
 	e2 := "0200000000000000000000000000000000000000000000000000000000000000010c6d616e616765645f636f696e046275726e01075e603a89cf690d7134cf2f24fdb16ba90c4f5686333721c12e835fb6c76bc7ba096d6f6f6e5f636f696e084d6f6f6e436f696e0001080100000000000000"
 	e3 := "0200000000000000000000000000000000000000000000000000000000000000010c6d616e616765645f636f696e046d696e7401075e603a89cf690d7134cf2f24fdb16ba90c4f5686333721c12e835fb6c76bc7ba096d6f6f6e5f636f696e084d6f6f6e436f696e0002208e6d339ff6096080a4d91c291b297d3814ff9daa34e0f5562d4e7d442cafecdc080100000000000000"
 	e4 := "02000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e7366657201075e603a89cf690d7134cf2f24fdb16ba90c4f5686333721c12e835fb6c76bc7ba096d6f6f6e5f636f696e084d6f6f6e436f696e0002208e6d339ff6096080a4d91c291b297d3814ff9daa34e0f5562d4e7d442cafecdc080100000000000000"
+	e5 := "0200000000000000000000000000000000000000000000000000000000000000030f746f6b656e5f7472616e73666572730c6f666665725f7363726970740006200edc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28200edc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd280d0c636f6c6c6563745f7465737409086e66745f74657374080100000000000000080100000000000000"
+	e6 := "0200000000000000000000000000000000000000000000000000000000000000030f746f6b656e5f7472616e73666572730c636c61696d5f7363726970740005200edc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd28200edc4410aa38b512e3173fcd1e119abb13872d6928dce0842664ad6ada1ccd280d0c636f6c6c6563745f7465737409086e66745f74657374080100000000000000"
 
 	require.Equal(t, e1, hex.EncodeToString(pb1))
 	require.Equal(t, e2, hex.EncodeToString(pb2))
 	require.Equal(t, e3, hex.EncodeToString(pb3))
 	require.Equal(t, e4, hex.EncodeToString(pb4))
+	require.Equal(t, e5, hex.EncodeToString(pb5))
+	require.Equal(t, e6, hex.EncodeToString(pb6))
 }
 
 func TestPayloadFromJsonAndAbi_Dex(t *testing.T) {
@@ -300,8 +314,23 @@ func TestConvertArgs(t *testing.T) {
 	types = append(types, "0x1::string::String")
 	b, err := ConvertArgs(args, types)
 	require.NoError(t, err)
-	for _, bytes := range b {
-		t.Log(hex.EncodeToString(bytes))
+	expected := []string{
+		"2ba03b661d7691b41053dcf293caff2c17283b19cb4abe866b4855e8f6683771",
+		"0100000000000000",
+		"01",
+		"01",
+		"01000000000000000000000000000000",
+		"202ba03b661d7691b41053dcf293caff2c17283b19cb4abe866b4855e8f6683771",
+		"020102",
+		"0201000000000000000200000000000000",
+		"020100000000000000000000000000000002000000000000000000000000000000",
+		"020100",
+		"022ba03b661d7691b41053dcf293caff2c17283b19cb4abe866b4855e8f66837712ba03b661d7691b41053dcf293caff2c17283b19cb4abe866b4855e8f6683771",
+		"02057465737431057465737432",
+		"0474657374",
+	}
+	for i, bytes := range b {
+		assert.Equal(t, expected[i], hex.EncodeToString(bytes))
 	}
 }
 
@@ -490,4 +519,60 @@ func TestSignMessage(t *testing.T) {
 	require.NoError(t, err)
 	ok := cryptoed25519.Verify(pubKey, []byte(message), signB)
 	require.True(t, ok)
+}
+
+func TestGetTransactionHash(t *testing.T) {
+	signedList := []string{
+		"834d639b10d20dcb894728aa4b9b572b2ea2d97073b10eacb111f338b20ea5d7996d0f00000000000200000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e74087472616e7366657200022092d6bab0dabd67bb65c2f98c24dc438f51087de78ff1a225d97edbb54f3e783708b04e790000000000d007000000000000c8000000000000007aeb1e66000000000100206006bb15e3c0c19f249001c250f21df557626509517c56b3bce9cde02da2001940d674449df6d580a9b5a4584e9531a7feb9b8b11d6ebaa4e08d08ed2a6b7bc75e14fa535e22861f0eea43211210d9a1f9cbf3c82994e091ca8d62889227de0600",
+		"834d639b10d20dcb894728aa4b9b572b2ea2d97073b10eacb111f338b20ea5d7986d0f00000000000200000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e74087472616e73666572000220b0d555be810aff171402e62c97cc580461f71fa1fbadc85362543c057e7d22d708302eeb0100000000d007000000000000c8000000000000005ceb1e66000000000100206006bb15e3c0c19f249001c250f21df557626509517c56b3bce9cde02da200194035b9b66e3e91d1dd4e892c1a928da15023e0c404884482249feafd7262bcedc438c1920ebd0faebdbace9d059e9ed20eccdf7dfc8b6358347898d5a7300c5304",
+	}
+	hashList := []string{
+		"0x2fb21dc4639883ae5cb5b509fe0567ca728f4be915df79272297f51ac5202e4a",
+		"0xaba5dc5d6b81c4ae457734660783e2a00ed9e986e91ce62ed0137f4db3854c48",
+	}
+
+	for i := 0; i < len(hashList); i++ {
+		signed := signedList[i]
+		hash := hashList[i]
+
+		txHash, err := GetTransactionHash(signed)
+		assert.NoError(t, err)
+		assert.Equal(t, hash, txHash)
+	}
+}
+
+func TestCoinTransferV2(t *testing.T) {
+	from := "0xd1028d1c19e05b737a5ff9e2bfddee4821d329f1b1efd9e21c002aea04b83862"
+	to := "0x00ca226de86c2da6716aaeddfddc2a16c76d35c67a0da2148c408d2ea1e5ad38"
+	amount := 100
+	sequenceNumber := 15
+	maxGasAmount := 200000
+	gasUnitPrice := 100
+	expirationTimestampSecs := 1722564321
+	chainId := 1
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	payload, err := CoinTransferPayloadV2(to, uint64(amount), "0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDT")
+	require.NoError(t, err)
+	data, err := BuildSignedTransaction(from, uint64(sequenceNumber), uint64(maxGasAmount), uint64(gasUnitPrice), uint64(expirationTimestampSecs), uint8(chainId), payload, seedHex)
+	require.NoError(t, err)
+	expected := "d1028d1c19e05b737a5ff9e2bfddee4821d329f1b1efd9e21c002aea04b838620f000000000000000200000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e740e7472616e736665725f636f696e730107f22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa056173736574045553445400022000ca226de86c2da6716aaeddfddc2a16c76d35c67a0da2148c408d2ea1e5ad38086400000000000000400d0300000000006400000000000000e13eac66000000000100201e1ec33d978305d669d3b35dc0db56525335ec3b35791a44ad130987133c971e40cff84fdddb20aa07ff63981c5408d35b1cd7297eb12b623393bae7fbe5c3aa9a139429ddcbea54ce8302eab8f0a99834d547be0d90d5c096df4ac678f8d2780f"
+	require.Equal(t, expected, data)
+}
+
+func TestCoinTransferCoins(t *testing.T) {
+	from := "0xd1028d1c19e05b737a5ff9e2bfddee4821d329f1b1efd9e21c002aea04b83862"
+	to := "0x00ca226de86c2da6716aaeddfddc2a16c76d35c67a0da2148c408d2ea1e5ad38"
+	amount := uint64(100)
+	sequenceNumber := uint64(15)
+	maxGasAmount := uint64(200000)
+	gasUnitPrice := uint64(100)
+	expirationTimestampSecs := uint64(1722564321)
+	chainId := uint8(1)
+	seedHex := "1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37"
+	tyArgs := "0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDT"
+
+	data, err := TransferCoins(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, to, amount, seedHex, tyArgs)
+	require.NoError(t, err)
+	expected := "d1028d1c19e05b737a5ff9e2bfddee4821d329f1b1efd9e21c002aea04b838620f000000000000000200000000000000000000000000000000000000000000000000000000000000010d6170746f735f6163636f756e740e7472616e736665725f636f696e730107f22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa056173736574045553445400022000ca226de86c2da6716aaeddfddc2a16c76d35c67a0da2148c408d2ea1e5ad38086400000000000000400d0300000000006400000000000000e13eac66000000000100201e1ec33d978305d669d3b35dc0db56525335ec3b35791a44ad130987133c971e40cff84fdddb20aa07ff63981c5408d35b1cd7297eb12b623393bae7fbe5c3aa9a139429ddcbea54ce8302eab8f0a99834d547be0d90d5c096df4ac678f8d2780f"
+	require.Equal(t, expected, data)
 }

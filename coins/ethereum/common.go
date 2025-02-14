@@ -10,6 +10,7 @@ import (
 	"math/big"
 )
 
+const DynamicFeeTxType = 0x02
 const AddressLength = 20
 
 func OnlyRemovePrefix(s string) string {

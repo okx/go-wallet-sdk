@@ -2,6 +2,8 @@ package ethereum
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/assert"
@@ -11,6 +13,30 @@ import (
 
 	"github.com/okx/go-wallet-sdk/coins/ethereum/token"
 )
+
+func TestEcRecoverPubKey(t *testing.T) {
+	_, err := EcRecoverPubKey("", "", false)
+	assert.Equal(t, err, errors.New("signature too short"))
+
+	_, err = EcRecoverPubKey("d87758593e0b89f8a2deef5e053ce484fe971a75124bf5d89d6f4d4f586604120d0110d03c91260fec9ec917354caae50c1744d246e30ff48def277d7d9aec831b", "0x49c0722d56d6bac802bdf5c480a17c870d1d18bc4355d8344aa05390eb778280", true)
+	assert.Nil(t, err)
+}
+
+func TestCalTxHash(t *testing.T) {
+	tx := NewEthDynamicFeeTx(big.NewInt(int64(11155111)),
+		16,
+		big.NewInt(int64(420000)),
+		big.NewInt(int64(20000000000)),
+		420000,
+		big.NewInt(int64(1234)), "2de4898dd458d6dce097e29026d446300e3815fa", "", AccessList{})
+	p, _ := hex.DecodeString("5dfce364a4e9020d1bc187c9c14060e1a2f8815b3b0ceb40f45e7e39eb122103")
+	prvKey, _ := btcec.PrivKeyFromBytes(p)
+	txStr, err := tx.SignTransaction(prvKey)
+	assert.Nil(t, err)
+	txHash, err := CalTxHash(txStr)
+	assert.NoError(t, err)
+	assert.Equal(t, txHash, "a3ae6d08481f8f9dff5c94a19dabfff70e186867459c8e201de9e6ae5b79dfb6")
+}
 
 func TestPubKeyToAddr(t *testing.T) {
 	p, _ := hex.DecodeString("559376194bb4c9a9dfb33fde4a2ab15daa8a899a3f43dee787046f57d5f7b10a")
@@ -115,4 +141,15 @@ func TestEth3(t *testing.T) {
 		require.Nil(t, err)
 		t.Log("tx : ", tx)
 	})
+}
+
+func TestEIP712(t *testing.T) {
+	var typedData TypedData
+	str := `{"domain":{"name":"AuthTransfer","chainId":1,"verifyingContract":"0x1243C09717e4441341472c4b142B8ac0B71F7672"},"message":{"details":[{"token":"0x0000000000000000000000000000000000000000","expiration":1853395200}],"spenders":["0x1B256B89462710a6b459540B999AbE5771d45A6e"],"nonce":0},"primaryType":"Permits","types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permits":[{"name":"details","type":"PermitDetails[]"},{"name":"spenders","type":"address[]"},{"name":"nonce","type":"uint256"}],"PermitDetails":[{"name":"token","type":"address"},{"name":"expiration","type":"uint256"}]}}`
+	err := json.Unmarshal([]byte(str), &typedData)
+	assert.NoError(t, err)
+	hash, str2, err := TypedDataAndHash(typedData)
+	assert.NoError(t, err)
+	assert.Equal(t, "3d697a8b530f96c6d7fc222ee6a43c7976ac2ac52dede33207a4758f5d502eac", hex.EncodeToString(hash))
+	assert.Equal(t, str, str2)
 }

@@ -19,7 +19,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/okx/go-wallet-sdk/coins/bitcoin/doginals"
 	"io"
-	"reflect"
 )
 
 var (
@@ -28,6 +27,13 @@ var (
 var (
 	emptyHash = chainhash.Hash{}
 )
+
+var allowedSighashTypes = map[txscript.SigHashType]struct{}{
+	txscript.SigHashSingle | txscript.SigHashAnyOneCanPay: struct{}{},
+	txscript.SigHashAll | txscript.SigHashAnyOneCanPay:    struct{}{},
+	txscript.SigHashAll:     struct{}{},
+	txscript.SigHashDefault: struct{}{},
+}
 
 type TxInput struct {
 	TxId              string
@@ -74,6 +80,7 @@ type ToSignInput struct {
 	PublicKey          string `json:"publicKey"`
 	SigHashTypes       []int  `json:"sighashTypes"`
 	DisableTweakSigner bool   `json:"disableTweakSigner"`
+	UseTweakSigner     bool   `json:"useTweakSigner"`
 }
 
 type SignPsbtOption struct {
@@ -657,6 +664,9 @@ func SignRawPSBTTransaction(psbtHex string, privKey string) (string, error) {
 	}
 	prevOutputFetcher := txscript.NewMultiPrevOutFetcher(prevOuts)
 	for i, pIn := range p.Inputs {
+		if _, ok := allowedSighashTypes[pIn.SighashType]; !ok {
+			continue
+		}
 		err = signPSBTPacket(updater, privKey, i, p, prevOutputFetcher, pIn.SighashType)
 		if err != nil {
 			//return "", err
@@ -1584,6 +1594,9 @@ func SignPsbtWithKeyPathAndScriptPath(psbtHex string, privKey string, network *c
 		if len(m) > 0 && !ok {
 			continue
 		}
+		if _, ok := allowedSighashTypes[pIn.SighashType]; !ok {
+			continue
+		}
 		err = signPsbtWithKeyPathAndScriptPath(updater, privKey, i, p, prevOutputFetcher, pIn.SighashType, toSignInput, network)
 		if err != nil {
 			continue
@@ -1630,15 +1643,15 @@ func signPsbtWithKeyPathAndScriptPath(updater *psbt.Updater, priv string, i int,
 	if toSignInput != nil && len(toSignInput.SigHashTypes) > 0 {
 		hashType = txscript.SigHashType(toSignInput.SigHashTypes[0])
 	}
-	if toSignInput != nil && toSignInput.Address != "" {
-		pks, err := AddrToPkScript(toSignInput.Address, network)
-		if err != nil {
-			return err
-		}
-		if !reflect.DeepEqual(pks, prevPkScript) {
-			return fmt.Errorf("invalid address %s", toSignInput.Address)
-		}
-	}
+	//if toSignInput != nil && toSignInput.Address != "" {
+	//	pks, err := AddrToPkScript(toSignInput.Address, network)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if !reflect.DeepEqual(pks, prevPkScript) {
+	//		return fmt.Errorf("invalid address %s", toSignInput.Address)
+	//	}
+	//}
 	if txscript.IsPayToTaproot(prevPkScript) {
 		// ket path only
 		internalPubKey := schnorr.SerializePubKey(privKey.PubKey())
@@ -1676,6 +1689,9 @@ func signPsbtWithKeyPathAndScriptPath(updater *psbt.Updater, priv string, i int,
 			updater.Upsbt.Inputs[i].TaprootKeySpendSig = sig
 		} else {
 			if len(updater.Upsbt.Inputs[i].TaprootLeafScript) > 0 {
+				if toSignInput != nil && toSignInput.UseTweakSigner {
+					privKey = txscript.TweakTaprootPrivKey(*privKey, []byte{})
+				}
 				// btcd only support one leaf till now
 				tapLeaves := updater.Upsbt.Inputs[i].TaprootLeafScript
 				taprootScriptSpendSignatures := make([]*psbt.TaprootScriptSpendSig, 0)
@@ -1726,6 +1742,9 @@ func signPsbtWithKeyPathAndScriptPath(updater *psbt.Updater, priv string, i int,
 			return err
 		}
 	} else {
+		if toSignInput != nil && toSignInput.UseTweakSigner {
+			privKey = txscript.TweakTaprootPrivKey(*privKey, []byte{})
+		}
 		if hashType == txscript.SigHashDefault {
 			hashType = txscript.SigHashAll
 		}
@@ -1741,6 +1760,11 @@ func signPsbtWithKeyPathAndScriptPath(updater *psbt.Updater, priv string, i int,
 			return err
 		}
 
+		if txscript.IsPayToWitnessScriptHash(prevPkScript) {
+			script = packet.Inputs[i].WitnessScript
+		}
+
+		// signature, err := txscript.RawTxInWitnessSignature(updater.Upsbt.UnsignedTx, sigHashes, i, packet.Inputs[i].WitnessUtxo.Value, script, hashType, privKey)
 		signature, err := txscript.RawTxInWitnessSignature(updater.Upsbt.UnsignedTx, sigHashes, i, value, script, hashType, privKey)
 		if err != nil {
 			return err

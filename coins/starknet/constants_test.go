@@ -50,7 +50,6 @@ func TestJsonToTypedData(t *testing.T) {
 		t.Fatal(hash)
 	}
 
-	fmt.Println(hash)
 	assert.Equal(t, hash, "0x45514f85d4e7e2d3db3aac059a5d937f6c5d0f61f87ba25fa138c038248ce7a")
 }
 

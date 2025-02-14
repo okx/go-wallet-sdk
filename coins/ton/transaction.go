@@ -1,7 +1,6 @@
 package ton
 
 import (
-	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/base64"
@@ -26,7 +25,7 @@ func buildTx(w *wallet.Wallet, withInit bool) (*SignedTx, error) {
 			Address: w.WalletAddress().String(),
 		}, nil
 	}
-	stateInit, err := wallet.GetStateInit(w.PublicKey(), wallet.V4R2, wallet.DefaultSubwallet)
+	stateInit, err := wallet.GetStateInit(w.PublicKey(), w.GetVersionConfig(), w.GetSubwalletID())
 	if err != nil {
 		return nil, err
 	}
@@ -38,28 +37,16 @@ func buildTx(w *wallet.Wallet, withInit bool) (*SignedTx, error) {
 	}, nil
 }
 
-func newWallet(seed, pubKey []byte) (*wallet.Wallet, error) {
-	if len(pubKey) == ed25519.PublicKeySize && len(seed) == ed25519.SeedSize {
-		if bytes.Equal(pubKey, ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)) {
-			return wallet.FromPrivateKey(ed25519.NewKeyFromSeed(seed), wallet.V4R2)
-		}
-	}
-	if len(pubKey) > 0 {
-		return wallet.FakeFromPublicKey(ed25519.PublicKey(pubKey), wallet.V4R2)
-	}
-	return wallet.FromPrivateKey(ed25519.NewKeyFromSeed(seed), wallet.V4R2)
-}
-
-func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, expireAt int64, mode uint8, simulate bool) (*SignedTx, error) {
-	w, err := newWallet(seed, pubKey)
+func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, expireAt int64, mode uint8, simulate bool, version wallet.Version) (*SignedTx, error) {
+	w, err := NewWallet(seed, pubKey, version)
 	if err != nil {
 		return nil, err
 	}
-	specV4R2 := w.GetSpec().(*wallet.SpecV4R2)
-	specV4R2.SetCustomSeqnoFetcher(func() uint32 {
+	spec := w.GetSpec().(wallet.SpecRegularSetter)
+	spec.SetCustomSeqnoFetcher(func() uint32 {
 		return seqno
 	})
-	specV4R2.SetExpireAt(expireAt)
+	spec.SetExpireAt(expireAt)
 	toAddr, err := address.ParseAddr(to)
 
 	if err != nil {
@@ -103,8 +90,8 @@ func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, exp
 	return signedTx, nil
 }
 
-func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, seqno uint32, messageAttachedTons string, invokeNotificationFee string, comment string, expireAt int64, rnd uint64, simulate bool) (*SignedTx, error) {
-	w, err := newWallet(seed, pubKey)
+func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, seqno uint32, messageAttachedTons string, invokeNotificationFee string, customPayload, stateInit, comment string, expireAt int64, rnd uint64, simulate bool, version wallet.Version) (*SignedTx, error) {
+	w, err := NewWallet(seed, pubKey, version)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +103,11 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 	if err != nil {
 		return nil, err
 	}
-	specV4R2 := w.GetSpec().(*wallet.SpecV4R2)
-	specV4R2.SetCustomSeqnoFetcher(func() uint32 {
+	spec := w.GetSpec().(wallet.SpecRegularSetter)
+	spec.SetCustomSeqnoFetcher(func() uint32 {
 		return seqno
 	})
-	specV4R2.SetExpireAt(expireAt)
+	spec.SetExpireAt(expireAt)
 	responseToAddress := w.Address()
 	toAmount, ok := new(big.Int).SetString(amount, 10)
 	if !ok {
@@ -143,7 +130,14 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 	if err != nil {
 		return nil, err
 	}
-	transferPayload, err := jw.BuildTransferPayloadV2(toAddr, responseToAddress, toAmountCoins, amountForwardTON, payloadForward, nil, rnd)
+	var customPayloadCell *cell.Cell
+	if len(customPayload) > 0 {
+		customPayloadCell, err = wallet.TryParseCell(customPayload)
+		if err != nil {
+			return nil, err
+		}
+	}
+	transferPayload, err := jw.BuildTransferPayloadV2(toAddr, responseToAddress, toAmountCoins, amountForwardTON, payloadForward, customPayloadCell, rnd)
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +152,29 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 	}
 	message := wallet.SimpleMessage(fromAddr, tlb.FromNanoTON(messageAttachedValBig), transferPayload)
 
+	if len(stateInit) > 0 {
+		b, err := wallet.TryParseBase64(stateInit)
+		if err != nil {
+			return nil, err
+		}
+		bd2, err := cell.FromBOC(b)
+		if err != nil {
+			return nil, err
+		}
+		r1, err := bd2.PeekRef(0)
+		if err != nil {
+			return nil, err
+		}
+		r2, err := bd2.PeekRef(1)
+		if err != nil {
+			return nil, err
+		}
+		in := &tlb.StateInit{
+			Code: r1,
+			Data: r2,
+		}
+		message.InternalMessage.StateInit = in
+	}
 	initialized := false
 	if seqno > 0 {
 		initialized = true

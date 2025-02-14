@@ -32,7 +32,10 @@ func TestCreateTx(t *testing.T) {
 	signedTx := SignTransaction(pk, chainId, tx)
 	signedTxBytes, err := cbor.Marshal(signedTx)
 	require.NoError(t, err)
-	t.Logf("signed tx : %s", base64.StdEncoding.EncodeToString(signedTxBytes))
+	signedTxData := base64.StdEncoding.EncodeToString(signedTxBytes)
+	exp := "onN1bnRydXN0ZWRfcmF3X3ZhbHVlWF+kY2ZlZaJjZ2FzGQfQZmFtb3VudEBkYm9keaJidG9VAAz3INJ33Rk7q+OBLVDqu3ZRyhUOZmFtb3VudEQF9eEAZW5vbmNlB2ZtZXRob2Rwc3Rha2luZy5UcmFuc2ZlcmlzaWduYXR1cmWianB1YmxpY19rZXlYILr0B1TtOEPgRk+BTDxgXYw2UAz7aJLivUQYORAvQgDtaXNpZ25hdHVyZVhAlZ3qt97MuDmu03vNRru/ZZLY+FguRxmcrBoaQAqQJkwHMrr7SO9hleEtvHQsx6kFHsvRhf04SGGStHG/ABJ7Cg=="
+	require.Equal(t, exp, signedTxData)
+
 }
 
 func TestCreateTransferTx(t *testing.T) {
@@ -47,5 +50,8 @@ func TestCreateTransferTx(t *testing.T) {
 	signedTx := SignTransaction(pk, chainId, tx)
 	signedTxBytes, err := cbor.Marshal(signedTx)
 	require.NoError(t, err)
-	t.Logf("signed tx : %s", base64.StdEncoding.EncodeToString(signedTxBytes))
+	signedTxData := base64.StdEncoding.EncodeToString(signedTxBytes)
+	exp := "onN1bnRydXN0ZWRfcmF3X3ZhbHVlWF+kY2ZlZaJjZ2FzGQfQZmFtb3VudEBkYm9keaJidG9VAAz3INJ33Rk7q+OBLVDqu3ZRyhUOZmFtb3VudEQF9eEAZW5vbmNlCGZtZXRob2Rwc3Rha2luZy5UcmFuc2ZlcmlzaWduYXR1cmWianB1YmxpY19rZXlYILr0B1TtOEPgRk+BTDxgXYw2UAz7aJLivUQYORAvQgDtaXNpZ25hdHVyZVhAO2e0X7MlIl8e6x9U+iVsC0SELQckGsuLNwZyEnyio9z5yO2p39JEmeKTI6RGtquxTh9eOdAvPw20Bc5h6AXDDA=="
+	require.Equal(t, exp, signedTxData)
+
 }

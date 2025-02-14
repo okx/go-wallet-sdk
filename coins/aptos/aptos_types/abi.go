@@ -115,10 +115,12 @@ type MoveStruct struct {
 }
 
 type EntryFunctionPayload struct {
-	Function      string        `json:"function"`
-	TypeArguments []string      `json:"type_arguments"`
-	Arguments     []interface{} `json:"arguments"`
-	Type          string        `json:"type"`
+	Function            string        `json:"function"`
+	TypeArguments       []string      `json:"type_arguments"`
+	Arguments           []interface{} `json:"arguments"`
+	Type                string        `json:"type"`
+	TypeArgumentsV2     []string      `json:"typeArguments"`
+	FunctionArgumentsV2 []interface{} `json:"functionArguments"`
 }
 
 type ArgumentABI struct {

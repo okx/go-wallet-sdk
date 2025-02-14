@@ -466,3 +466,19 @@ func CalcTxVirtualSize(inputs TxInputs, outputs []*TxOutput, changeAddress strin
 	view, _ := inputs.UtxoViewpoint(network)
 	return GetTxVirtualSizeByView(btcutil.NewTx(tx), view), nil
 }
+
+func CalTxHash(rawTx string) (string, error) {
+	if len(rawTx)%2 != 0 {
+		rawTx = "0" + rawTx
+	}
+	serializedTx, err := hex.DecodeString(rawTx)
+	if err != nil {
+		return "", err
+	}
+	var mtx wire.MsgTx
+	err = mtx.Deserialize(bytes.NewReader(serializedTx))
+	if err != nil {
+		return "", err
+	}
+	return mtx.TxHash().String(), nil
+}

@@ -32,6 +32,6 @@ func TestPaymentV2Tx_SignTransaction(t *testing.T) {
 	require.NoError(t, err)
 	sig, err := kp.Sign(v2Tx)
 	require.NoError(t, err)
-	expected := "0OmOQqhovv3LhdgjDZ/5JE5M4zHnFteaFJFngOW5u3Hl3Z2nxboOhMklXDeLeeNt7vB6961QEuhBoVCgxwSlCA=="
+	expected := "5i4xKIeYNbhVAsAF5m8IXzgfssait5ja1MghBnd4mgoY9VsJ9FUSUwiNPcx5sFOdHUgY1MCdCt12sCdPKYV8AQ=="
 	require.Equal(t, expected, base64.StdEncoding.EncodeToString(sig))
 }

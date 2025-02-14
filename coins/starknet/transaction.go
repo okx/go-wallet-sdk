@@ -351,17 +351,17 @@ func (tx *Transaction) ToJsonRpcParams() string {
 	return string(bytes)
 }
 
-func CreateDeployAccountTx(starkPub string, nonce, maxFee *big.Int, chainId string) (*DeployTransaction, error) {
+func CreateDeployAccountTx(starkPub string, accountClass string, proxyAccountClass string, nonce, maxFee *big.Int, chainId string) (*DeployTransaction, error) {
 	pub, err := HexToBN(starkPub)
 	if err != nil {
 		return nil, err
 	}
 	version := big.NewInt(TRANSACTION_VERSION)
-	accountClassHash, err := HexToBN(AccountClassHash)
+	accountClassHash, err := HexToBN(accountClass)
 	if err != nil {
 		return nil, err
 	}
-	classHash, err := HexToBN(ProxyAccountClassHash)
+	classHash, err := HexToBN(proxyAccountClass)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ func CreateDeployAccountTx(starkPub string, nonce, maxFee *big.Int, chainId stri
 	constructorCallData = append(constructorCallData, calldate...)
 
 	// calculate address
-	contractAddress, err := CalculateContractAddressFromHash(starkPub)
+	contractAddress, err := CalculateContractAddressFromHash(starkPub, accountClass, proxyAccountClass)
 	if err != nil {
 		return nil, err
 	}
@@ -446,8 +446,8 @@ func CreateSignedTransferTx(curve StarkCurve, contractAddr, from, to string, amo
 	return tx, nil
 }
 
-func CreateSignedDeployAccountTx(curve StarkCurve, starkPub string, nonce, maxFee *big.Int, chainId string, privateKey string) (*DeployTransaction, error) {
-	tx, err := CreateDeployAccountTx(starkPub, nonce, maxFee, chainId)
+func CreateSignedDeployAccountTx(curve StarkCurve, starkPub, accountClass, proxyAccountClass string, nonce, maxFee *big.Int, chainId string, privateKey string) (*DeployTransaction, error) {
+	tx, err := CreateDeployAccountTx(starkPub, accountClass, proxyAccountClass, nonce, maxFee, chainId)
 	if err != nil {
 		return nil, err
 	}
@@ -496,6 +496,13 @@ func SignMsg(curve StarkCurve, msg string, privKey string) (string, error) {
 	}{BigToHexWithPadding(x), BigToHexWithPadding(y), BigToHexWithPadding(r), BigToHexWithPadding(s)})
 
 	return string(sig), err
+}
+
+type SignRes struct {
+	X string `json:"publicKey"`
+	Y string `json:"publicKeyY"`
+	R string `json:"signedDataR"`
+	S string `json:"signedDataS"`
 }
 
 func CreateSignedMultiContractTx(curve StarkCurve, from string, calls []Calls, nonce, maxFee *big.Int, chainId string, privateKey string) (*Transaction, error) {
@@ -701,61 +708,107 @@ func GetTxHash(txStr string) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("json parse error")
 		}
-		amount, _ := new(big.Int).SetString(calldata[7].(string), 10)
-		to, _ := new(big.Int).SetString(calldata[6].(string), 10)
-		selector, _ := new(big.Int).SetString(calldata[2].(string), 10)
-		contractAddress, _ := new(big.Int).SetString(calldata[1].(string), 10)
-		transaction := Transaction{
-			ContractAddress:    contractAddress,
-			EntryPointSelector: selector,
-			Calldata:           []*big.Int{to, amount, big.NewInt(0)},
-		}
-		txs := []Transaction{transaction}
 		fromBn, err := HexToBN(from)
 		if err != nil {
 			return "", err
 		}
-		hash, err := curve.HashMulticall(fromBn, nonce, maxFee, UTF8StrToBig(MAINNET_ID), txs)
+		callArray, err := stringsToBigInts(calldata)
 		if err != nil {
 			return "", err
 		}
+		callArray = append(callArray, big.NewInt(int64(len(callArray))))
+		cdHash, err := curve.HashElements(callArray)
+
+		multiHashData := []*big.Int{
+			UTF8StrToBig(TRANSACTION_PREFIX),
+			big.NewInt(TRANSACTION_VERSION),
+			fromBn,
+			big.NewInt(0),
+			cdHash,
+			maxFee,
+			UTF8StrToBig(MAINNET_ID),
+			nonce,
+		}
+
+		multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
+		hash, err := sc.HashElements(multiHashData)
 		return BigToHex(hash), nil
 	case "DEPLOY_ACCOUNT":
 		version := big.NewInt(TRANSACTION_VERSION)
-		accountClassHash, err := HexToBN(AccountClassHash)
-		if err != nil {
-			return "", err
-		}
-		classHash, err := HexToBN(ProxyAccountClassHash)
-		if err != nil {
-			return "", err
-		}
-
-		pub, ok := data["contract_address_salt"].(string)
+		starkPub, ok := data["contract_address_salt"].(string)
 		if !ok {
 			return "", fmt.Errorf("json parse error")
 		}
-		// calculate address
-		contractAddress, err := CalculateContractAddressFromHash(pub)
+		pub, err := HexToBN(starkPub)
+		if err != nil {
+			return "", err
+		}
+		accountClass, ok := data["class_hash"].(string)
+		if !ok {
+			return "", fmt.Errorf("json parse error")
+		}
+		classHash, err := HexToBN(accountClass)
 		if err != nil {
 			return "", err
 		}
 
-		// build callData
-		pubBn, err := HexToBN(pub)
-		if err != nil {
-			return "", err
+		constructorCalldata, ok := data["constructor_calldata"].([]interface{})
+		if !ok {
+			return "", fmt.Errorf("json parse error")
 		}
-		constructorCallData := []*big.Int{accountClassHash, GetSelectorFromName("initialize")}
-		calldate := []*big.Int{big.NewInt(2), pubBn, big.NewInt(0)}
-		constructorCallData = append(constructorCallData, calldate...)
+		constructorCalldataBigInts, err := stringsToBigInts(constructorCalldata)
 
-		txHash, err := calculateDeployAccountTransactionHash(contractAddress, classHash, constructorCallData, pubBn, version, UTF8StrToBig(MAINNET_ID), nonce, maxFee)
+		calldata := []*big.Int{classHash, pub}
+		calldata = append(calldata, constructorCalldataBigInts...)
+		calldataHash, err := ComputeHashOnElements(calldata)
 		if err != nil {
 			return "", err
 		}
-		return BigToHex(txHash), err
+
+		var contractAddress *big.Int
+		if len(constructorCalldata) == 2 {
+			contractAddress, err = CalculateContractAddressFromHashCairo1(starkPub, accountClass)
+		} else {
+			account, _ := new(big.Int).SetString(constructorCalldata[0].(string), 10)
+			contractAddress, err = CalculateContractAddressFromHash(starkPub, BigToHex(account), accountClass)
+		}
+		if err != nil {
+			return "", err
+		}
+
+		multiHashData := []*big.Int{
+			UTF8StrToBig(DEPLOY_ACCOUNT),
+			version,
+			contractAddress,
+			big.NewInt(0),
+			calldataHash,
+			maxFee,
+			UTF8StrToBig(MAINNET_ID),
+			nonce,
+		}
+		txHash, err := ComputeHashOnElements(multiHashData)
+		if err != nil {
+			return "", err
+		}
+		return BigToHex(txHash), nil
 	}
 
 	return "", err
+}
+
+func stringsToBigInts(calldata []interface{}) ([]*big.Int, error) {
+	callArray := make([]*big.Int, len(calldata))
+	for i, v := range calldata {
+		strVal, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("json parse error")
+		}
+
+		bigIntVal, success := new(big.Int).SetString(strVal, 10)
+		if !success {
+			return nil, fmt.Errorf("json parse error")
+		}
+		callArray[i] = bigIntVal
+	}
+	return callArray, nil
 }

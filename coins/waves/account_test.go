@@ -3,6 +3,7 @@ package waves
 import (
 	"github.com/okx/go-wallet-sdk/coins/waves/crypto"
 	"github.com/okx/go-wallet-sdk/coins/waves/types"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
@@ -46,13 +47,13 @@ func Test_newAddressFromPublicKeyHash(t *testing.T) {
 }
 
 func TestGenerateKeyPair(t *testing.T) {
-	got, got1, err := GenerateKeyPair()
+	privKey, pubKey, err := GenerateKeyPair()
 	if err != nil {
 		t.Errorf("GenerateKeyPair() error = %v", err)
 		return
 	}
-	t.Log(got)
-	t.Log(got1)
+	assert.Equal(t, 44, len(privKey))
+	assert.Equal(t, 44, len(pubKey))
 }
 
 func TestPrivateKeyPublicKey(t *testing.T) {

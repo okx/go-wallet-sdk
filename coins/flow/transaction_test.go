@@ -2,40 +2,66 @@ package flow
 
 import (
 	"github.com/okx/go-wallet-sdk/coins/flow/core"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
+	"regexp"
 	"testing"
 )
 
-func TestCreateNewAccountTx(t *testing.T) {
-	privKey, pubKey := GenerateKeyPair()
-	t.Logf("private key hex : %s", privKey)
+func TestSignTx(t *testing.T) {
+	pubKey := "3b8338d59195fe7f837be80be731a9d5a6381b5c2f9b71e5dadda37563bf9c1fac2a3945ed6aaff9e970c3998dee51ea387e963732ce9c64e85414037459374a"
 
 	payerAddr := "0b65ef5c755c9117"
-	payerSequenceNumber := uint64(9)
+	payerSequenceNumber := uint64(12)
 
-	referenceBlockIDHex := "9c45198cc1deda9087ec2f57607c1b4d6ae59e32a7f4619f47b05d8edb6fe21a"
+	referenceBlockIDHex := "d83f8a740f774665016cbc34221fa1b1a0f430fe938297e2265afeee84bd19f4"
 
-	gasLimit := uint64(999)
+	gasLimit := uint64(9999)
 	tx := CreateNewAccountTx(pubKey, payerAddr, referenceBlockIDHex, payerSequenceNumber, gasLimit)
 
+	signPrivKeyHex := "986b514eec3705d809868611722574bba6d7829cb557dcbfea18b47b203321ed"
+	signAddr := "0x0b65ef5c755c9117"
+
+	err := SignTx(signAddr, signPrivKeyHex, tx)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
 	bytes, err := core.TransactionToHTTP(*tx)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	t.Logf(string(bytes))
+	expected := `\{"script":"aW1wb3J0IENyeXB0bwoKdHJhbnNhY3Rpb24ocHVibGljS2V5czogW0NyeXB0by5LZXlMaXN0RW50cnldLCBjb250cmFjdHM6IHtTdHJpbmc6IFN0cmluZ30pIHsKCXByZXBhcmUoc2lnbmVyOiBBdXRoQWNjb3VudCkgewoJCWxldCBhY2NvdW50ID0gQXV0aEFjY291bnQocGF5ZXI6IHNpZ25lcikKCgkJLy8gYWRkIGFsbCB0aGUga2V5cyB0byB0aGUgYWNjb3VudAoJCWZvciBrZXkgaW4gcHVibGljS2V5cyB7CgkJCWFjY291bnQua2V5cy5hZGQocHVibGljS2V5OiBrZXkucHVibGljS2V5LCBoYXNoQWxnb3JpdGhtOiBrZXkuaGFzaEFsZ29yaXRobSwgd2VpZ2h0OiBrZXkud2VpZ2h0KQoJCX0KCQkKCQkvLyBhZGQgY29udHJhY3RzIGlmIHByb3ZpZGVkCgkJZm9yIGNvbnRyYWN0IGluIGNvbnRyYWN0cy5rZXlzIHsKCQkJYWNjb3VudC5jb250cmFjdHMuYWRkKG5hbWU6IGNvbnRyYWN0LCBjb2RlOiBjb250cmFjdHNbY29udHJhY3RdIS5kZWNvZGVIZXgoKSkKCQl9Cgl9Cn0KIA==","arguments":\["eyJ0eXBlIjoiQXJyYXkiLCJ2YWx1ZSI6W3sidHlwZSI6IlN0cnVjdCIsInZhbHVlIjp7ImlkIjoiSS5DcnlwdG8uQ3J5cHRvLktleUxpc3RFbnRyeSIsImZpZWxkcyI6W3sibmFtZSI6ImtleUluZGV4IiwidmFsdWUiOnsidHlwZSI6IkludCIsInZhbHVlIjoiMTAwMCJ9fSx7Im5hbWUiOiJwdWJsaWNLZXkiLCJ2YWx1ZSI6eyJ0eXBlIjoiU3RydWN0IiwidmFsdWUiOnsiaWQiOiJQdWJsaWNLZXkiLCJmaWVsZHMiOlt7Im5hbWUiOiJwdWJsaWNLZXkiLCJ2YWx1ZSI6eyJ0eXBlIjoiQXJyYXkiLCJ2YWx1ZSI6W3sidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiI1OSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxMzEifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNTYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMjEzIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjE0NSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxNDkifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMjU0In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjEyNyJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxMzEifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTIzIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjIzMiJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxMSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMzEifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNDkifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTY5In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjIxMyJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxNjYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNTYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMjcifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiOTIifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNDcifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTU1In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjExMyJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMjkifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMjE4In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjIyMSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxNjMifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTE3In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6Ijk5In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjE5MSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxNTYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMzEifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTcyIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjQyIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjU3In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjY5In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjIzNyJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxMDYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTc1In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjI0OSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMzMifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTEyIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjE5NSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxNTMifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTQxIn0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjIzOCJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiI4MSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMzQifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNTYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTI2In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjE1MCJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiI1NSJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiI1MCJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMDYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMTU2In0seyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjEwMCJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIyMzIifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiODQifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMjAifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMyJ9LHsidHlwZSI6IlVJbnQ4IiwidmFsdWUiOiIxMTYifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiODkifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNTUifSx7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiNzQifV19fSx7Im5hbWUiOiJzaWduYXR1cmVBbGdvcml0aG0iLCJ2YWx1ZSI6eyJ0eXBlIjoiRW51bSIsInZhbHVlIjp7ImlkIjoiU2lnbmF0dXJlQWxnb3JpdGhtIiwiZmllbGRzIjpbeyJuYW1lIjoicmF3VmFsdWUiLCJ2YWx1ZSI6eyJ0eXBlIjoiVUludDgiLCJ2YWx1ZSI6IjEifX1dfX19XX19fSx7Im5hbWUiOiJoYXNoQWxnb3JpdGhtIiwidmFsdWUiOnsidHlwZSI6IkVudW0iLCJ2YWx1ZSI6eyJpZCI6Ikhhc2hBbGdvcml0aG0iLCJmaWVsZHMiOlt7Im5hbWUiOiJyYXdWYWx1ZSIsInZhbHVlIjp7InR5cGUiOiJVSW50OCIsInZhbHVlIjoiMyJ9fV19fX0seyJuYW1lIjoid2VpZ2h0IiwidmFsdWUiOnsidHlwZSI6IlVGaXg2NCIsInZhbHVlIjoiMTAwMC4wMDAwMDAwMCJ9fSx7Im5hbWUiOiJpc1Jldm9rZWQiLCJ2YWx1ZSI6eyJ0eXBlIjoiQm9vbCIsInZhbHVlIjpmYWxzZX19XX19XX0=","eyJ0eXBlIjoiRGljdGlvbmFyeSIsInZhbHVlIjpbXX0="],"reference_block_id":"d83f8a740f774665016cbc34221fa1b1a0f430fe938297e2265afeee84bd19f4","gas_limit":"9999","payer":"0b65ef5c755c9117","proposal_key":\{"address":"0b65ef5c755c9117","key_index":"0","sequence_number":"12"\},"authorizers":\["0b65ef5c755c9117"\],"payload_signatures":\[\],"envelope_signatures":\[\{"address":"0b65ef5c755c9117","key_index":"0","signature":"[A-Za-z0-9+/=]{88}"\}\]\}`
+	re := regexp.MustCompile(expected)
+	match := re.MatchString(string(bytes))
+	assert.True(t, match)
 }
 
-func TestCreateTransferFlowTx(t *testing.T) {
+func TestSignTransferTx(t *testing.T) {
 	amount := float64(1)
-	toAddr := "0xbd7d04ba8666b4d2"
-	payer := "0x0b65ef5c755c9117"
-	referenceBlockIDHex := "d77ceec957d4036f44bc33aaa03049b4cb96c75f0bbedafb09c62ac7e9b604d2"
-	payerSequenceNumber := uint64(8)
+	toAddr := "0x0b65ef5c755c9117"
+	payer := "0x7a1fa92ef1acbe3c"
+	referenceBlockIDHex := "5e62a0eb9505be3499fc321df3afc705f5483fd4409b940df3cabb66988117ce"
+	payerSequenceNumber := uint64(2)
 	gasLimit := uint64(9999)
 	tx := CreateTransferFlowTx(amount, toAddr, payer, referenceBlockIDHex, payerSequenceNumber, gasLimit)
-	txBytes, err := core.TransactionToHTTP(*tx)
-	require.Nil(t, err)
-	t.Log("tx : ", string(txBytes))
+	signPrivKeyHex := "3eabec25b247b2f2e83dee958d77732a1a6a848383ac0dd9d4b0e97c18ee7259"
+	signAddr := "0x7a1fa92ef1acbe3c"
+
+	err := SignTx(signAddr, signPrivKeyHex, tx)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	bytes, err := core.TransactionToHTTP(*tx)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	expected := `\{"script":"aW1wb3J0IEZ1bmdpYmxlVG9rZW4gZnJvbSAweDlhMDc2NmQ5M2I2NjA4YjcKaW1wb3J0IEZsb3dUb2tlbiBmcm9tIDB4N2U2MGRmMDQyYTljMDg2OAoKdHJhbnNhY3Rpb24oYW1vdW50OiBVRml4NjQsIHRvOiBBZGRyZXNzKSB7CgogICAgbGV0IHNlbnRWYXVsdDogQEZ1bmdpYmxlVG9rZW4uVmF1bHQKCiAgICBwcmVwYXJlKHNpZ25lcjogQXV0aEFjY291bnQpIHsKCiAgICAgICAgbGV0IHZhdWx0UmVmID0gc2lnbmVyLmJvcnJvdzwmRmxvd1Rva2VuLlZhdWx0Pihmcm9tOiAvc3RvcmFnZS9mbG93VG9rZW5WYXVsdCkKCQkJPz8gcGFuaWMoIkNvdWxkIG5vdCBib3Jyb3cgcmVmZXJlbmNlIHRvIHRoZSBvd25lcidzIFZhdWx0ISIpCgogICAgICAgIHNlbGYuc2VudFZhdWx0IDwtIHZhdWx0UmVmLndpdGhkcmF3KGFtb3VudDogYW1vdW50KQogICAgfQoKICAgIGV4ZWN1dGUgewoKICAgICAgICBsZXQgcmVjZWl2ZXJSZWYgPSAgZ2V0QWNjb3VudCh0bykKICAgICAgICAgICAgLmdldENhcGFiaWxpdHkoL3B1YmxpYy9mbG93VG9rZW5SZWNlaXZlcikKICAgICAgICAgICAgLmJvcnJvdzwme0Z1bmdpYmxlVG9rZW4uUmVjZWl2ZXJ9PigpCgkJCT8/IHBhbmljKCJDb3VsZCBub3QgYm9ycm93IHJlY2VpdmVyIHJlZmVyZW5jZSB0byB0aGUgcmVjaXBpZW50J3MgVmF1bHQiKQoKICAgICAgICByZWNlaXZlclJlZi5kZXBvc2l0KGZyb206IDwtc2VsZi5zZW50VmF1bHQpCiAgICB9Cn0=","arguments":\["eyJ0eXBlIjoiVUZpeDY0IiwidmFsdWUiOiIxLjAwMDAwMCJ9","eyJ0eXBlIjoiQWRkcmVzcyIsInZhbHVlIjoiMHgwYjY1ZWY1Yzc1NWM5MTE3In0="\],"reference_block_id":"5e62a0eb9505be3499fc321df3afc705f5483fd4409b940df3cabb66988117ce","gas_limit":"9999","payer":"7a1fa92ef1acbe3c","proposal_key":\{"address":"7a1fa92ef1acbe3c","key_index":"0","sequence_number":"2"\},"authorizers":\["7a1fa92ef1acbe3c"\],"payload_signatures":\[],"envelope_signatures":\[{"address":"7a1fa92ef1acbe3c","key_index":"0","signature":"[A-Za-z0-9+/=]{88}"\}]}`
+	re := regexp.MustCompile(expected)
+	match := re.MatchString(string(bytes))
+	assert.True(t, match)
 }

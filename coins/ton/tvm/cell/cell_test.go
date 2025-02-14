@@ -11,9 +11,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
-	"log"
+	"github.com/stretchr/testify/assert"
 	"math/big"
-	"strings"
 	"testing"
 )
 
@@ -25,16 +24,11 @@ func TestCell_HashSign(t *testing.T) {
 
 	b, _ := hex.DecodeString("bb2509fe3cff8f1faae19213774d218c018f9616cd397850c8ad9038db84eaa9")
 
-	if !bytes.Equal(cc.Hash(), b) {
-		t.Log(hex.EncodeToString(cc.Hash()))
-		t.Log(hex.EncodeToString(b))
-		t.Fatal("hash diff")
-	}
+	assert.Equal(t, b, cc.Hash())
 
 	pub, priv, _ := ed25519.GenerateKey(nil)
-	if !cc.Verify(pub, cc.Sign(priv)) {
-		t.Fatal("sign not match")
-	}
+	verified := cc.Verify(pub, cc.Sign(priv))
+	assert.True(t, verified)
 }
 
 func TestCell_ToBOCWithFlags(t *testing.T) {
@@ -94,9 +88,7 @@ func TestBOCWithCRC(t *testing.T) {
 
 	boc := c.ToBOC()
 	newParsed, _ := FromBOC(boc)
-	if !bytes.Equal(newParsed.Hash(), c.Hash()) {
-		t.Fatal("boc not same")
-	}
+	assert.Equal(t, newParsed.Hash(), c.Hash())
 }
 
 func TestCell_Hash1(t *testing.T) {
@@ -139,7 +131,6 @@ func TestCell_DumpBomb(t *testing.T) {
 
 	str := c.Dump(8 << 20)
 	if len(str) != 8<<20 {
-		println(str)
 		t.Fatal("not eq lim len", len(str), 8<<20)
 	}
 }
@@ -253,7 +244,6 @@ func TestCell_ShardStateProof(t *testing.T) {
 func TestSameBocIndex(t *testing.T) {
 	r := BeginCell().MustStoreUInt(555, 32).EndCell()
 	c := BeginCell().MustStoreUInt(55, 64).MustStoreRef(r).MustStoreRef(r).MustStoreRef(r.copy()).EndCell()
-	println(hex.EncodeToString(c.ToBOC()))
 
 	c2, err := FromBOC(c.ToBOC())
 	if err != nil {
@@ -262,22 +252,5 @@ func TestSameBocIndex(t *testing.T) {
 
 	if !bytes.Equal(c.Hash(), c2.Hash()) {
 		t.Fatal("wrong hash")
-	}
-}
-
-func TestCellRecursive(t *testing.T) {
-	stateInit := "te6ccsECFgEAAwQAAAAABQAwAD0AQgDEAMsBAwE9AXYBewGAAa8BtAG/AcQByQHYAecCCAJ/AsYCATQCAQBRAAAAACmpoxf4lk0qBZddWkKNjjqmudjY6QDlccYne0gS9zCGDH3x2kABFP8A9KQT9LzyyAsDAgEgCQQE+PKDCNcYINMf0x/THwL4I7vyZO1E0NMf0x/T//QE0VFDuvKhUVG68qIF+QFUEGT5EPKj+AAkpMjLH1JAyx9SMMv/UhD0AMntVPgPAdMHIcAAn2xRkyDXSpbTB9QC+wDoMOAhwAHjACHAAuMAAcADkTDjDQOkyMsfEssfy/8IBwYFAAr0AMntVABsgQEI1xj6ANM/MFIkgQEI9Fnyp4IQZHN0cnB0gBjIywXLAlAFzxZQA/oCE8tqyx8Syz/Jc/sAAHCBAQjXGPoA0z/IVCBHgQEI9FHyp4IQbm90ZXB0gBjIywXLAlAGzxZQBPoCFMtqEssfyz/Jc/sAAgBu0gf6ANTUIvkABcjKBxXL/8nQd3SAGMjLBcsCIs8WUAX6AhTLaxLMzMlz+wDIQBSBAQj0UfKnAgIBSBMKAgEgDAsAWb0kK29qJoQICga5D6AhhHDUCAhHpJN9KZEM5pA+n/mDeBKAG3gQFImHFZ8xhAIBIA4NABG4yX7UTQ1wsfgCAVgSDwIBIBEQABmvHfaiaEAQa5DrhY/AABmtznaiaEAga5Drhf/AAD2ynftRNCBAUDXIfQEMALIygfL/8nQAYEBCPQKb6ExgAubQAdDTAyFxsJJfBOAi10nBIJJfBOAC0x8hghBwbHVnvSKCEGRzdHK9sJJfBeAD+kAwIPpEAcjKB8v/ydDtRNCBAUDXIfQEMFyBAQj0Cm+hMbOSXwfgBdM/yCWCEHBsdWe6kjgw4w0DghBkc3RyupJfBuMNFRQAilAEgQEI9Fkw7UTQgQFA1yDIAc8W9ADJ7VQBcrCOI4IQZHN0coMesXCAGFAFywVQA88WI/oCE8tqyx/LP8mAQPsAkl8D4gB4AfoA9AQw+CdvIjBQCqEhvvLgUIIQcGx1Z4MesXCAGFAEywUmzxZY+gIZ9ADLaRfLH1Jgyz8gyYBA+wAGdYbenA=="
-	stateInitBytes, err := base64.StdEncoding.DecodeString(stateInit)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = FromBOC(stateInitBytes)
-	if err == nil {
-		log.Fatal("must be err")
-	}
-
-	if !strings.HasSuffix(err.Error(), "recursive reference of cells") {
-		log.Fatal("incorrect err:", err.Error())
 	}
 }

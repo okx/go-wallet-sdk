@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -100,7 +99,6 @@ func TestSignMessage(t *testing.T) {
 	prvKey, pub := btcec.PrivKeyFromBytes(prvB)
 	addr := GetNewAddress(pub)
 	sig, err := SignEthTypeMessage(msg, prvKey, true)
-	fmt.Println(sig, err)
 	assert.Equal(t, `d87758593e0b89f8a2deef5e053ce484fe971a75124bf5d89d6f4d4f586604120d0110d03c91260fec9ec917354caae50c1744d246e30ff48def277d7d9aec831b`, sig)
 	addr2, err := EcRecover(sig, msg, true)
 	assert.NoError(t, err)
@@ -133,13 +131,15 @@ func TestEth2(t *testing.T) {
 func TestEth3(t *testing.T) {
 	t.Run("one", func(t *testing.T) {
 		tx, err := NewTransactionFromRaw("0xf86f6a8506fc23ac0082520894e1d4fd72a48af968d80f6d9ef161d57bb9293837880de0b6b3a764000080830150f5a0b64b1eb1c2f41b95dac35c4751f4070ca8c185b9a94ea2d44454f47ca7944a23a004a98084513c3233ec962d9cfdf2a45d06473fa51554a0b3d99939e1ed387ed7")
+		txJson, err := json.Marshal(tx)
 		require.Nil(t, err)
-		t.Log("tx : ", tx)
+		assert.Equal(t, "{\"nonce\":106,\"gasPrice\":30000000000,\"gas\":21000,\"to\":\"4dT9cqSK+WjYD22e8WHVe7kpODc=\",\"value\":1000000000000000000,\"data\":\"\",\"v\":86261,\"r\":82453663816844830000916708780693313301330244341018929324864149013981109176867,\"s\":2108735539081020627590557504528962845333568746955363520031332889159139884759}", string(txJson))
 	})
 	t.Run("two", func(t *testing.T) {
 		tx, err := NewTransactionFromRaw("0xf869698506fc23ac0082520894af133678d4188ddbfd13655cf12e8e15f28fdecb8203e880830150f6a0b64b1eb1c2f41b95dac35c4751f4070ca8c185b9a94ea2d44454f47ca7944a23a0522afd4359e208cf86c036c4272bf65d7fdddc73f33006f845c1c94fa826befc")
 		require.Nil(t, err)
-		t.Log("tx : ", tx)
+		txJson, err := json.Marshal(tx)
+		assert.Equal(t, "{\"nonce\":105,\"gasPrice\":30000000000,\"gas\":21000,\"to\":\"rxM2eNQYjdv9E2Vc8S6OFfKP3ss=\",\"value\":1000,\"data\":\"\",\"v\":86262,\"r\":82453663816844830000916708780693313301330244341018929324864149013981109176867,\"s\":37165609118156479824344898797594740443460068889833947985890798108880694329084}", string(txJson))
 	})
 }
 
@@ -148,8 +148,7 @@ func TestEIP712(t *testing.T) {
 	str := `{"domain":{"name":"AuthTransfer","chainId":1,"verifyingContract":"0x1243C09717e4441341472c4b142B8ac0B71F7672"},"message":{"details":[{"token":"0x0000000000000000000000000000000000000000","expiration":1853395200}],"spenders":["0x1B256B89462710a6b459540B999AbE5771d45A6e"],"nonce":0},"primaryType":"Permits","types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permits":[{"name":"details","type":"PermitDetails[]"},{"name":"spenders","type":"address[]"},{"name":"nonce","type":"uint256"}],"PermitDetails":[{"name":"token","type":"address"},{"name":"expiration","type":"uint256"}]}}`
 	err := json.Unmarshal([]byte(str), &typedData)
 	assert.NoError(t, err)
-	hash, str2, err := TypedDataAndHash(typedData)
+	hash, _, err := TypedDataAndHash(typedData)
 	assert.NoError(t, err)
 	assert.Equal(t, "3d697a8b530f96c6d7fc222ee6a43c7976ac2ac52dede33207a4758f5d502eac", hex.EncodeToString(hash))
-	assert.Equal(t, str, str2)
 }

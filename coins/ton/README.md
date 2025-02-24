@@ -196,6 +196,12 @@ IgnoreChksig: true,
 fmt.Println(tt.Str())
 ```
 
+## Credits  This project includes code adapted from the following sources:  
+- [tonutils-go](https://github.com/xssnick/tonutils-go) - Ton Go SDK
+- [tongo](https://github.com/tonkeeper/tongo) - TonKeeper Go SDK
+
+If you are the original author and would like credit adjusted, please contact us.
+
 ## License
 
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/polkdot/LICENSE>) licensed, see

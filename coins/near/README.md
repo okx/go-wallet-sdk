@@ -82,5 +82,37 @@ go get -u github.com/okx/go-wallet-sdk/coins/near
 	}
 ```
 
+### Calculate Tx Hash
+```go
+	signedTx := `QAAAAGQ3Mzg4OGEyNjE5Yzc3NjE3MzVmMjNjNzk4NTM2MTQ1ZGZhODdmOTMwNmI1ZjIxMjc1ZWI0YjFhN2JhOTcxYjkA1ziIomGcd2FzXyPHmFNhRd+of5MGtfISdetLGnupcbnjWwQAAAAAAEAAAAA4OWY5Nzc1ODU5ZWQzNDY3OGVhNDhlOWExYWViMjAyY2Q0YzI5ZGNlMTViZTA2NTJiOWY1MGUyMmEwYjY3ZWY3r4iB+lQhXiP818JF0LPDjkAFNvOeVJ/lAoe14WgEF6cBAAAAAwAA4ntBSX/LsDkAAAAAAAAAJv0PcmRmmTopCCBHfD2GNR3IKgmLzEL0K70jwXkjwXqbESEFCVaymK9VP/o9bFoPYeU+AFW92TyPy1fssMHaDQ==`
+	hash, err := CalTxHash(signedTx, true)
+ 	if err != nil {
+		// todo
+	}
+```
+
+### Sign Message
+```go
+	nonce := make([]byte, 32)
+	nonce[31] = 1
+	payload := serialize.NewSignMessagePayload("hello world", nonce, "", "")
+	privateKey := "790e2778e0bfdae3da6419ef68c2451e80449de81e7bed9150b1cbc72b56a219d25cfdae0f9832e98bbdc87f3a156bb765cd9964e00878bf66da74591537e0a9"
+	bs, err := payload.Serialize()
+ 	if err != nil {
+		// todo
+	}
+
+	payload = serialize.NewSignMessagePayload("hello world", nonce, "", "1")
+	bs, err = payload.Serialize()
+ 	if err != nil {
+		// todo
+	}
+
+	s, err := SignMessage(payload, privateKey)
+ 	if err != nil {
+		// todo
+	}
+```
+
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/near/LICENSE>) licensed, see package or folder for the respective license.

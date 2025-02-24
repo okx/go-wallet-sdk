@@ -30,3 +30,8 @@ func TestPubKeyToAddr(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "tb1pklh8lqax5l7m2ycypptv2emc4gata2dy28svnwcp9u32wlkenvsspcvhsr", p2tr)
 }
+
+func TestValidateAddress(t *testing.T) {
+	valid := ValidateAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+	assert.True(t, valid)
+}

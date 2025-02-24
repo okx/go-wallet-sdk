@@ -1,6 +1,7 @@
 package sui
 
 import (
+	"bytes"
 	crypto_ed25519 "crypto/ed25519"
 	"encoding/base64"
 	"encoding/hex"
@@ -22,6 +23,8 @@ const (
 var (
 	ErrInvalidSuiRequest = errors.New("invalid sui request")
 	ErrInvalidSuiSeedHex = errors.New("invalid sui seed hex")
+	ErrInvalidPublicKey  = errors.New("invalid public key")
+	ErrInvalidSign       = errors.New("invalid sign")
 	ErrInvalidSuiParam   = errors.New("invalid sui param")
 	ErrUnknownSuiRequest = errors.New("unknown sui request")
 )
@@ -87,6 +90,20 @@ func NewAddress(seedHex string) string {
 	return address
 }
 
+func NewPubAddress(pub string) (string, error) {
+	pk, err := base64.StdEncoding.DecodeString(pub)
+	if err != nil || len(pk) != PUBLIC_KEY_SIZE {
+		return "", ErrInvalidPublicKey
+	}
+	publicKey := crypto_ed25519.PublicKey(pk)
+	k := make([]byte, PUBLIC_KEY_SIZE+1)
+	copy(k[1:], publicKey)
+	hash := blake2b.New256()
+	hash.Write(k)
+	h := hash.Sum(nil)
+	address := "0x" + hex.EncodeToString(h)[0:64]
+	return address, nil
+}
 func GetAddressByPubKey(publicKeyHex string) (string, error) {
 	publicKey, err := hex.DecodeString(publicKeyHex)
 	if err != nil {
@@ -203,6 +220,18 @@ func PrepareTx(r *Request, to string, gasBudget uint64, gasPrice uint64, addr st
 		if err != nil {
 			return "", err
 		}
+	case r.Type == Any:
+		var req AnySuiRequest
+		if err = json.Unmarshal([]byte(r.Data), &req); err != nil {
+			return "", ErrInvalidSuiRequest
+		}
+		if len(req.Coins) == 0 || len(req.Ins) == 0 || len(req.Calls) == 0 {
+			return "", errors.New("invalid sui request")
+		}
+		s, err = BuildAnyCall(addr, req.Coins, req.Ins, req.Calls, req.Epoch, gasBudget, gasPrice)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if len(s) == 0 {
@@ -247,9 +276,12 @@ func Execute(r *Request, from, to string, gasBudget uint64, gasPrice uint64, see
 }
 
 func SignMessage(input string, seedHex string) (string, error) {
-	signDo := make([]byte, len(input)+3)
+	buf := bytes.Buffer{}
+	WriteString(&buf, input)
+	r := buf.Bytes()
+	signDo := make([]byte, len(r)+3)
 	signDo[0] = 3
-	copy(signDo[3:], []byte(input))
+	copy(signDo[3:], r)
 	hash := blake2b.New256()
 	hash.Write(signDo)
 	b := hash.Sum(nil)
@@ -265,6 +297,56 @@ func SignMessage(input string, seedHex string) (string, error) {
 	copy(sign[1:], signature)
 	copy(sign[1+len(signature):], publicKey)
 	return base64.StdEncoding.EncodeToString(sign), nil
+}
+
+func VerifyMessage(input string, pub string, sign string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = ErrInvalidSign
+		}
+	}()
+	buf := bytes.Buffer{}
+	err = WriteString(&buf, input)
+	if err != nil {
+		return err
+	}
+	r := buf.Bytes()
+	signDo := make([]byte, len(r)+3)
+	signDo[0] = 3
+	copy(signDo[3:], r)
+	hash := blake2b.New256()
+	hash.Write(signDo)
+	b := hash.Sum(nil)
+	pk, err := base64.StdEncoding.DecodeString(pub)
+	if err != nil {
+		return err
+	}
+	sig, err := base64.StdEncoding.DecodeString(sign)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(sig[65:], pk) {
+		return ErrInvalidBytes
+	}
+	if !crypto_ed25519.Verify(pk, b, sig[1:65]) {
+		return ErrInvalidBytes
+	}
+	return nil
+}
+
+func VerifySign(pub []byte, sign []byte, hash []byte) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = ErrInvalidSign
+		}
+	}()
+	if !bytes.Equal(sign[65:], pub) {
+		return ErrInvalidBytes
+	}
+	if !crypto_ed25519.Verify(pub, hash, sign[1:65]) {
+		return ErrInvalidBytes
+	}
+	return nil
 }
 
 func SignTransaction(txBytes string, seedHex string) (*SignedTransaction, error) {
@@ -322,4 +404,19 @@ type MergeSuiRequest struct {
 	Coins   []*SuiObjectRef `json:"coins"`
 	Objects []*SuiObjectRef `json:"objects"`
 	Epoch   uint64          `json:"epoch"`
+}
+
+type AnySuiRequest struct {
+	Coins []*SuiObjectRef `json:"coins"`
+	Ins   []string        `json:"ins"`
+	Calls []string        `json:"calls"`
+	Epoch uint64          `json:"epoch"`
+}
+
+func CalTxHash(signedTx string) (string, error) {
+	var signed *SignedTransaction
+	if err := json.Unmarshal([]byte(signedTx), &signed); err != nil {
+		return "", err
+	}
+	return Hash(signed.TxBytes)
 }

@@ -1,10 +1,11 @@
-module github.com/okx/go-wallet-sdk/coins/ethereum
+module github.com/okx/go-wallet-sdk/coins/harmony
 
 go 1.19
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/ethereum/go-ethereum v1.12.2
+	github.com/okx/go-wallet-sdk/coins/ethereum v0.0.2
 	github.com/okx/go-wallet-sdk/crypto v0.0.1
 	github.com/okx/go-wallet-sdk/util v0.0.1
 	github.com/stretchr/testify v1.8.1

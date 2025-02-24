@@ -32,8 +32,8 @@ type ProofData struct {
 	Payload   string `json:"payload"`
 }
 
-func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, simulate bool) (*SignedTx, error) {
-	w, err := newWallet(seed, pub)
+func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, simulate bool, version wallet.Version) (*SignedTx, error) {
+	w, err := NewWallet(seed, pub, version)
 	if err != nil {
 		return nil, err
 	}
@@ -151,15 +151,15 @@ func (s *AccontInfo) Str() (string, error) {
 	return string(r), err
 }
 
-func GetWalletInformation(seed, pubKey []byte) (*AccontInfo, error) {
-	w, err := newWallet(seed, pubKey)
+func GetWalletInformation(seed, pubKey []byte, version wallet.Version) (*AccontInfo, error) {
+	w, err := NewWallet(seed, pubKey, version)
 	if err != nil {
 		return nil, err
 	}
 	if w == nil {
 		return nil, errors.New("invalid wallet")
 	}
-	state, err := wallet.GetStateInit(w.PublicKey(), wallet.V4R2, wallet.DefaultSubwallet)
+	state, err := wallet.GetStateInit(w.PublicKey(), w.GetVersionConfig(), w.GetSubwalletID())
 	if err != nil {
 		return nil, err
 	}

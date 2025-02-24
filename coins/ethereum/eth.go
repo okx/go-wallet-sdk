@@ -91,6 +91,60 @@ func (tx *EthTransaction) GetSigningHash(chainId *big.Int) (string, string, erro
 	return hex.EncodeToString(msgHash), unSignedTx, nil
 }
 
+func (tx *EthTransaction) Hash() (string, error) {
+	sha := sha3.NewLegacyKeccak256()
+	sha.Reset()
+	value, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		return "", err
+	}
+	_, err = sha.Write(value)
+	if err != nil {
+		return "", err
+	}
+	var hash []byte
+	hash = sha.Sum(nil)
+	return hex.EncodeToString(hash[:]), nil
+}
+
+func CalTxHash(signedTxHex string) (string, error) {
+	signedTxBytes := util.RemoveZeroHex(signedTxHex)
+	if signedTxBytes[0] == byte(DynamicFeeTxType) {
+		var signedTx DynamicFeeTx
+		err := rlp.DecodeBytes(signedTxBytes[1:], &signedTx)
+		if err != nil {
+			return "", err
+		}
+		return signedTx.Hash()
+	} else {
+		var signedTx EthTransaction
+		err := rlp.DecodeBytes(signedTxBytes, &signedTx)
+		if err != nil {
+			return "", err
+		}
+		return signedTx.Hash()
+	}
+}
+
+func DecodeTxNonce(signedTxHex string) (uint64, error) {
+	signedTxBytes := util.RemoveZeroHex(signedTxHex)
+	if signedTxBytes[0] == byte(DynamicFeeTxType) {
+		var signedTx DynamicFeeTx
+		err := rlp.DecodeBytes(signedTxBytes[1:], &signedTx)
+		if err != nil {
+			return 0, err
+		}
+		return signedTx.nonce(), nil
+	} else {
+		var signedTx EthTransaction
+		err := rlp.DecodeBytes(signedTxBytes, &signedTx)
+		if err != nil {
+			return 0, err
+		}
+		return signedTx.Nonce.Uint64(), nil
+	}
+}
+
 func (tx *EthTransaction) SignedTx(chainId *big.Int, sig *SignatureData) (string, error) {
 	tx.V = big.NewInt(chainId.Int64()*2 + sig.V.Int64() + 8)
 	tx.R = sig.R
@@ -107,6 +161,28 @@ func SignMessage(message []byte, prvKey *btcec.PrivateKey) (*SignatureData, erro
 	hash256.Write(message)
 	messageHash := hash256.Sum(nil)
 	return SignAsRecoverable(messageHash, prvKey)
+}
+
+func SignMessageEIP1559(message []byte, prvKey *btcec.PrivateKey) (*SignatureData, error) {
+	hash256 := sha3.NewLegacyKeccak256()
+	hash256.Write([]byte{DynamicFeeTxType})
+	hash256.Write(message)
+	messageHash := hash256.Sum(nil)
+	sig, err := ecdsa.SignCompact(prvKey, messageHash, false)
+	if err != nil {
+		return nil, err
+	}
+	V := sig[0] - 27
+	R := sig[1:33]
+	S := sig[33:65]
+	return &SignatureData{
+		V:     new(big.Int).SetBytes([]byte{V}),
+		R:     new(big.Int).SetBytes(R),
+		S:     new(big.Int).SetBytes(S),
+		ByteV: V,
+		ByteR: R,
+		ByteS: S,
+	}, nil
 }
 
 func SignEthTypeMessage(message string, prvKey *btcec.PrivateKey, addPrefix bool) (string, error) {
@@ -225,6 +301,9 @@ func GetEthGroupPubHash(pubKey *btcec.PublicKey) []byte {
 
 func EcRecoverPubKey(signature, message string, addPrefix bool) (*btcec.PublicKey, error) {
 	signatureData := util.RemoveZeroHex(signature)
+	if len(signatureData) < 65 {
+		return nil, errors.New("signature too short")
+	}
 	R := signatureData[:33]
 	S := signatureData[33:64]
 	V := signatureData[64:65]
@@ -322,4 +401,30 @@ func PubKeyToAddr(publicKey []byte) (string, error) {
 	hash.Write(pubKey.SerializeUncompressed()[1:])
 	addressByte := hash.Sum(nil)
 	return "0x" + hex.EncodeToString(addressByte[12:]), nil
+}
+
+func HasHexPrefix(str string) bool {
+	return len(str) >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
+}
+
+func IsHex(str string) bool {
+	if len(str)%2 != 0 {
+		return false
+	}
+	for _, c := range []byte(str) {
+		if !isHexCharacter(c) {
+			return false
+		}
+	}
+	return true
+}
+func isHexCharacter(c byte) bool {
+	return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')
+}
+
+func IsEthHexAddress(s string) bool {
+	if HasHexPrefix(s) {
+		s = s[2:]
+	}
+	return len(s) == 2*AddressLength && IsHex(s)
 }

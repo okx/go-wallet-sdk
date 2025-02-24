@@ -2,6 +2,7 @@ package atomical
 
 import (
 	"errors"
+	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -13,18 +14,22 @@ import (
 )
 
 const (
-	ErrCodeLessAtomicalAmt    = 2011400
-	ErrCodeAtomicalChangeFail = 2011401
-	ErrCodeVoutDust           = 2011402
-	ErrCodeCommon             = 2011403
-	ErrCodeUnknownAsset       = 2011404
-	ErrInsufficientBalance    = 1000001
-	ErrCodeMul                = 2011420
+	ErrCodeLessAtomicalAmt           = 2011400
+	ErrCodeAtomicalChangeFail        = 2011401
+	ErrCodeVoutDust                  = 2011402
+	ErrCodeCommon                    = 2011403
+	ErrCodeUnknownAsset              = 2011404
+	ErrInsufficientBalance           = 1000001
+	ErrCodeMul                       = 2011420
+	ErrCodeSemiColorOuput            = 2011405
+	ErrCodeAtomicalNotFullyAllocated = 2011406
+	ErrCodeInvalidInputAsset         = 2011407
 )
 
 var (
-	errUnknown            = &Err{ErrCode: ErrCodeCommon}
-	ErInsufficientBalance = "Insufficient Balance"
+	errUnknown                  = &Err{ErrCode: ErrCodeCommon}
+	ErInsufficientBalance       = "Insufficient Balance"
+	ErAtomicalNotFullyAllocated = "AtomicalNotFullyAllocated"
 )
 
 var (
@@ -35,6 +40,10 @@ var (
 type Err struct {
 	ErrCode int         `json:"errCode"`
 	Data    interface{} `json:"data"`
+}
+
+func (e *Err) Error() error {
+	return fmt.Errorf("ErrCode:%d Data:%v", e.ErrCode, e.Data)
 }
 
 type ErrAtomicalIdAmt struct {

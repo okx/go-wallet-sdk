@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/okx/go-wallet-sdk/coins/ethereum/token"
 	"github.com/okx/go-wallet-sdk/util"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 )
 
@@ -124,14 +123,6 @@ func GenerateRawTransactionWithSignature(txType int, chainId, unsignedRawTx, r, 
 		}
 		return util.EncodeHexWith0x(value), err
 	}
-}
-
-func CalTxHash(rawTx string) string {
-	bytes := util.RemoveZeroHex(rawTx)
-	s256 := sha3.NewLegacyKeccak256()
-	s256.Write(bytes)
-	txBytes := s256.Sum(nil)
-	return util.EncodeHexWith0x(txBytes)
 }
 
 func DecodeTx(rawTx string) (string, error) {

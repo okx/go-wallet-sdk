@@ -29,7 +29,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/flow
 	}
 ```
 
-###  Transfer 
+###  Transfer
 ```go
 	amount := float64(1)
 	toAddr := "0x0b65ef5c755c9117"
@@ -45,6 +45,11 @@ go get -u github.com/okx/go-wallet-sdk/coins/flow
 	if err != nil {
 		// todo
 	}
+```
+
+###  Validate Address 
+```go
+    valid := ValidateAddress("0xa8d1a60acba12a20")
 ```
 
 ## License

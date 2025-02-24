@@ -3,6 +3,7 @@ package sui
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -33,6 +34,7 @@ const (
 	Stake         = Type("stake")         //stake sui
 	WithdrawStake = Type("withdrawStake") //withdraw stake of sui
 	Raw           = Type("raw")           //sign the txbytes
+	Any           = Type("any")
 )
 
 type SuiObjectRef struct {
@@ -253,6 +255,12 @@ func (s *Input) Write(buf *bytes.Buffer) error {
 		default:
 			return ErrInvalidStruct
 		}
+	case "Any":
+		ab, err := hex.DecodeString(s.Value.(string))
+		if err != nil {
+			return ErrInvalidStruct
+		}
+		buf.Write(ab)
 	default:
 		return ErrInvalidStruct
 	}
@@ -791,6 +799,23 @@ func BuildTokenTx(from, to string, coins []*SuiObjectRef, tokens []*SuiObjectRef
 	return pay.Build()
 }
 
+func BuildAnyCall(sender string, coins []*SuiObjectRef, ins []string, calls []string, epoch, gasBudget, gasPrice uint64) ([]byte, error) {
+	inputs := make([]*Input, 0)
+	for _, in := range ins {
+		inputs = append(inputs, &Input{Kind: "Any", Value: in})
+	}
+
+	commands := make([]*Command, 0)
+	for _, call := range calls {
+		args := []*Coin{{Value: call}}
+		commands = append(commands, &Command{Kind: "Any", Arguments: args})
+	}
+
+	gasConfig := GasConfig{Price: fmt.Sprintf("%d", gasPrice), Budget: fmt.Sprintf("%d", gasBudget), Payment: coins}
+	expiration := &Expiration{Epoch: epoch}
+	pay := Pay{Sender: sender, Expiration: expiration, GasConfig: gasConfig, Inputs: inputs, Commands: commands}
+	return pay.Build()
+}
 func (p *Pay) Build() ([]byte, error) {
 	var b bytes.Buffer
 	//Array(1) [V1]

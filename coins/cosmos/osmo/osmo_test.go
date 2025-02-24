@@ -1,7 +1,6 @@
 package osmo
 
 import (
-	"crypto/rand"
 	"encoding/hex"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -34,13 +33,11 @@ func TestProto(t *testing.T) {
 	require.Equal(t, msgLockTokens, msgLockTokens2)
 }
 
-func TestNewAddress(t *testing.T) {
-	b := make([]byte, 32)
-	_, _ = rand.Read(b)
-	t.Log(hex.EncodeToString(b))
-	address, err := NewAddress(hex.EncodeToString(b))
-	require.Nil(t, err)
-	t.Log(address)
+func TestAddress(t *testing.T) {
+	privateKey := "2b9960183a7e94ed3686e758e5f853d4d4ddd1d5053525d0ce5e747ba69e9da3"
+	address, err := NewAddress(privateKey)
+	require.NoError(t, err)
+	require.Equal(t, "osmo1rm6ql2ss7q4ech7wnaghzpczheafj0jkyjgnxf", address)
 }
 
 func TestTransfer(t *testing.T) {
@@ -97,7 +94,6 @@ func TestSignMessage(t *testing.T) {
 	require.Nil(t, err)
 	expected := "CswBCskBCiovb3Ntb3Npcy5nYW1tLnYxYmV0YTEuTXNnU3dhcEV4YWN0QW1vdW50SW4SmgEKK29zbW8xbHlqeGs0dDgzNXlqNnU4bDJtZzZhNnQydjl4M25qN3VsYWxqejISSQjSBRJEaWJjLzZBRTk4ODgzRDRENUQ1RkY5RTUwRDcxMzBGMTMwNURBMkZGQTBDNjUyRDFERDlDMTIzNjU3QzZCNEVCMkRGOEEaDgoFdW9zbW8SBTEwMDAwIhAzODU0MTU0MTgwODEzMDE4ElgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMQU+nvApXTNLa7IuIMxxfrGhalRvaSVyyIMLS8FME2dhIECgIIARgBEgQQkKEPGkDgnemI608eStirAt1Nb5EZtbMSrytjFuEoExu+ShCD32XFAVZMWN6EvM/pIMXEy74pPUMcVY0I5Dx0kRFYLE7Q"
 	require.Equal(t, expected, signedMessage)
-	t.Log("signedMessage : ", signedMessage)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -117,8 +113,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "100000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
-	require.Nil(t, err)
-	t.Log("signedIBCTx : ", signedIBCTx)
+	p.TimeOutInSeconds = 1738641357
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Equal(t, "Cr8BCrwBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKOAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoPCgV1b3NtbxIGMTAwMDAwIitvc21vMWx5anhrNHQ4MzV5ajZ1OGwybWc2YTZ0MnY5eDNuajd1bGFsanoyKi1jb3Ntb3MxcnZzNXhwaDRsM3B4MmVmeW5xc3RodXM4cDZyNGV4eXI3Y2t5eHYyADiAhKfeo6O5kBgSWApQCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAxBT6e8CldM0trsi4gzHF+saFqVG9pJXLIgwtLwUwTZ2EgQKAggBGAYSBBCgjQYaQGne0PQuSL5xfoa7gBzp0gC+C9worDbDYc4fidrsgaD4QSm0oVEXAZj+b7kPAboAxyC1nZAm9NQgRWdkoqIzGNc=", tt)
 }

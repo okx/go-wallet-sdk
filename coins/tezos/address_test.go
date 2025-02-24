@@ -1,7 +1,7 @@
 package tezos
 
 import (
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -67,11 +67,10 @@ func TestGetAddress(t *testing.T) {
 }
 
 func TestGenerateKeyPair(t *testing.T) {
-	got, got1, err := GenerateKeyPair()
-	require.NoError(t, err)
-	t.Log(got)
-	t.Log(got1)
-	addr, err := GetAddressByPublicKey(got1)
-	require.NoError(t, err)
-	t.Log(addr)
+	_, pubKey, err := GenerateKeyPair()
+	assert.Nil(t, err)
+
+	addr, err := GetAddressByPublicKey(pubKey)
+	assert.Nil(t, err)
+	assert.Equal(t, 36, len(addr))
 }

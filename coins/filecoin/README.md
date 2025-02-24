@@ -37,6 +37,10 @@ go get -u github.com/okx/go-wallet-sdk/coins/filecoin
 	if err != nil {
 		// todo
 	}
+    hash, err := CalTxHash(tx)
+    if err != nil {
+        // todo
+    }
 ```
 
 ## License

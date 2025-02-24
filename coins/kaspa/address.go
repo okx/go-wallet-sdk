@@ -12,6 +12,22 @@ func NewAddress(prvKeyHex string) (string, error) {
 	return NewAddressWithNetParams(prvKeyHex, dagconfig.MainnetParams)
 }
 
+func NewPubKeyAddress(pubKeyHex string) (string, error) {
+	pk, err := hex.DecodeString(pubKeyHex)
+	if err != nil {
+		return "", err
+	}
+	pubKey, err := schnorr.ParsePubKey(pk)
+	if err != nil {
+		return "", err
+	}
+	pubKeyAddress, err := util.NewAddressPublicKey(schnorr.SerializePubKey(pubKey), dagconfig.MainnetParams.Prefix)
+	if err != nil {
+		return "", err
+	}
+
+	return pubKeyAddress.EncodeAddress(), nil
+}
 func NewAddressWithNetParams(prvKeyHex string, params dagconfig.Params) (string, error) {
 	prvKeyBytes, err := hex.DecodeString(prvKeyHex)
 	if err != nil {

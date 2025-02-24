@@ -101,7 +101,6 @@ func GenerateRunesSignedListingPSBTBase64(in *TxInput, out *TxOutput, network *c
 }
 
 func GenerateRunesSignedBuyingTx(ins []*TxInput, outs []*TxOutput, dustSize, feePerB int64, sellerPsbt []string, network *chaincfg.Params) (int64, string, error) {
-	//首先包含找零,计算手续费是否足够.
 	totalinput, totaloutput, vsize, err := calFee(ins, outs, sellerPsbt, network)
 	if err != nil {
 		return 0, "", err
@@ -241,7 +240,6 @@ func generateBuyPsbt(ins []*TxInput, outs []*TxOutput, sellerPsbts []string, net
 			return "", err
 		}
 
-		//这里要注销掉.
 		if finalize {
 			err = psbt.Finalize(bp, i)
 			if err != nil {

@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"github.com/okx/go-wallet-sdk/coins/waves/crypto"
 	"github.com/okx/go-wallet-sdk/coins/waves/types"
+	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/stretchr/testify/assert"
 	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -46,16 +49,19 @@ func TestNewTransfer(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	idBytes, err := tx.ID.MarshalJSON()
-	t.Log(string(idBytes))
-	t.Log(tx)
+	assert.Equal(t, "AayNv5aB8fKh82WnqTtcamdAziacvUPgdEMHFgq7pMyp", base58.Encode(tx.ID[:]))
 
 	bts, err := json.Marshal(tx)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log(string(bts))
+	expected := `\{"type":4,"version":1,"id":"AayNv5aB8fKh82WnqTtcamdAziacvUPgdEMHFgq7pMyp","signature":"[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{64,88}","senderPublicKey":"tMUA9XRwPTiUXCTmEvU6kFkqTFKxSpaAFvQwyAT29GR","assetId":null,"feeAssetId":null,"timestamp":1655401735758,"amount":2000000,"fee":200000,"recipient":"3NB2pUqjoavApZeAmdsVYS84hyRGXZpeytA","attachment":"6UZYuvjBHC18dZ"\}`
+	re := regexp.MustCompile(expected)
+	match := re.MatchString(string(bts))
+	assert.True(t, match)
+
+	//assert.Equal(t, `\{"type":4,"version":1,"id":"AayNv5aB8fKh82WnqTtcamdAziacvUPgdEMHFgq7pMyp","signature":"xJSXJPAPKifw47duw5hZSsgfX3aXDx1qdbBtgB7w5RzR2TLcV7rDRYouLeBuWuu5ogbDP9oNHr9G1k5MDMEdASn","senderPublicKey":"tMUA9XRwPTiUXCTmEvU6kFkqTFKxSpaAFvQwyAT29GR","assetId":null,"feeAssetId":null,"timestamp":1655401735758,"amount":2000000,"fee":200000,"recipient":"3NB2pUqjoavApZeAmdsVYS84hyRGXZpeytA","attachment":"6UZYuvjBHC18dZ"}`, string(bts))
 }
 
 func TestNewUnsignedTransferWithSig(t *testing.T) {
@@ -64,7 +70,7 @@ func TestNewUnsignedTransferWithSig(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	address, err := types.NewAddressFromString("3NB2pUqjoavApZeAmdsVYS84hyRGXZpeytA")
+	address, err := types.NewAddressFromString(a1)
 	if err != nil {
 		t.Fatal(err)
 		return

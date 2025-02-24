@@ -52,6 +52,10 @@ func GetWalletVersion(account *tlb.Account) Version {
 }
 
 func GetStateInit(pubKey ed25519.PublicKey, version VersionConfig, subWallet uint32) (*tlb.StateInit, error) {
+	switch version.(type) {
+	case ConfigV5R1Final:
+		subWallet = 0
+	}
 	var ver Version
 	switch v := version.(type) {
 	case Version:
@@ -59,9 +63,13 @@ func GetStateInit(pubKey ed25519.PublicKey, version VersionConfig, subWallet uin
 		switch ver {
 		case HighloadV3:
 			return nil, fmt.Errorf("use ConfigHighloadV3 for highload v3 spec")
+		case V5R1Final:
+			return nil, fmt.Errorf("use ConfigV5R1Final for V5 spec")
 		}
 	case ConfigHighloadV3:
 		ver = HighloadV3
+	case ConfigV5R1Final:
+		ver = V5R1Final
 	}
 
 	code, ok := walletCode[ver]
@@ -83,6 +91,24 @@ func GetStateInit(pubKey ed25519.PublicKey, version VersionConfig, subWallet uin
 			MustStoreUInt(uint64(subWallet), 32).
 			MustStoreSlice(pubKey, 256).
 			MustStoreDict(nil). // empty dict of plugins
+			EndCell()
+	case V5R1Final:
+		config := version.(ConfigV5R1Final)
+
+		// Create WalletId instance
+		walletId := V5R1ID{
+			NetworkGlobalID: config.NetworkGlobalID, // -3 Testnet, -239 Mainnet
+			WorkChain:       config.Workchain,
+			SubwalletNumber: uint16(subWallet),
+			WalletVersion:   0, // Wallet Version
+		}
+
+		data = cell.BeginCell().
+			MustStoreBoolBit(true).                           // storeUint(1, 1) - boolean flag for context type
+			MustStoreUInt(0, 32).                             // Sequence number, hardcoded as 0
+			MustStoreUInt(uint64(walletId.Serialized()), 32). // Serializing WalletId into 32-bit integer
+			MustStoreSlice(pubKey, 256).                      // Storing the public key
+			MustStoreDict(nil).                               // Storing an empty plugins dictionary
 			EndCell()
 	case HighloadV2R2, HighloadV2Verified:
 		data = cell.BeginCell().

@@ -11,6 +11,8 @@ import (
 	"unicode/utf8"
 )
 
+const _MAX_COMPACTU16_ENCODING_LENGTH = 3
+
 // Decoder implements the EOS unpacking, similar to FC_BUFFER
 type Decoder struct {
 	data []byte
@@ -1037,17 +1039,33 @@ func DecodeCompactU16Length(bytes []byte) int {
 func DecodeCompactU16LengthFromByteReader(reader io.ByteReader) (int, error) {
 	ln := 0
 	size := 0
-	for {
+	for nth_byte := 0; nth_byte < _MAX_COMPACTU16_ENCODING_LENGTH; nth_byte++ {
 		elemByte, err := reader.ReadByte()
 		if err != nil {
 			return 0, err
 		}
 		elem := int(elemByte)
+		if elem == 0 && nth_byte != 0 {
+			return 0, fmt.Errorf("alias")
+		}
+		if nth_byte >= _MAX_COMPACTU16_ENCODING_LENGTH {
+			return 0, fmt.Errorf("too long: %d", nth_byte+1)
+		} else if nth_byte == _MAX_COMPACTU16_ENCODING_LENGTH-1 && (elem&0x80) != 0 {
+			return 0, fmt.Errorf("byte three continues")
+		}
 		ln |= (elem & 0x7f) << (size * 7)
 		size += 1
 		if (elem & 0x80) == 0 {
 			break
 		}
+	}
+	// check for non-valid sizes
+	if size == 0 || size > _MAX_COMPACTU16_ENCODING_LENGTH {
+		return 0, fmt.Errorf("invalid size: %d", size)
+	}
+	// check for non-valid lengths
+	if ln < 0 || ln > math.MaxUint16 {
+		return 0, fmt.Errorf("invalid length: %d", ln)
 	}
 	return ln, nil
 }

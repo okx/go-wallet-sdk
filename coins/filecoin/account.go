@@ -15,6 +15,7 @@ import (
 	"github.com/dchest/blake2b"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/okx/go-wallet-sdk/util"
+	"math"
 	"math/bits"
 	"strconv"
 	"strings"
@@ -30,6 +31,14 @@ const (
 	MainnetPrefix = "f"
 	TestnetPrefix = "t"
 	encodeStd     = "abcdefghijklmnopqrstuvwxyz234567"
+	// MaxInt64StringLength defines the maximum length of `int64` as a string.
+	MaxInt64StringLength = 19
+
+	// ChecksumHashLength defines the hash length used for calculating address checksums.
+	ChecksumHashLength = 4
+
+	// MaxSubaddressLen is the maximum length of a delegated address's sub-address.
+	MaxSubaddressLen = 54
 )
 
 const (
@@ -37,6 +46,7 @@ const (
 	SECP256K1
 	Actor
 	BLS
+	Delegated
 )
 
 func NewPrivateKey() string {
@@ -101,6 +111,18 @@ func GetAddressByPrivateKey(privateKeyHex string, chainId string) (string, error
 	return GetAddressByPublicKey(publicKeyHex, chainId)
 }
 
+func base32decode(s string) ([]byte, error) {
+	decoded, err := AddressEncoding.WithPadding(-1).DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+
+	reencoded := AddressEncoding.WithPadding(-1).EncodeToString(decoded)
+	if reencoded != s {
+		return nil, errors.New("invalid encoding")
+	}
+	return decoded, nil
+}
 func AddressToBytes(addr string) []byte {
 	if len(addr) == 0 {
 		return nil
@@ -120,6 +142,8 @@ func AddressToBytes(addr string) []byte {
 		protocol = Actor
 	case '3':
 		protocol = BLS
+	case '4':
+		protocol = Delegated
 	default:
 		return nil
 	}
@@ -136,20 +160,56 @@ func AddressToBytes(addr string) []byte {
 		return toBytes(protocol, toUvarint(id))
 	}
 
-	payloadcksm, err := AddressEncoding.WithPadding(-1).DecodeString(raw)
-	if err != nil {
-		return nil
-	}
-	payload := payloadcksm[:len(payloadcksm)-4]
-	cksm := payloadcksm[len(payloadcksm)-4:]
-
-	if protocol == SECP256K1 || protocol == Actor {
-		if len(payload) != 20 {
+	var cksum, payload []byte
+	if protocol == Delegated {
+		parts := strings.SplitN(raw, "f", 2)
+		if len(parts) != 2 {
 			return nil
 		}
-	}
+		namespaceStr := parts[0]
+		subaddrStr := parts[1]
 
-	if !validateChecksum(append([]byte{protocol}, payload...), cksm) {
+		if len(namespaceStr) > MaxInt64StringLength {
+			return nil
+		}
+		namespace, err := strconv.ParseUint(namespaceStr, 10, 63)
+		if err != nil {
+			return nil
+		}
+
+		subaddrcksm, err := base32decode(subaddrStr)
+		if err != nil {
+			return nil
+		}
+
+		if len(subaddrcksm) < ChecksumHashLength {
+			return nil
+		}
+		subaddr := subaddrcksm[:len(subaddrcksm)-ChecksumHashLength]
+		cksum = subaddrcksm[len(subaddrcksm)-ChecksumHashLength:]
+		if len(subaddr) > MaxSubaddressLen {
+			return nil
+		}
+		payload = append(toUvarint(namespace), subaddr...)
+	} else {
+		payloadcksm, err := AddressEncoding.WithPadding(-1).DecodeString(raw)
+		if err != nil {
+			return nil
+		}
+		if len(payloadcksm) < ChecksumHashLength {
+			return nil
+		}
+		payload = payloadcksm[:len(payloadcksm)-ChecksumHashLength]
+		cksum = payloadcksm[len(payloadcksm)-ChecksumHashLength:]
+
+		if protocol == SECP256K1 || protocol == Actor {
+			if len(payload) != 20 {
+				return nil
+			}
+		}
+
+	}
+	if !validateChecksum(append([]byte{protocol}, payload...), cksum) {
 		return nil
 	}
 
@@ -198,6 +258,17 @@ func toBytes(protocol byte, payload []byte) []byte {
 		}
 	case BLS:
 		if len(payload) != 48 {
+			return nil
+		}
+	case Delegated:
+		namespace, n, err := fromUvarint(payload)
+		if err != nil {
+			return nil
+		}
+		if namespace > math.MaxInt64 {
+			return nil
+		}
+		if len(payload)-n > MaxSubaddressLen {
 			return nil
 		}
 	default:

@@ -2,6 +2,8 @@ package solana
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -10,14 +12,41 @@ import (
 	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 )
 
-func Test_NewAddess(t *testing.T) {
+func TestNewAddress(t *testing.T) {
 	pk, _ := base.NewRandomPrivateKey()
 	address, err := NewAddress(hex.EncodeToString(pk.Bytes()))
 	require.NoError(t, err)
 	require.True(t, ValidateAddress(address))
 }
+func TestValidateAddress(t *testing.T) {
+	ok := ValidateAddress("So11111111111111111111111111111111111111111")
+	require.True(t, ok)
+}
 
-func Test_TransferTransaction(t *testing.T) {
+func TestSignMessage(t *testing.T) {
+	r, err := SignMessage("2nCvHtAjwgpHHuaRMHcq3atYxyLV1oYh2tzUA6N83Xxr3sVEebEPJuY2oAb6ZwfRCYbWkHRkvw1dfsTFmpvjq3T5", "87PYrKY7ewJ25qaivxFzQ4g3fYH2ZT1CuRePJo9jCyEydJQMoVkxtS6pyAbKKBjSTxXT3PVGST3BpTpxvtEGMMQQMbbqeJAgzkF5TMNLkovkcEE7ZPm1qq6S9Ros4ZExAyckimPi8wfQW8rHhmMn9PnNaXS2bv4HJeHXXjEvzn2Ezi3CWbNQRvJs695KKtFfhGTqoabp9URM")
+	require.NoError(t, err)
+	expected := `4q87dkdRhMkLn3TuxVXP1woCTAk2R4EbRP21yWtLaoZtHpgrLFEhuhmrGSZkXtcwMoaGqdgy7wZeayeXNtopDWzv`
+	require.Equal(t, expected, r)
+}
+
+func TestVerifyMessage(t *testing.T) {
+	err := VerifySignedMessage("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", "87PYrKY7ewJ25qaivxFzQ4g3fYH2ZT1CuRePJo9jCyEydJQMoVkxtS6pyAbKKBjSTxXT3PVGST3BpTpxvtEGMMQQMbbqeJAgzkF5TMNLkovkcEE7ZPm1qq6S9Ros4ZExAyckimPi8wfQW8rHhmMn9PnNaXS2bv4HJeHXXjEvzn2Ezi3CWbNQRvJs695KKtFfhGTqoabp9URM", `4q87dkdRhMkLn3TuxVXP1woCTAk2R4EbRP21yWtLaoZtHpgrLFEhuhmrGSZkXtcwMoaGqdgy7wZeayeXNtopDWzv`)
+	require.True(t, err == nil)
+}
+func TestSignUtf8Message(t *testing.T) {
+	r, err := SignUtf8Message("2nCvHtAjwgpHHuaRMHcq3atYxyLV1oYh2tzUA6N83Xxr3sVEebEPJuY2oAb6ZwfRCYbWkHRkvw1dfsTFmpvjq3T5", "this is a message to be signed by solana")
+	require.NoError(t, err)
+	expected := `501fd0d2b2742510a9682fe965c054c798d53ff5bd96c720a21055929bfb230bdf624211565b8a20efafbd30f48d5c0f65f565264a8e64b93d3e155face21f08`
+	require.Equal(t, expected, r)
+}
+
+func TestVerifyUTF8Message(t *testing.T) {
+	err := VerifySignedUtf8Message("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", "this is a message to be signed by solana", `501fd0d2b2742510a9682fe965c054c798d53ff5bd96c720a21055929bfb230bdf624211565b8a20efafbd30f48d5c0f65f565264a8e64b93d3e155face21f08`)
+	require.True(t, err == nil)
+}
+
+func TestTransferTransaction(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
@@ -31,7 +60,7 @@ func Test_TransferTransaction(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_TokenTransferTransaction(t *testing.T) {
+func TestTokenTransferTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	from := fromPrivate.PublicKey().String()
@@ -52,7 +81,7 @@ func Test_TokenTransferTransaction(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_Token2022TransferTransaction(t *testing.T) {
+func TestToken2022TransferTransaction(t *testing.T) {
 	hash := "HqpUiCHdybmpK91LF9pVwTtCkMfcXhwBVAbxpsNPUuFk"
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	from := fromPrivate.PublicKey().String()
@@ -71,7 +100,7 @@ func Test_Token2022TransferTransaction(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_TokenApproveTransaction(t *testing.T) {
+func TestTokenApproveTransaction(t *testing.T) {
 	hash := "H6TNM3fDg5wTYT4eiv2PnGdd1555a45FEJtxVLtzv9dJ"
 
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
@@ -92,7 +121,7 @@ func Test_TokenApproveTransaction(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_UnMarshall(t *testing.T) {
+func TestUnmarshall(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
@@ -109,7 +138,7 @@ func Test_UnMarshall(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_UnMarshall2(t *testing.T) {
+func TestUnmarshall2(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
 
@@ -120,7 +149,7 @@ func Test_UnMarshall2(t *testing.T) {
 	require.Equal(t, expected, tx)
 }
 
-func Test_TransferTransaction1(t *testing.T) {
+func TestTransferTransaction1(t *testing.T) {
 	fromPrivate, _ := base.PrivateKeyFromBase58("tzyJiBd5PzFPFfVnnfVx14rsfC8FKW8idpJwNhH6FxzZAdhgBp4CrDxcUW9D89f5k3W6WhVnybbAw7RRB2HPxnt")
 	to := "7NRmECq1R4tCtXNvmvDAuXmii3vN1J9DRZWhMCuuUnkM"
 	hash := "Cfudd6AiXTzPYrmEBGNFsHgaNKJ3xrrsGCT39avLkoiu"
@@ -133,7 +162,7 @@ func Test_TransferTransaction1(t *testing.T) {
 	expected := "7DhA4Xf5cvq8B7CawxbdaJCeNVDZ8MxzY4dEykNTnFG1Yycu45nZsjqzSngGuF7WSMbwGRz4eTpsayBs86CqU7PtDufJ7nzZP3s9gRM2qjB2P5Lyq2uxFG4RvTcHEbB2m45JhiELsB1759br4zZdXNHEbJPVPGhPitgNfLG7Hyxoqcmze2uuk9Vdg1Lviiw2SbGDycnY9KFqySXBeyFUQR3WrYM1XaFgJ9c8RPfz9WHyqKnot3nqaP2kNjv1Ps5s8r49hd96JE7ArEZCS5WyoNUS9dVjUmhryER1e1TcrZ87ceTCmUVFoZNSauTZXnoYfq8WfZ1mekvQhbGJsriKTxfvE2gVWnT8caWPDwVX1fcNnY5XbR778F3NuBfsFb8CQLsNrLJUa3"
 	require.Equal(t, expected, tx)
 }
-func Test_TransferWithNoce(t *testing.T) {
+func TestTransferWithNonce(t *testing.T) {
 
 	private := "b90ae8f3c465425f561ebad958dd2e385ce9aeb95259f07af1550cfb6c7c90ec"
 	privateBytes, err := hex.DecodeString(private)
@@ -153,4 +182,49 @@ func Test_TransferWithNoce(t *testing.T) {
 	require.NoError(t, err)
 	expected := "6B3zHpjnSZU1jDVQv5pjJdkoKToBQYUAAGq2VNRHTHfiPL3JYY35o9x4U18gVMykHajHvNK9BNeLrzPBiZnWRRf6MTP5G5wTgseWCkCzcDh4WkMfZtDmDcYyhEPbcAWL1rtu474d9NVC3ypbsPwNyHo2oZ7a7hCwXa4p2idtvffWhwZ36df9xzVJzEPWBWFJasqkcRXR3SsG4DvEdv7S9BTySZTvpKUz5rX3FRhP6PdRtiPXrpHKjfP9AuqVvpgsbdCkz8wE1HyJa6ihgWap1zmqFbT5uny9mmgLas657jgKSedKoxLSeeiVRcEkBJZDMYsy1JH7soPYzY7PgHwWMjos7BNdaKt2fqksqV8yW7RQGj7FpzaBxNwJX2GcsYZumsGwgjhNyV"
 	require.Equal(t, expected, tx)
+}
+
+func TestTransferWithNonceAndPriorityFee(t *testing.T) {
+	seedHex := "b90ae8f3c465425f561ebad958dd2e385ce9aeb95259f07af1550cfb6c7c90ec"
+	prvKey, err := ed25519.PrivateKeyFromSeed(seedHex)
+	require.NoError(t, err)
+	prvKeyHex := hex.EncodeToString(prvKey)
+	pubKey, err := ed25519.PublicKeyFromSeed(seedHex)
+	require.NoError(t, err)
+
+	from := base58.Encode(pubKey)
+	require.Equal(t, from, "5vWSQFWuHuwz3cCHY3MYXB3twp6w4UtXAFG2VeqALGUq")
+	to := "J7cjWQHaqwE1FHCCsDB5yxb8wXth9kdd89CebDKXP928"
+	nonceAddress := "J7cjWQHaqwE1FHCCsDB5yxb8wXth9kdd89CebDKXP928"
+	blockHash := "7YHhW4TEDQz6oV98vHm8ijGZTdWSm6GrR9UkG1YWTQGf" // nonce from nonceAccount
+	amount := 100000000                                         // 0.1 sol
+	unitLimit := 0
+	unitPrice := 20000
+
+	tx := NewRawTransaction(blockHash, from)
+	tx.AppendAdvanceNonceInstruction(from, nonceAddress)
+	tx.AppendPriorityFeeInstruction(uint32(unitLimit), uint64(unitPrice))
+	tx.AppendTransferInstruction(uint64(amount), from, to)
+	tx.AppendSigner(prvKeyHex)
+	raw, err := tx.Sign(true)
+	require.NoError(t, err)
+	require.Equal(t, "PPdZntLUie6mXsp9xmSYmcbyts2Z374M1zaRTqDjPEQyTWDFyL3C1togzHJoQsrC3QQjWSWYk5cJBM7mDD1edUV5y9T312e3AA73gYWTx2dfzgT5n1oZEnuXkNyPmyM8VdEBXsmitP5zwpmCGHMenS2KJpZhkwSLHgiYNPcN3gVBDsjt97vatrJULtcN55PopGsWn81eJ5soAQAMWPtCmujbF3fugX9Fs38yiqQxrntXLeUEevrmdw22aF2X52PX4DFmEYjByWNTo38HknN4BKPjgL7rQ385SLqFgPPquoRkHguusFUAbPcVYfknfpruwrAbf9xuovdS1A51BK62bmKWC6f4hd", raw)
+	// https://explorer.solana.com/tx/2NNRuFsdeajF86yqm2fok7Zk6gb75MGDfRXagmu6jPm8ky6feekC4Hgu8AFAMWjismVBXCo8LrnBAhdYwTaJiGZR?cluster=testnet
+}
+
+func TestDecodeTx(t *testing.T) {
+	bytes, _ := DecodeTxBase58("7zDi8GzAFyo8keX2xCRq99yXaBGM1FpFvpYK2VqggB1GUd4vvtfXMLfdXtLhcsRcCFKjhXuDjxHuUYReVU8PUBXcsUT4necHjCjdhFFvXN2tnQoMtcR9Jqa1tNMugrpRjz5iFh3Aez7gT9zHbj5Q63NyVPxcKSr7MT97hsbpv95eQwpbwTqSERbw4CRszGy1Q5xCn8U7cdBSa9Ybo2R1SJeaTETnMbBoBSdbERHGixq8eMymZzczr941iUB4t4NUkVJE73V4thhWeQwt3DxJFmviP9WPEteaA8Kesiatw5DE6eHdDoYmgLbx1oEeaapSsoE2vzrD4eUfBsvJ55xWsryL324ennfJWJcHUm5HrtKf5GABEVJ3i1KrZjAzfQHUegEECP9QvbzDL2Y7i1BSPsbpoBMAVptzA4McqniPLD1bx3QmzCaFsQMt3ki3niAFW9vpDGkp2QweCYmB2SEHYoi4tV9f1ojjbctnQTU8MouYKhcFgiexupfTwpssi3Ukz7mrSFNTeN3qRat2BR2jRqxhp3FvRSgD8upiXGWvvHCZ6gGd2tEvKTSNvcaE37Y9xpN1Ff84L68fbQ3GQvCDKK5DwNUzwj56Jz93g3Ab3z5zVcGK4qicmHECJ8HkYexDtpp2dFGMZoaL1w48kKPwwHAjdibERuchD4w12GkUCWFZVoJX2nYSUpJTbiUnY4PWt6D7dNHXXvWDoK3LC8E935meffYJ1vwjb6B25GpYTPRwyyuzry5crCSStK5bhGfTGVeeoAjijz1Eo8daL2AXQrxUKrsSgSaEScc7P3hKGnxoALRfnLJM68r1SKBeyeBwAb2H7bURDNCievFoiNHj3aYTF3aZqNYNtYsdqUUiUpQFE6z52rBDr2nqzMwGFTz3TAxnTuiYXq")
+	var dataMap map[string]interface{}
+	err := json.Unmarshal([]byte(bytes), &dataMap)
+	require.NoError(t, err)
+	transactionId := dataMap["transactionId"]
+	require.Equal(t, "25w1cZcvm8QneXyfv2W4uqS6AmKWJCZEWaz8gx56vCaJEfYPBzB1QRK4AFajryrHMkzctaJEZ5AGuST6wJPfuTJE", transactionId)
+}
+
+func TestCalTxHash(t *testing.T) {
+	txRaw := `7zDi8GzAFyo8keX2xCRq99yXaBGM1FpFvpYK2VqggB1GUd4vvtfXMLfdXtLhcsRcCFKjhXuDjxHuUYReVU8PUBXcsUT4necHjCjdhFFvXN2tnQoMtcR9Jqa1tNMugrpRjz5iFh3Aez7gT9zHbj5Q63NyVPxcKSr7MT97hsbpv95eQwpbwTqSERbw4CRszGy1Q5xCn8U7cdBSa9Ybo2R1SJeaTETnMbBoBSdbERHGixq8eMymZzczr941iUB4t4NUkVJE73V4thhWeQwt3DxJFmviP9WPEteaA8Kesiatw5DE6eHdDoYmgLbx1oEeaapSsoE2vzrD4eUfBsvJ55xWsryL324ennfJWJcHUm5HrtKf5GABEVJ3i1KrZjAzfQHUegEECP9QvbzDL2Y7i1BSPsbpoBMAVptzA4McqniPLD1bx3QmzCaFsQMt3ki3niAFW9vpDGkp2QweCYmB2SEHYoi4tV9f1ojjbctnQTU8MouYKhcFgiexupfTwpssi3Ukz7mrSFNTeN3qRat2BR2jRqxhp3FvRSgD8upiXGWvvHCZ6gGd2tEvKTSNvcaE37Y9xpN1Ff84L68fbQ3GQvCDKK5DwNUzwj56Jz93g3Ab3z5zVcGK4qicmHECJ8HkYexDtpp2dFGMZoaL1w48kKPwwHAjdibERuchD4w12GkUCWFZVoJX2nYSUpJTbiUnY4PWt6D7dNHXXvWDoK3LC8E935meffYJ1vwjb6B25GpYTPRwyyuzry5crCSStK5bhGfTGVeeoAjijz1Eo8daL2AXQrxUKrsSgSaEScc7P3hKGnxoALRfnLJM68r1SKBeyeBwAb2H7bURDNCievFoiNHj3aYTF3aZqNYNtYsdqUUiUpQFE6z52rBDr2nqzMwGFTz3TAxnTuiYXq`
+	txid, err := CalTxHash(txRaw)
+	require.NoError(t, err)
+	expected := "25w1cZcvm8QneXyfv2W4uqS6AmKWJCZEWaz8gx56vCaJEfYPBzB1QRK4AFajryrHMkzctaJEZ5AGuST6wJPfuTJE"
+	require.Equal(t, expected, txid)
 }

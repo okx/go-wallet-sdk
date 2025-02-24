@@ -10,6 +10,37 @@ const (
 	zecNet = 0x6427e924
 )
 
+func init() {
+	if err := chaincfg.Register(GetDGBMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetQTUMMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetRVNMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetBTGMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetBCHmainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetLTCMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetDASHMainNetParams()); err != nil {
+		panic(err)
+	}
+	if err := chaincfg.Register(GetDOGEMainNetParams()); err != nil {
+		panic(err)
+	}
+
+	if err := chaincfg.Register(GetZECMainNetParams()); err != nil {
+		panic(err)
+	}
+}
+
 // GetBTCMainNetParams BTC
 func GetBTCMainNetParams() *chaincfg.Params {
 	return &chaincfg.MainNetParams
@@ -17,6 +48,12 @@ func GetBTCMainNetParams() *chaincfg.Params {
 
 func GetBTCTestNetParams() *chaincfg.Params {
 	return &chaincfg.TestNet3Params
+}
+
+func GetBSVMainNetParams() *chaincfg.Params {
+	params := chaincfg.MainNetParams
+	params.Bech32HRPSegwit = ""
+	return &params
 }
 
 // GetDGBMainNetParams DGB
@@ -52,6 +89,7 @@ func GetRVNMainNetParams() *chaincfg.Params {
 	// Address encoding magics
 	params.PubKeyHashAddrID = 60  // base58 prefix: R
 	params.ScriptHashAddrID = 122 // base58 prefix: r
+	params.Bech32HRPSegwit = ""
 	return &params
 }
 
@@ -103,6 +141,7 @@ func GetDASHMainNetParams() *chaincfg.Params {
 	// Address encoding magics
 	mainNetParams.PubKeyHashAddrID = 76
 	mainNetParams.ScriptHashAddrID = 16
+	mainNetParams.Bech32HRPSegwit = ""
 	return &mainNetParams
 }
 
@@ -114,6 +153,7 @@ func GetDOGEMainNetParams() *chaincfg.Params {
 	// Address encoding magics
 	mainNetParams.PubKeyHashAddrID = 30
 	mainNetParams.ScriptHashAddrID = 22 // base58 prefix: 9
+	mainNetParams.Bech32HRPSegwit = ""
 	return &mainNetParams
 }
 

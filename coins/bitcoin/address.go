@@ -62,4 +62,13 @@ func PubKeyToAddr(publicKey []byte, addrType string, network *chaincfg.Params) (
 	} else {
 		return "", errors.New("address type not supported")
 	}
+
+}
+
+func ValidateAddress(address string) bool {
+	return ValidateUTXOAddress(address, &chaincfg.MainNetParams)
+}
+func ValidateUTXOAddress(address string, cfg *chaincfg.Params) bool {
+	addr, err := btcutil.DecodeAddress(address, cfg)
+	return addr != nil && addr.IsForNet(cfg) && err == nil
 }

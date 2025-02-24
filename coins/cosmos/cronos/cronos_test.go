@@ -2,9 +2,9 @@ package cronos
 
 import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // https://testnet-croeseid-4.crypto.org:1317/cosmos/auth/v1beta1/accounts/tcro1rvs5xph4l3px2efynqsthus8p6r4exyrgkhe6v
@@ -35,7 +35,7 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.TimeoutHeight = 0
 	signedTx, err := cosmos.Transfer(param, privateKeyHex)
 	require.Nil(t, err)
-	t.Log("signedTx : ", signedTx)
+	assert.Equal(t, "Co8BCowBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmwKKmNybzE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeWNmdDVoORIqY3JvMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5Y2Z0NWg5GhIKB2Jhc2Vjcm8SBzEwMDAwMDASaApOCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAxBT6e8CldM0trsi4gzHF+saFqVG9pJXLIgwtLwUwTZ2EgQKAggBEhYKEAoHYmFzZWNybxIFMjAwMDAQoMIeGkD8YeAfYpJpu7RNwCycGMoXtCCkviQH+V1+x0OtY1aAqE7PlNdpJL2a6/PFOgoTyY1GShww78zSAtGB4yjqjt+1", signedTx)
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -55,7 +55,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "100000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-10"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
+	p.TimeOutInSeconds = 1738641357
 	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
 	require.Nil(t, err)
 	t.Log("signedIBCTx : ", signedIBCTx)

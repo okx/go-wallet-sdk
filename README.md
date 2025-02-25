@@ -1,69 +1,108 @@
-# go-wallet-sdk
+# OKX Web3 Go Wallet SDK
 
-This is a Go language wallet solution that supports offline transactions. We currently support various mainstream public
-blockchains, and will gradually release the source codes for each blockchain.
+[![Go Reference](https://pkg.go.dev/badge/github.com/okx/go-wallet-sdk.svg)](https://pkg.go.dev/github.com/okx/go-wallet-sdk)
+[![License](https://img.shields.io/github/license/okx/go-wallet-sdk)](https://github.com/okx/go-wallet-sdk/blob/main/LICENSE)
 
-## Supported chains
+The OKX Web3 Go Wallet SDK is a comprehensive solution for building wallet applications with offline transaction capabilities across multiple blockchain networks. It provides a unified interface for account management, transaction creation, and signing across various mainstream public chains.
 
-|          | Account Generation | Transaction Creation | Transaction Signing |
-|----------|-------------------|----------------------|---------------------|
-| BTC      | ✅                 | ✅                    | ✅                   | 
-| Ethereum | ✅                 | ✅                    | ✅                   |
-| EOS      | ✅                 | ✅                    | ✅                   |
-| Filecoin | ✅                 | ✅                    | ✅                   |
-| Polkadot | ✅                 | ✅                    | ✅                   |
-| Starknet | ✅                 | ✅                    | ✅                   |
-| Aptos    | ✅                 | ✅                    | ✅                   |
-| Near     | ✅                 | ✅                    | ✅                   |
-| Solana   | ✅                 | ✅                    | ✅                   |
-| Stacks   | ✅                 | ✅                    | ✅                   |
-| SUI      | ✅                 | ✅                    | ✅                   |
-| Tron     | ✅                 | ✅                    | ✅                   |
-| Cosmos   | ✅                 | ✅                    | ✅                   |
-| Axelar   | ✅                 | ✅                    | ✅                   |
-| Cronos   | ✅                 | ✅                    | ✅                   |
-| Evmos    | ✅                 | ✅                    | ✅                   |
-| Iris     | ✅                 | ✅                    | ✅                   |
-| Juno     | ✅                 | ✅                    | ✅                   |
-| Kava     | ✅                 | ✅                    | ✅                   |
-| Kujira   | ✅                 | ✅                    | ✅                   |
-| Okc      | ✅                 | ✅                    | ✅                   |
-| Osmosis  | ✅                 | ✅                    | ✅                   |
-| Secret   | ✅                 | ✅                    | ✅                   |
-| Sei      | ✅                 | ✅                    | ✅                   |
-| Stargaze | ✅                 | ✅                    | ✅                   |
-| Terra    | ✅                 | ✅                    | ✅                   |
-| Tia      | ✅                 | ✅                    | ✅                   |
-| Avax     | ✅                 | ✅                    | ✅                   |
-| Elrond   | ✅                 | ✅                    | ✅                   |
-| Flow     | ✅                 | ✅                    | ✅                   |
-| Harmony  | ✅                 | ✅                    | ✅                   |
-| Helium   | ✅                 | ✅                    | ✅                   |
-| Kaspa    | ✅                 | ✅                    | ✅                   |
-| Nervos   | ✅                 | ✅                    | ✅                   |
-| Oasis    | ✅                 | ✅                    | ✅                   |
-| Tezos    | ✅                 | ✅                    | ✅                   |
-| Waves    | ✅                 | ✅                    | ✅                   |
-| Zil      | ✅                 | ✅                    | ✅                   |
-| Zkspace  | ✅                 | ✅                    | ✅                   |
-| Zksync   | ✅                 | ✅                    | ✅                   |
+## 🚀 Features
 
-*BTC: Supports Supports BRC20-related functions, including inscription creation, BRC20 buying and selling.
+- **Multi-chain support:** Seamlessly interact with major blockchains.
+- **Offline transaction signing:** Ensure security with local signing.
+- **Account generation and management:** Derive addresses with ease.
+- **Customizable transaction creation:** Flexible parameters for all supported chains.
+- **BRC20/Atomical/Runes support:** Full Bitcoin token standard compatibility.
+- **Extensible architecture:** Modular design for future blockchain integration.
 
-## Main modules
+## 📚 Documentation
 
-- coins: Implements transaction creation and signature in each coin type.
-- crypto: Handles general security and signature algorithms.
-- util: Provides various utility class methods.
+For detailed documentation and API references, please refer to the README files located within each blockchain directory under the `coins` folder. Each directory, such as `aptos`, `bitcoin`, and others, contains specific usage instructions and implementation details.
 
-## Example
+Example:
+- [Aptos README](https://github.com/okx/go-wallet-sdk/tree/main/coins/aptos)
+- [Bitcoin README](https://github.com/okx/go-wallet-sdk/tree/main/coins/bitcoin)
 
-For specific usage examples of each coin type, please refer to the corresponding test files. Remember to replace the
-placeholder private key with your own private key, which is generally in hex format.
 
-## Feedback
 
-You can provide feedback directly in GitHub Issues, and we will respond promptly.
+## 🌐 Supported Chains
+The OKX Web3 Go Wallet SDK supports a wide range of blockchain networks. EVM-compatible chains (e.g., BSC, Polygon, Arbitrum) and Solana-based chains can seamlessly reuse the same code structure for streamlined integration.
 
-## License
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/LICENSE>) licensed, see package or folder for the respective license.
+| Blockchain | Account Generation | Transaction Creation | Transaction Signing |
+| ---------- | ------------------ | -------------------- | ------------------- |
+| Aptos      | ✅                  | ✅                    | ✅                   |
+| Avax       | ✅                  | ✅                    | ✅                   |
+| Bitcoin    | ✅                  | ✅                    | ✅                   |
+| Cardano    | ✅                  | ✅                    | ✅                   |
+| Cosmos     | ✅                  | ✅                    | ✅                   |
+| EOS        | ✅                  | ✅                    | ✅                   |
+| Ethereum   | ✅                  | ✅                    | ✅                   |
+| Filecoin   | ✅                  | ✅                    | ✅                   |
+| Flow       | ✅                  | ✅                    | ✅                   |
+| Harmony    | ✅                  | ✅                    | ✅                   |
+| Helium     | ✅                  | ✅                    | ✅                   |
+| Kaspa      | ✅                  | ✅                    | ✅                   |
+| Near       | ✅                  | ✅                    | ✅                   |
+| Nervos     | ✅                  | ✅                    | ✅                   |
+| NostrAsset | ✅                  | ✅                    | ✅                   |
+| Oasis      | ✅                  | ✅                    | ✅                   |
+| Oracle     | ✅                  | ✅                    | ✅                   |
+| Polkadot   | ✅                  | ✅                    | ✅                   |
+| Solana     | ✅                  | ✅                    | ✅                   |
+| Starknet   | ✅                  | ✅                    | ✅                   |
+| Stacks     | ✅                  | ✅                    | ✅                   |
+| SUI        | ✅                  | ✅                    | ✅                   |
+| Tezos      | ✅                  | ✅                    | ✅                   |
+| Ton        | ✅                  | ✅                    | ✅                   |
+| Tron       | ✅                  | ✅                    | ✅                   |
+| Waves      | ✅                  | ✅                    | ✅                   |
+| Zcash      | ✅                  | ✅                    | ✅                   |
+| Zen        | ✅                  | ✅                    | ✅                   |
+| Zil        | ✅                  | ✅                    | ✅                   |
+
+
+*Note: Bitcoin support includes BRC20, Atomicals, and Runes-related functions, such as deployment, minting, transfer, and trading.*
+
+## 🛠️ Architecture
+
+The Go Wallet SDK follows a modular architecture, comprising the following core components:
+
+1. **`coins`**: Implements transaction creation and signing for each blockchain.
+2. **`crypto`**: Manages general cryptographic operations and signature algorithms.
+3. **`util`**: Provides helper utilities for common operations.
+
+This structure allows for easy integration and extension of new blockchains.
+
+## 📦 Installation
+
+To install the OKX Web3 Go Wallet SDK, ensure you have Go 1.22+ installed, then run:
+
+```shell
+# Install SDK
+go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
+```
+
+## ⚙️ Build Locally
+
+To build the SDK locally and run tests:
+
+```shell
+git clone https://github.com/okx/go-wallet-sdk.git
+cd go-wallet-sdk
+go mod tidy
+go test ./...
+```
+
+
+## 💬 Feedback and Support
+
+The OKX Web3 Go Wallet SDK shares common design principles and usage patterns with the JS SDK. While each blockchain's specific usage can be found in the corresponding `coins` directory README, users can refer to the [JS SDK demo](https://okx.github.io/wallet-sdk-demo/) and [documentation](https://okx.github.io/js-wallet-sdk/) for additional guidance. If you encounter any issues or have suggestions, please submit them through [GitHub Issues](https://github.com/okx/go-wallet-sdk/issues), and we will address them promptly.
+
+## 🔒 Security
+
+If you find security risks, it is recommended to feedback through the following channels and get your reward!
+Submit on HackerOne platform: [https://hackerone.com/okg](https://hackerone.com/okg) or on our OKX feedback submission page: [https://www.okx.com/feedback/submit](https://www.okx.com/feedback/submit).
+
+## 📜 License
+
+The OKX Web3 Go Wallet SDK is open-source software licensed under the [MIT license](LICENSE).
+

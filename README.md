@@ -74,23 +74,23 @@ This structure allows for easy integration and extension of new blockchains.
 
 ## 📦 Installation
 
-To install the OKX Web3 Go Wallet SDK, ensure you have Go 1.22+ installed, then run:
+To install the OKX Web3 Go Wallet SDK, ensure you have Go 1.22+ installed, such as run:
 
 ```shell
 # Install SDK
 go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 ```
 
-## ⚙️ Build Locally
+## ⚙️ Build and Test
 
-To build the SDK locally and run tests:
+To build and test all blockchain modules, use the `build.sh` script located in the project root. This script iterates through each chain module under the `coins` directory, runs `go mod tidy` to clean dependencies, executes tests, and verifies successful builds.
 
 ```shell
-git clone https://github.com/okx/go-wallet-sdk.git
-cd go-wallet-sdk
-go mod tidy
-go test ./...
+sh build.sh
 ```
+
+The output will display the build status for each chain. If a module fails, the error message will indicate the issue for further debugging.
+
 
 
 ## 💬 Feedback and Support

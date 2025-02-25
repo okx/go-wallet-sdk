@@ -34,30 +34,18 @@ The OKX Web3 Go Wallet SDK supports a wide range of blockchain networks. EVM-com
 | Bitcoin    | ✅                  | ✅                    | ✅                   |
 | Cardano    | ✅                  | ✅                    | ✅                   |
 | Cosmos     | ✅                  | ✅                    | ✅                   |
-| EOS        | ✅                  | ✅                    | ✅                   |
 | Ethereum   | ✅                  | ✅                    | ✅                   |
 | Filecoin   | ✅                  | ✅                    | ✅                   |
-| Flow       | ✅                  | ✅                    | ✅                   |
 | Harmony    | ✅                  | ✅                    | ✅                   |
-| Helium     | ✅                  | ✅                    | ✅                   |
 | Kaspa      | ✅                  | ✅                    | ✅                   |
 | Near       | ✅                  | ✅                    | ✅                   |
-| Nervos     | ✅                  | ✅                    | ✅                   |
 | NostrAsset | ✅                  | ✅                    | ✅                   |
-| Oasis      | ✅                  | ✅                    | ✅                   |
-| Oracle     | ✅                  | ✅                    | ✅                   |
-| Polkadot   | ✅                  | ✅                    | ✅                   |
 | Solana     | ✅                  | ✅                    | ✅                   |
 | Starknet   | ✅                  | ✅                    | ✅                   |
 | Stacks     | ✅                  | ✅                    | ✅                   |
 | SUI        | ✅                  | ✅                    | ✅                   |
-| Tezos      | ✅                  | ✅                    | ✅                   |
 | Ton        | ✅                  | ✅                    | ✅                   |
 | Tron       | ✅                  | ✅                    | ✅                   |
-| Waves      | ✅                  | ✅                    | ✅                   |
-| Zcash      | ✅                  | ✅                    | ✅                   |
-| Zen        | ✅                  | ✅                    | ✅                   |
-| Zil        | ✅                  | ✅                    | ✅                   |
 
 
 *Note: Bitcoin support includes BRC20, Atomicals, and Runes-related functions, such as deployment, minting, transfer, and trading.*

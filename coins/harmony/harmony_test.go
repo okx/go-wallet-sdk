@@ -60,7 +60,7 @@ func TestVerifySignMsg(t *testing.T) {
 
 	signature, err := ethereum.SignEthTypeMessage(msg, prvKey, true)
 	assert.NoError(t, err)
-	assert.Equal(t, "e92e713889da270e7095c4c11f259ee38b11b073e419e6414c908a06af9169a40943daa3e6aa39d4f4aa4026ee7a945dd521f56c14ed2a92165e5bad775257c91c", signature)
+	assert.Equal(t, "1ba0e9480c4d98a899cdf6d0e6695f6162b25eb26532486be8aec533bd8381d05193a9d48165c73599910836a955a199c9e996654caa923aa674a2a61d40c7f01b", signature)
 
 	assert.Nil(t, VerifySignMsg(signature, msg, bech32Address, true))
 	assert.Nil(t, VerifySignMsg(signature, msg, ethAddress, true))

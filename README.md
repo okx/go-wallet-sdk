@@ -19,33 +19,30 @@ The OKX Web3 Go Wallet SDK is a comprehensive solution for building wallet appli
 For detailed documentation and API references, please refer to the README files located within each blockchain directory under the `coins` folder. Each directory, such as `aptos`, `bitcoin`, and others, contains specific usage instructions and implementation details.
 
 Example:
+
 - [Aptos README](https://github.com/okx/go-wallet-sdk/tree/main/coins/aptos)
 - [Bitcoin README](https://github.com/okx/go-wallet-sdk/tree/main/coins/bitcoin)
 
-
-
 ## 🌐 Supported Chains
-The OKX Web3 Go Wallet SDK supports a wide range of blockchain networks. EVM-compatible chains (e.g., BSC, Polygon, Arbitrum) and Solana-based chains can seamlessly reuse the same code structure for streamlined integration.
 
-| Blockchain | Account Generation | Transaction Creation | Transaction Signing |
-| ---------- | ------------------ | -------------------- | ------------------- |
-| Aptos      | ✅                  | ✅                    | ✅                   |
-| Avax       | ✅                  | ✅                    | ✅                   |
-| Bitcoin    | ✅                  | ✅                    | ✅                   |
-| Cardano    | ✅                  | ✅                    | ✅                   |
-| Cosmos     | ✅                  | ✅                    | ✅                   |
-| Ethereum   | ✅                  | ✅                    | ✅                   |
-| Filecoin   | ✅                  | ✅                    | ✅                   |
-| Harmony    | ✅                  | ✅                    | ✅                   |
-| Kaspa      | ✅                  | ✅                    | ✅                   |
-| Near       | ✅                  | ✅                    | ✅                   |
-| NostrAsset | ✅                  | ✅                    | ✅                   |
-| Solana     | ✅                  | ✅                    | ✅                   |
-| Starknet   | ✅                  | ✅                    | ✅                   |
-| Stacks     | ✅                  | ✅                    | ✅                   |
-| SUI        | ✅                  | ✅                    | ✅                   |
-| Ton        | ✅                  | ✅                    | ✅                   |
-| Tron       | ✅                  | ✅                    | ✅                   |
+The OKX Web3 Go Wallet SDK supports a wide range of blockchain networks. EVM-compatible chains (e.g., BSC, Polygon,
+Arbitrum) and Solana-based chains can seamlessly reuse the same code structure for streamlined integration.
+
+| Blockchain | Generate Address | Sign Transaction | Sign Message |
+|------------|------------------|------------------|--------------|
+| Aptos      | ✅                | ✅                | ✅            |
+| Bitcoin    | ✅                | ✅                | ✅            |
+| Cardano    | ✅                | ✅                | ✅            |
+| Cosmos     | ✅                | ✅                | ✅            |
+| Ethereum   | ✅                | ✅                | ✅            |
+| Kaspa      | ✅                | ✅                | ✅            |
+| Near       | ✅                | ✅                | ✅            |
+| Solana     | ✅                | ✅                | ✅            |
+| Starknet   | ✅                | ✅                | ✅            |
+| Stacks     | ✅                | ✅                | ✅            |
+| Sui        | ✅                | ✅                | ✅            |
+| Ton        | ✅                | ✅                | ✅            |
+| Tron       | ✅                | ✅                | ✅            |
 
 
 *Note: Bitcoin support includes BRC20, Atomicals, and Runes-related functions, such as deployment, minting, transfer, and trading.*

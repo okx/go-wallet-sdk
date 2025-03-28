@@ -1,10 +1,21 @@
-// Package errors provides the common infrastructure for managing errors.  It
-// is primarily a wrapper around github.com/pkg/errors package.  See
-// https://godoc.org/github.com/pkg/errors for usage instructions.
-//
-// While it is possible for most packages to use this package without needing
-// the underlying package it is wrapping, certain usecases (such as interacting
-// with the recorded stack trace) cannot avoid leakage.
+/*
+ * Copyright 2016 Stellar Development Foundation and contributors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file includes portions of third-party code from [https://github.com/stellar/go].
+ * The original code is licensed under the Apache License 2.0.
+ */
+
 package errors
 
 import (

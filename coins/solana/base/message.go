@@ -19,6 +19,7 @@ package base
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 )
 
@@ -41,8 +42,17 @@ type MessageAddressTableLookupSlice []MessageAddressTableLookup
 func (lookups MessageAddressTableLookupSlice) NumLookups() int {
 	count := 0
 	for _, lookup := range lookups {
-		// TODO: check if this is correct.
 		count += len(lookup.ReadonlyIndexes)
+		count += len(lookup.WritableIndexes)
+	}
+	return count
+}
+
+// NumWritableLookups returns the number of writable accounts
+// across all the lookups (all the address tables).
+func (lookups MessageAddressTableLookupSlice) NumWritableLookups() int {
+	count := 0
+	for _, lookup := range lookups {
 		count += len(lookup.WritableIndexes)
 	}
 	return count
@@ -61,9 +71,21 @@ func (lookups MessageAddressTableLookupSlice) GetTableIDs() PublicKeySlice {
 }
 
 type MessageAddressTableLookup struct {
-	AccountKey      PublicKey // The account key of the address table.
-	WritableIndexes []uint8
-	ReadonlyIndexes []uint8
+	AccountKey      PublicKey       `json:"accountKey"` // The account key of the address table.
+	WritableIndexes Uint8SliceAsNum `json:"writableIndexes"`
+	ReadonlyIndexes Uint8SliceAsNum `json:"readonlyIndexes"`
+}
+
+// Uint8SliceAsNum is a slice of uint8s that can be marshaled as numbers instead of a byte slice.
+type Uint8SliceAsNum []uint8
+
+// MarshalJSON implements json.Marshaler.
+func (slice Uint8SliceAsNum) MarshalJSON() ([]byte, error) {
+	out := make([]uint16, len(slice))
+	for i, idx := range slice {
+		out[i] = uint16(idx)
+	}
+	return json.Marshal(out)
 }
 
 type Message struct {
@@ -85,7 +107,7 @@ type Message struct {
 	Instructions []CompiledInstruction `json:"instructions"`
 
 	// List of address table lookups used to load additional accounts for this transaction.
-	addressTableLookups MessageAddressTableLookupSlice
+	AddressTableLookups MessageAddressTableLookupSlice `json:"addressTableLookups"`
 
 	// The actual tables that contain the list of account pubkeys.
 	// NOTE: you need to fetch these from the chain, and then call `SetAddressTables`
@@ -238,10 +260,10 @@ func (mx *Message) UnmarshalV0(decoder *Decoder) (err error) {
 		return fmt.Errorf("failed to read address table lookups length: %w", err)
 	}
 	if addressTableLookupsLen > 0 {
-		mx.addressTableLookups = make([]MessageAddressTableLookup, addressTableLookupsLen)
+		mx.AddressTableLookups = make([]MessageAddressTableLookup, addressTableLookupsLen)
 		for i := 0; i < int(addressTableLookupsLen); i++ {
 			// read account pubkey
-			_, err = decoder.Read(mx.addressTableLookups[i].AccountKey[:])
+			_, err = decoder.Read(mx.AddressTableLookups[i].AccountKey[:])
 			if err != nil {
 				return fmt.Errorf("failed to read account pubkey: %w", err)
 			}
@@ -251,8 +273,8 @@ func (mx *Message) UnmarshalV0(decoder *Decoder) (err error) {
 			if err != nil {
 				return fmt.Errorf("failed to read writable indexes length: %w", err)
 			}
-			mx.addressTableLookups[i].WritableIndexes = make([]byte, writableIndexesLen)
-			_, err = decoder.Read(mx.addressTableLookups[i].WritableIndexes)
+			mx.AddressTableLookups[i].WritableIndexes = make([]byte, writableIndexesLen)
+			_, err = decoder.Read(mx.AddressTableLookups[i].WritableIndexes)
 			if err != nil {
 				return fmt.Errorf("failed to read writable indexes: %w", err)
 			}
@@ -262,8 +284,8 @@ func (mx *Message) UnmarshalV0(decoder *Decoder) (err error) {
 			if err != nil {
 				return fmt.Errorf("failed to read readonly indexes length: %w", err)
 			}
-			mx.addressTableLookups[i].ReadonlyIndexes = make([]byte, readonlyIndexesLen)
-			_, err = decoder.Read(mx.addressTableLookups[i].ReadonlyIndexes)
+			mx.AddressTableLookups[i].ReadonlyIndexes = make([]byte, readonlyIndexesLen)
+			_, err = decoder.Read(mx.AddressTableLookups[i].ReadonlyIndexes)
 			if err != nil {
 				return fmt.Errorf("failed to read readonly indexes: %w", err)
 			}

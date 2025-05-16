@@ -1,12 +1,21 @@
 /*
-Package txnbuild implements transactions and operations on the Stellar network.
-This library provides an interface to the Stellar transaction model. It supports the building of Go applications on
-top of the Stellar network (https://www.stellar.org/). Transactions constructed by this library may be submitted
-to any Horizon instance for processing onto the ledger, using any Stellar SDK client. The recommended client for Go
-programmers is horizonclient (https://github.com/stellar/go/tree/master/clients/horizonclient). Together, these two
-libraries provide a complete Stellar SDK.
-For more information and further examples, see https://github.com/stellar/go/blob/master/docs/reference/readme.md
-*/
+ * Copyright 2016 Stellar Development Foundation and contributors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file includes portions of third-party code from [https://github.com/stellar/go].
+ * The original code is licensed under the Apache License 2.0.
+ */
+
 package txnbuild
 
 import (

@@ -45,12 +45,12 @@ func TestTransfer(t *testing.T) {
 	param := cosmos.TransferParam{}
 	param.FromAddress = "osmo1rlvaqq27e4c5jcnghgvdnd3739w0vvt3w6djda"
 	param.ToAddress = "osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2"
-	param.Demon = "uosmo"
+	param.Denom = "uosmo"
 	param.Amount = "100000"
 	param.CommonParam.ChainId = "osmosis-1"
 	param.CommonParam.Sequence = 0
 	param.CommonParam.AccountNumber = 584405
-	param.CommonParam.FeeDemon = "uosmo"
+	param.CommonParam.FeeDenom = "uosmo"
 	param.CommonParam.FeeAmount = "0"
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
@@ -69,14 +69,14 @@ func TestSwap(t *testing.T) {
 	// evmos - osmo
 	param.PoolId = 722
 	// evmos
-	param.ToDemon = "ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A"
-	param.FromDemon = "uosmo"
+	param.ToDenom = "ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A"
+	param.FromDenom = "uosmo"
 	param.FromAmount = "10000"
 	param.MinToAmount = "3854154180813018"
 	param.CommonParam.ChainId = "osmosis-1"
 	param.CommonParam.Sequence = 0
 	param.CommonParam.AccountNumber = 584406
-	param.CommonParam.FeeDemon = "uosmo"
+	param.CommonParam.FeeDenom = "uosmo"
 	param.CommonParam.FeeAmount = "0"
 	param.CommonParam.GasLimit = 250000
 	param.CommonParam.Memo = ""
@@ -102,14 +102,14 @@ func TestIbcTransfer(t *testing.T) {
 	p.CommonParam.ChainId = "osmosis-1"
 	p.CommonParam.Sequence = 6
 	p.CommonParam.AccountNumber = 584406
-	p.CommonParam.FeeDemon = "uosmo"
+	p.CommonParam.FeeDenom = "uosmo"
 	p.CommonParam.FeeAmount = "0"
 	p.CommonParam.GasLimit = 100000
 	p.CommonParam.Memo = ""
 	p.CommonParam.TimeoutHeight = 0
 	p.FromAddress = "osmo1lyjxk4t835yj6u8l2mg6a6t2v9x3nj7ulaljz2"
 	p.ToAddress = "cosmos1rvs5xph4l3px2efynqsthus8p6r4exyr7ckyxv"
-	p.Demon = "uosmo"
+	p.Denom = "uosmo"
 	p.Amount = "100000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"

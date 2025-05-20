@@ -15,8 +15,8 @@ type SwapExactAmountInParam struct {
 	cosmos.CommonParam
 	Sender      string
 	PoolId      uint64
-	ToDemon     string
-	FromDemon   string
+	ToDenom     string
+	FromDenom   string
 	FromAmount  string
 	MinToAmount string
 }
@@ -34,7 +34,7 @@ func SwapExactAmountIn(param SwapExactAmountInParam, privateKeyHex string) (stri
 	if !ok {
 		return "", errors.New("invalid from amount")
 	}
-	inCoin := types.NewCoin(param.FromDemon, fa)
+	inCoin := types.NewCoin(param.FromDenom, fa)
 
 	tmo, ok := types.NewIntFromString(param.MinToAmount)
 	if !ok {
@@ -42,7 +42,7 @@ func SwapExactAmountIn(param SwapExactAmountInParam, privateKeyHex string) (stri
 	}
 
 	routes := make([]gamm.SwapAmountInRoute, 0)
-	routes = append(routes, gamm.SwapAmountInRoute{PoolId: param.PoolId, TokenOutDenom: param.ToDemon})
+	routes = append(routes, gamm.SwapAmountInRoute{PoolId: param.PoolId, TokenOutDenom: param.ToDenom})
 	sendMsg := gamm.MsgSwapExactAmountIn{Sender: param.Sender, Routes: routes, TokenIn: inCoin, TokenOutMinAmount: tmo}
 
 	messages := make([]*types.Any, 0)

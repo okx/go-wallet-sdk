@@ -24,7 +24,7 @@ type SpecV4R2 struct {
 	SpecSeqno
 }
 
-func (s *SpecV4R2) BuildMessage(ctx context.Context, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
+func (s *SpecV4R2) BuildMessage(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
 	// TODO: remove block, now it is here for backwards compatibility
 
 	if len(messages) > 4 {

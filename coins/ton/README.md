@@ -27,7 +27,7 @@ fmt.Println(address)
 
 ```go
 seed, _ := hex.DecodeString("45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40") //your private key
-address, err := NewAddress(seed) //generate address
+address, err := NewAddress(seed, wallet.V4R2) //generate address
 fmt.Println(address)
 to := "UQC6QJ31Bv_hjmsoaUjRmpZYqj9NXbBbvufCNycnc0gjReqR" //to ,which address receives the TON.
 amount := "100000000" //amount to transfer . 1 TON means 100000000
@@ -37,7 +37,7 @@ pubKey := ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)
 expireAt := time.Now().Unix() + 600
 //false means that now it is  Not a simulative transaction.
 simulate := false
-signedTx, err := Transfer(seed, pubKey, to, amount, comment, seqno, expireAt, 3, simulate) //3 is recommended pattern. false means that now it is  Not a simulative transaction.
+signedTx, err := Transfer(seed, pubKey, to, amount, comment, seqno, expireAt, 3, simulate, wallet.V4R2) //3 is recommended pattern. false means that now it is  Not a simulative transaction.
 assert.Nil(t, err)
 t.Log(signedTx.Tx)
 fmt.Println(signedTx.Tx) // the tx is in signedTx.Tx
@@ -63,7 +63,9 @@ expireAt := time.Now().Unix() + 600
 invokeNotificationFee := "1"
 //false means that now it is  Not a simulative transaction.
 simulate := false
-signedTx, err := TransferJetton(seed, pubKey, fromJettonAccount, to, amount, 9, seqno, messageAttachedTons, invokeNotificationFee, comment, expireAt, 0, simulate)
+customPayload := ""
+stateInit := ""
+signedTx, err := TransferJetton(seed, pubKey, fromJettonAccount, to, amount, 9, seqno, messageAttachedTons, invokeNotificationFee, customPayload, stateInit, comment, expireAt, 0, simulate, wallet.V4R2)
 
 assert.Nil(t, err)
 fmt.Println( signedTx.Tx) // the tx is in signedTx.Tx
@@ -84,7 +86,7 @@ expireAt := time.Now().Unix() + 600
 //true means that now it IS  a simulative transaction.
 simulate := true
 pubKey := ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)
-signedTx, err := Transfer(nil, pubKey, to, amount, comment, seqno, expireAt, 3, simulate) //3 is recommended pattern. 
+signedTx, err := Transfer(nil, pubKey, to, amount, comment, seqno, expireAt, 3, simulate, wallet.V4R2) //3 is recommended pattern. 
 assert.Nil(t, err)
 fmt.Println( signedTx.Tx) // the tx is in signedTx.Tx Used to estimate gas charges
 ```
@@ -107,7 +109,7 @@ expireAt := time.Now().Unix() + 600
 invokeNotificationFee := "1"
 //false means that now it IS  a simulative transaction.
 simulate := true
-signedTx, err := TransferJetton(nil, pubKey, fromJettonAccount, to, amount, 9, seqno, messageAttachedTons, invokeNotificationFee, comment, expireAt, 0, simulate)
+signedTx, err := TransferJetton(seed, pubKey, fromJettonAccount, to, amount, 9, seqno, messageAttachedTons, invokeNotificationFee, customPayload, stateInit, comment, expireAt, 0, simulate, wallet.V4R2)
 assert.Nil(t, err)
 fmt.Println( signedTx.Tx) // the tx is in signedTx.Tx Used to estimate gas charges
 ```
@@ -174,14 +176,14 @@ err := json.Unmarshal([]byte(code), &r)
 assert.NoError(t, err)
 //your private key seed 
 seed, _ := hex.DecodeString("45d3bd794c5bc6ed91ae41c93c0baed679935703dfac72c48d27f8321b8d3a40")
-address, err := NewAddress(seed)
+address, err := NewAddress(seed, wallet.V4R2)
 fmt.Println(address)
 assert.NoError(t, err)
 assert.NoError(t, r.Check())
 //simulate means that now it IS  a simulative transaction.and false means that now it is NOT a simulative transaction.
 //whie simulate is true,the result is  Used to estimate gas charges
 simulate := true
-s, err := SignMultiTransfer(seed, nil, nonce, &r, simulate)
+s, err := SignMultiTransfer(seed, nil, nonce, &r, simulate, wallet.V4R2)
 assert.NoError(t, err)
 fmt.Println(s.Tx)
 tt := &testSignedTx{
@@ -193,6 +195,12 @@ IgnoreChksig: true,
 }
 fmt.Println(tt.Str())
 ```
+
+## Credits  This project includes code adapted from the following sources:  
+- [tonutils-go](https://github.com/xssnick/tonutils-go) - Ton Go SDK
+- [tongo](https://github.com/tonkeeper/tongo) - TonKeeper Go SDK
+
+If you are the original author and would like credit adjusted, please contact us.
 
 ## License
 

@@ -61,5 +61,10 @@ err = BuildTransaction(tx, fee, privateKey.Public(), opt)
 rawTx, err := SignTransaction(tx, p2, opt)
 ```
 
+## Credits  This project includes code adapted from the following sources:
+- [tzgo](https://github.com/trilitech/tzgo) - Tezos Go SDK
+
+If you are the original author and would like credit adjusted, please contact us.
+
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.

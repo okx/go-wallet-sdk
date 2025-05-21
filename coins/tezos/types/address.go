@@ -151,7 +151,7 @@ func EncodeAddress(typ AddressType, addrhash []byte) (string, error) {
 	case AddressTypeToru:
 		return CheckEncode(addrhash, TORU_ADDRESS_ID), nil
 	default:
-		return "", fmt.Errorf("tezos: unknown address type %s for hash=%x", typ, addrhash)
+		return "", fmt.Errorf("tezos: unknown address type %v for hash=%x", typ, addrhash)
 	}
 }
 

@@ -6,7 +6,6 @@ package wallet
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 )
 
@@ -17,7 +16,6 @@ func TestAddressFromPubKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(a)
 	if a.String() != "UQAwwdowWbBKkrnRlbY8CUEzy_pgK9pIvOKP2eqcD01EWl2U" {
 		t.Fatal("v3 not match")
 	}

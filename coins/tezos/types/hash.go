@@ -246,7 +246,7 @@ func decodeHash(hstr string) (Hash, error) {
 		return Hash{}, fmt.Errorf("tezos: unknown hash format: %w", err)
 	}
 	if !bytes.Equal(version, typ.PrefixBytes()) {
-		return Hash{}, fmt.Errorf("tezos: invalid prefix '%x' for decoded hash type '%s'", version, typ)
+		return Hash{}, fmt.Errorf("tezos: invalid prefix '%x' for decoded hash type '%v'", version, typ)
 	}
 	if have, want := len(decoded), typ.Len(); have != want {
 		return Hash{}, fmt.Errorf("tezos: invalid length for decoded hash have=%d want=%d", have, want)

@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
+	"golang.org/x/crypto/blake2b"
 
 	"github.com/okx/go-wallet-sdk/util"
 )
@@ -244,4 +245,23 @@ func SignTx2(tx TxStruct2, signature []byte) (string, error) {
 		return "", err
 	}
 	return util.EncodeHexWith0x(lengthBytes) + hex.EncodeToString(signed), nil
+}
+
+func CalTxHash(signedTx string) (string, error) {
+	if signedTx[:2] == "0x" || signedTx[:2] == "0X" {
+		signedTx = signedTx[2:]
+	}
+	b, err := hex.DecodeString(signedTx)
+	if err != nil {
+		return "", err
+	}
+	h, err := blake2b.New256(nil)
+	if err != nil {
+		return "", err
+	}
+	_, err = h.Write(b)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

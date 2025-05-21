@@ -13,6 +13,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
@@ -22,6 +23,9 @@ import (
 
 type Version int
 
+// Network IDs
+const MainnetGlobalID = -239
+const TestnetGlobalID = -3
 const (
 	V1R1               Version = 11
 	V1R2               Version = 12
@@ -34,11 +38,20 @@ const (
 	VenomV3            Version = 124
 	V4R1               Version = 41
 	V4R2               Version = 42
+	V5R1Final          Version = 52 // W5 Final
 	HighloadV2R2       Version = 122
 	HighloadV2Verified Version = 123
 	HighloadV3         Version = 300
 	Lockup             Version = 200
 	Unknown            Version = 0
+)
+
+const (
+	CarryAllRemainingBalance       = 128
+	CarryAllRemainingIncomingValue = 64
+	DestroyAccountIfZero           = 32
+	IgnoreErrors                   = 2
+	PayGasSeparately               = 1
 )
 
 func (v Version) String() string {
@@ -68,6 +81,7 @@ var (
 		V2R1: _V2R1CodeHex, V2R2: _V2R2CodeHex,
 		V3R1: _V3R1CodeHex, V3R2: _V3R2CodeHex, VenomV3: _VenomV3CodeHex,
 		V4R1: _V4R1CodeHex, V4R2: _V4R2CodeHex,
+		V5R1Final:    _V5R1FinalCodeHex,
 		HighloadV2R2: _HighloadV2R2CodeHex, HighloadV2Verified: _HighloadV2VerifiedCodeHex,
 		HighloadV3: _HighloadV3CodeHex,
 		Lockup:     _LockupCodeHex,
@@ -140,7 +154,13 @@ type Wallet struct {
 }
 
 func FromPrivateKey( /*api TonAPI, */ key ed25519.PrivateKey, version VersionConfig) (*Wallet, error) {
-	addr, err := AddressFromPubKey(key.Public().(ed25519.PublicKey), version, DefaultSubwallet)
+	var subwallet uint32 = DefaultSubwallet
+	// default subwallet depends on wallet type
+	switch version.(type) {
+	case ConfigV5R1Final:
+		subwallet = 0
+	}
+	addr, err := AddressFromPubKey(key.Public().(ed25519.PublicKey), version, subwallet)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +170,7 @@ func FromPrivateKey( /*api TonAPI, */ key ed25519.PrivateKey, version VersionCon
 		key:       key,
 		addr:      addr,
 		ver:       version,
-		subwallet: DefaultSubwallet,
+		subwallet: subwallet,
 	}
 
 	w.spec, err = getSpec(w)
@@ -162,7 +182,13 @@ func FromPrivateKey( /*api TonAPI, */ key ed25519.PrivateKey, version VersionCon
 }
 
 func FakeFromPublicKey( /*api TonAPI, */ key ed25519.PublicKey, version VersionConfig) (*Wallet, error) {
-	addr, err := AddressFromPubKey(key, version, DefaultSubwallet)
+	var subwallet uint32 = DefaultSubwallet
+	// default subwallet depends on wallet type
+	switch version.(type) {
+	case ConfigV5R1Final:
+		subwallet = 0
+	}
+	addr, err := AddressFromPubKey(key, version, subwallet)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +198,7 @@ func FakeFromPublicKey( /*api TonAPI, */ key ed25519.PublicKey, version VersionC
 		pubKey:    key,
 		addr:      addr,
 		ver:       version,
-		subwallet: DefaultSubwallet,
+		subwallet: subwallet,
 	}
 
 	w.spec, err = getSpec(w)
@@ -206,7 +232,7 @@ func FromPrivateKeyVenom(key ed25519.PrivateKey, version Version) (*Wallet, erro
 
 func getSpec(w *Wallet) (any, error) {
 	switch v := w.ver.(type) {
-	case Version:
+	case Version, ConfigV5R1Final:
 		regular := SpecRegular{
 			wallet:   w,
 			expireAt: 60 * 3, // default ttl 3 min
@@ -233,6 +259,13 @@ func getSpec(w *Wallet) (any, error) {
 			return uint32(iSeq.Uint64()), nil
 		}*/
 
+		switch x := w.ver.(type) {
+		case ConfigV5R1Final:
+			if x.NetworkGlobalID == 0 {
+				return nil, fmt.Errorf("NetworkGlobalID should be set in V5 config")
+			}
+			return &SpecV5R1Final{SpecRegular: regular, SpecSeqno: SpecSeqno{}, config: x}, nil
+		}
 		switch v {
 		case V3R1, V3R2:
 			return &SpecV3{regular, SpecSeqno{}}, nil
@@ -244,6 +277,8 @@ func getSpec(w *Wallet) (any, error) {
 			return &SpecHighloadV2R2{regular, SpecQuery{}}, nil
 		case HighloadV3:
 			return nil, fmt.Errorf("use ConfigHighloadV3 for highload v3 spec")
+		case V5R1Final:
+			return nil, fmt.Errorf("use ConfigV5R1Final for V5 spec")
 		}
 	case ConfigHighloadV3:
 		return &SpecHighloadV3{wallet: w, config: v}, nil
@@ -295,6 +330,14 @@ func (w *Wallet) GetSubwallet(subwallet uint32) (*Wallet, error) {
 	}
 
 	return sub, nil
+}
+
+func (w *Wallet) GetSubwalletID() uint32 {
+	return w.subwallet
+}
+
+func (w *Wallet) GetVersionConfig() VersionConfig {
+	return w.ver
 }
 
 /*
@@ -352,10 +395,14 @@ func (w *Wallet) PrepareExternalMessageForMany(ctx context.Context, withStateIni
 
 	var msg *cell.Cell
 	switch v := w.ver.(type) {
-	case Version:
+	case Version, ConfigV5R1Final:
+		switch v.(type) {
+		case ConfigV5R1Final:
+			v = V5R1Final
+		}
 		switch v {
-		case V3R2, V3R1, V4R2, V4R1:
-			msg, err = w.spec.(RegularBuilder).BuildMessage(ctx, !withStateInit /*nil, */, messages)
+		case V3R2, V3R1, V4R2, V4R1, V5R1Final:
+			msg, err = w.spec.(RegularBuilder).BuildMessage(ctx, false, !withStateInit /*nil, */, messages)
 			if err != nil {
 				return nil, fmt.Errorf("build message err: %w", err)
 			}
@@ -385,7 +432,61 @@ func (w *Wallet) PrepareExternalMessageForMany(ctx context.Context, withStateIni
 	}, nil
 }
 
-func tryParseBase64(body string) ([]byte, error) {
+func (w *Wallet) PrepareInternalMessageForMany(ctx context.Context, to *address.Address, amount *big.Int, withStateInit bool, messages []*Message) (_ *Message, err error) {
+	var stateInit *tlb.StateInit
+	if withStateInit {
+		stateInit, err = GetStateInit(w.PublicKey(), w.ver, w.subwallet)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get state init: %w", err)
+		}
+	}
+
+	var msg *cell.Cell
+	switch v := w.ver.(type) {
+	case Version, ConfigV5R1Final:
+		switch v.(type) {
+		case ConfigV5R1Final:
+			v = V5R1Final
+		}
+		switch v {
+		case V3R2, V3R1, V4R2, V4R1, V5R1Final:
+			msg, err = w.spec.(RegularBuilder).BuildMessage(ctx, true, !withStateInit /*nil, */, messages)
+			if err != nil {
+				return nil, fmt.Errorf("build message err: %w", err)
+			}
+		case HighloadV2R2, HighloadV2Verified:
+			msg, err = w.spec.(*SpecHighloadV2R2).BuildMessage(ctx, messages)
+			if err != nil {
+				return nil, fmt.Errorf("build message err: %w", err)
+			}
+		case HighloadV3:
+			return nil, fmt.Errorf("use ConfigHighloadV3 for highload v3 spec")
+		default:
+			return nil, fmt.Errorf("send is not yet supported: %w", ErrUnsupportedWalletVersion)
+		}
+	case ConfigHighloadV3:
+		msg, err = w.spec.(*SpecHighloadV3).BuildMessage(ctx, messages)
+		if err != nil {
+			return nil, fmt.Errorf("build message err: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("send is not yet supported: %w", ErrUnsupportedWalletVersion)
+	}
+
+	return &Message{
+		Mode: PayGasSeparately + IgnoreErrors, // pay fee separately, ignore action errors
+		InternalMessage: &tlb.InternalMessage{
+			Bounce:    to.IsBounceable(),
+			DstAddr:   to,
+			Amount:    tlb.FromNanoTON(amount),
+			StateInit: stateInit,
+			Body:      msg,
+		},
+	}, nil
+
+}
+
+func TryParseBase64(body string) ([]byte, error) {
 	if b, errStd := base64.StdEncoding.DecodeString(body); errStd == nil && len(b) > 0 {
 		return b, nil
 	}
@@ -401,8 +502,8 @@ func tryParseBase64(body string) ([]byte, error) {
 	return nil, errors.New("invalid base64 string")
 }
 
-func tryParse(body string) (*cell.Cell, error) {
-	b, err := tryParseBase64(body)
+func TryParseCell(body string) (*cell.Cell, error) {
+	b, err := TryParseBase64(body)
 	if err != nil {
 		return nil, err
 	}
@@ -417,14 +518,14 @@ func (w *Wallet) BuildTransferByBody(to *address.Address, amount tlb.Coins, body
 	var err error
 	var bd *cell.Cell
 	if body != "" {
-		bd, err = tryParse(body)
+		bd, err = TryParseCell(body)
 		if err != nil {
 			return nil, err
 		}
 	}
 	var in *tlb.StateInit
 	if len(stateInit) > 0 {
-		b, err := tryParseBase64(stateInit)
+		b, err := TryParseBase64(stateInit)
 		if err != nil {
 			return nil, err
 		}

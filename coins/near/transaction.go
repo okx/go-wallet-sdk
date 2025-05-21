@@ -3,11 +3,16 @@ package near
 import (
 	"crypto/ed25519"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/near/serialize"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"math/big"
+)
+
+const (
+	SignatureLength = 65
 )
 
 type Transaction struct {
@@ -174,4 +179,19 @@ func (tx *Transaction) GetSigningHash() (string, error) {
 	}
 	txHash := sha256.Sum256(signedTx[:])
 	return hex.EncodeToString(txHash[:]), nil
+}
+
+func CalTxHash(tx string, signed bool) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(tx)
+	if err != nil {
+		return "", err
+	}
+	if signed {
+		if len(data) < SignatureLength {
+			return "", err
+		}
+		data = data[:len(data)-SignatureLength] // Remove signature portion of tx
+	}
+	txHash := sha256.Sum256(data)
+	return base58.Encode(txHash[:]), nil
 }

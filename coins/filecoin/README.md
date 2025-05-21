@@ -37,7 +37,16 @@ go get -u github.com/okx/go-wallet-sdk/coins/filecoin
 	if err != nil {
 		// todo
 	}
+    hash, err := CalTxHash(tx)
+    if err != nil {
+        // todo
+    }
 ```
+
+## Credits  This project includes code adapted from the following sources:
+- [lotus](https://github.com/filecoin-project/lotus) - Filecoin Go SDK
+
+If you are the original author and would like credit adjusted, please contact us.
 
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/filecoin/LICENSE>) licensed, see package or folder for the respective license.

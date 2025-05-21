@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"math/big"
-	"os"
 	"reflect"
 	"testing"
 
@@ -108,7 +108,13 @@ func TestLoadAnyRegistered(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	json.NewEncoder(os.Stdout).Encode(v2)
+	v2Json, err := json.Marshal(v2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "{\"StructAny\":{\"Val\":2}}", string(v2Json))
+
+	//json.NewEncoder(os.Stdout).Encode(v2)
 }
 
 func mustParseInt(x string) *big.Int {

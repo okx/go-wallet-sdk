@@ -1,6 +1,7 @@
 package aptos
 
 import (
+	ed255192 "crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -35,6 +36,28 @@ func NewAddress(seedHex string, shortEnable bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	publicKey = append(publicKey, 0x0)
+	address := "0x" + hex.EncodeToString(aptos_types.Sha256Hash(publicKey))
+	if shortEnable {
+		return ShortenAddress(address), nil
+	} else {
+		return address, nil
+	}
+}
+
+func NewPubKeyAddress(pubHex string, shortEnable bool) (string, error) {
+	if strings.HasPrefix(pubHex, "0x") {
+		pubHex = pubHex[2:]
+	}
+	pub, err := hex.DecodeString(pubHex)
+	if err != nil {
+		return "", err
+	}
+	if len(pub) != 32 {
+		return "", errors.New("invalid public key")
+	}
+	publicKey := ed255192.PublicKey(pub)
 	publicKey = append(publicKey, 0x0)
 	address := "0x" + hex.EncodeToString(aptos_types.Sha256Hash(publicKey))
 	if shortEnable {
@@ -65,7 +88,20 @@ func ValidateAddress(address string, shortEnable bool) bool {
 	re2, _ := regexp.Compile("^[\\dA-Fa-f]{64}$")
 	return re1.Match([]byte(address)) || re2.Match([]byte(address))
 }
-
+func ValidateContractAddress(address string) bool {
+	contractReg, err := regexp.Compile("^(0[x|X])?[\\dA-Fa-f]+::.+::.+")
+	if err != nil {
+		panic(err)
+	}
+	if contractReg.Match([]byte(address)) {
+		return true
+	}
+	contractReg2, err := regexp.Compile("^(0[x|X])?[\\dA-Fa-f]*$")
+	if err != nil {
+		panic(err)
+	}
+	return contractReg2.Match([]byte(address))
+}
 func MakeRawTransaction(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64,
 	expirationTimestampSecs uint64, chainId uint8, payload aptos_types.TransactionPayload) (*aptos_types.RawTransaction, error) {
 	rawTxn := aptos_types.RawTransaction{}
@@ -87,6 +123,14 @@ func MakeRawTransaction(from string, sequenceNumber uint64, maxGasAmount uint64,
 func Transfer(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
 	to string, amount uint64, seedHex string) (string, error) {
 	payload, err := TransferPayload(to, amount)
+	if err != nil {
+		return "", err
+	}
+	return BuildSignedTransaction(from, sequenceNumber, maxGasAmount, gasUnitPrice, expirationTimestampSecs, chainId, payload, seedHex)
+}
+func TransferCoins(from string, sequenceNumber uint64, maxGasAmount uint64, gasUnitPrice uint64, expirationTimestampSecs uint64, chainId uint8,
+	to string, amount uint64, seedHex, tyArg string) (string, error) {
+	payload, err := CoinTransferPayloadV2(to, amount, tyArg)
 	if err != nil {
 		return "", err
 	}
@@ -182,6 +226,39 @@ func CoinTransferPayload(to string, amount uint64, tyArg string) (aptos_types.Tr
 	scriptFunction := aptos_types.ScriptFunction{
 		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "coin"},
 		Function: "transfer",
+		TyArgs:   tyArgs,
+		Args:     [][]byte{bscAddress, bscAmount},
+	}
+	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
+}
+func CoinTransferPayloadV2(to string, amount uint64, tyArg string) (aptos_types.TransactionPayload, error) {
+	bscAddress, err := aptos_types.BcsSerializeFixedBytes(aptos_types.BytesFromHex(ExpandAddress(to)))
+	if err != nil {
+		return nil, err
+	}
+	bscAmount, err := aptos_types.BcsSerializeUint64(amount)
+	if err != nil {
+		return nil, err
+	}
+	parts := strings.Split(tyArg, "::")
+	contractAddr, err := aptos_types.FromHex(ExpandAddress(parts[0]))
+	if err != nil {
+		return nil, err
+	}
+	tyArgs := make([]aptos_types.TypeTag, 0)
+	t1 := aptos_types.TypeTagStruct{
+		Value: aptos_types.StructTag{
+			Address:    *contractAddr,
+			ModuleName: aptos_types.Identifier(parts[1]),
+			Name:       aptos_types.Identifier(parts[2]),
+			TypeArgs:   []aptos_types.TypeTag{},
+		},
+	}
+	tyArgs = append(tyArgs, &t1)
+	//0x1::aptos_account::transfer_coins
+	scriptFunction := aptos_types.ScriptFunction{
+		Module:   aptos_types.ModuleId{Address: *aptos_types.CORE_CODE_ADDRESS, Name: "aptos_account"},
+		Function: "transfer_coins",
 		TyArgs:   tyArgs,
 		Args:     [][]byte{bscAddress, bscAmount},
 	}
@@ -740,6 +817,15 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 	if err != nil {
 		return nil, err
 	}
+	typeArguments := entryFunction.TypeArguments
+	if len(typeArguments) == 0 {
+		typeArguments = entryFunction.TypeArgumentsV2
+	}
+
+	arguments := entryFunction.Arguments
+	if len(arguments) == 0 {
+		arguments = entryFunction.FunctionArgumentsV2
+	}
 
 	f := entryFunction.Function
 	r, err := regexp.Compile("^0[xX]0*")
@@ -757,7 +843,7 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 		return nil, errors.New("abi miss")
 	}
 	abiArgs := filterMoveFunctionParams(funcAbi)
-	typeArgsEntryFunction := entryFunction.TypeArguments
+	typeArgsEntryFunction := typeArguments
 	typeArgABIs := make([]aptos_types.ArgumentABI, 0)
 	for i, abiArg := range abiArgs {
 		parser, err := aptos_types.NewTypeTagParser(abiArg, typeArgsEntryFunction)
@@ -779,7 +865,7 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 	// todo support TransactionScriptABI
 	// argument in input data
 	typeTags := []aptos_types.TypeTag{}
-	for _, tagString := range entryFunction.TypeArguments {
+	for _, tagString := range typeArguments {
 		if tagString == "" {
 			continue
 		}
@@ -793,7 +879,7 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 		}
 		typeTags = append(typeTags, tag)
 	}
-	args, err := transaction_builder.ToBCSArgs(typeArgABIs, entryFunction.Arguments)
+	args, err := transaction_builder.ToBCSArgs(typeArgABIs, arguments)
 	if err != nil {
 		return nil, err
 	}

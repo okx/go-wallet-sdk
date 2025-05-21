@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/okx/go-wallet-sdk/coins/flow/core"
+	"github.com/okx/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -66,4 +67,8 @@ func signEcdsaP256(hash []byte, privateKeyHex string) ([]byte, error) {
 
 func bitsToBytes(bits int) int {
 	return (bits + 7) >> 3
+}
+func ValidateAddress(address string) bool {
+	bytes, err := util.DecodeHexString(address)
+	return err == nil && len(bytes) == 8
 }

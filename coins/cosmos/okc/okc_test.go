@@ -7,7 +7,6 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/token"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // /// note that one public key may be against two accounts
@@ -81,8 +80,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "1000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-0"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
-	require.Nil(t, err)
-	t.Log("signedIBCTx : ", signedIBCTx)
+	p.TimeOutInSeconds = 1738641357
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	require.Equal(t, "Cr8BCrYBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKIAQoIdHJhbnNmZXISCWNoYW5uZWwtMBoLCgN3ZWkSBDEwMDAiKWV4MTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5Z200Z3pyKi1jb3Ntb3MxNDVxMHRjZHVyNHRjeDJ5YTVjcGhxeDk2ZTU0eWZsZnlxanJkdDUyADiAhKfeo6O5kBgSBHRlc3QSbgpOCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAxBT6e8CldM0trsi4gzHF+saFqVG9pJXLIgwtLwUwTZ2EgQKAggBEhwKFgoDd2VpEg8xMDAwMDAwMDAwMDAwMDAQwJoMGkAKswiUA+wycOXFDYS6crOb/gBQTBqhzxF8HD/9nUQ3PTPKjNHZoOPi7YKPUYUTSyQkdFV+5KmEW3v3oplj5Sbk", tt)
 }

@@ -2,8 +2,6 @@ package nostrassets
 
 import (
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +17,6 @@ func TestVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("pub", pub)
 	sig, err := hex.DecodeString("622b442f220c83debe0a1a89fb142dc121bbd5b413befe1e62566351705f4f46e6de9b1726cb8372b5714af87aa8f4c13ec7b9fcd7d7a558f36acdf466a08a4d")
 	if err != nil {
 		t.Fatal(err)
@@ -44,11 +41,9 @@ func TestSignEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := json.Marshal(rr)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(string(b))
 	assert.Equal(t, rr.Pubkey, "14ccbe1d4a55fe23628576a7f04637f647fd6b86d362f983f4ebd7b95d47796f")
 	assert.Equal(t, rr.Id, "385eb020a83cb7e547659922b6c092a55e88c5127d9448370d1e55221aaeb5dd")
 	assert.Equal(t, VerifyEvent(rr), true)
@@ -81,7 +76,8 @@ func TestNpubEncode2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(s, hex.EncodeToString(b))
+	assert.Equal(t, "nsec", s)
+	assert.Equal(t, "bb1c93508b962c7efb0a340848538b2c5f7ba6c44e55f52389aa132a2fd3521a", hex.EncodeToString(b))
 }
 
 func TestNpubEncode(t *testing.T) {
@@ -97,6 +93,11 @@ func TestNpubEncode(t *testing.T) {
 	}
 	assert.Equal(t, "npub1znxtu8222hlzxc59w6nlq33h7erl66ux6d30nql5a0tmjh2809hstw0d22", res)
 	addr, err := AddressFromPrvKey(prvBech)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "npub1znxtu8222hlzxc59w6nlq33h7erl66ux6d30nql5a0tmjh2809hstw0d22", addr)
+	addr, err = AddressFromPubKey(pub)
 	if err != nil {
 		t.Fatal(err)
 	}

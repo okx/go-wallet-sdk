@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -386,10 +385,25 @@ func TestHash(t *testing.T) {
 
 func TestSignMessage(t *testing.T) {
 	b, err := base64.StdEncoding.DecodeString(seed)
-	require.NoError(t, err)
-	r, err := SignMessage("im from okx", hex.EncodeToString(b[0:32]))
-	require.NoError(t, err)
-	assert.Equal(t, r, "AORi50T01FcY10HZ4vhG5Q7HUz41l56LEOKKf75luCHUOBCXKFHpY4OS6qfpEoPgeJSRYzUzwDEaakCzvYQ/DAaXPl+82/o6Rt93H1ojjfMbkpJDm+Rnx1AAjN7Nvi7fnQ==")
+	assert.NoError(t, err)
+	seedHex := hex.EncodeToString(b[0:32])
+	pubKey, err := ed25519.PublicKeyFromSeed(seedHex)
+	assert.NoError(t, err)
+
+	message := "im from okx"
+	signature, err := SignMessage(message, seedHex)
+	assert.NoError(t, err)
+	assert.Equal(t, "AHhQeP0IE0F0fXfrbUSIEZPD974IR9Yx6DKBjPC5dP9kKYK9LwSg2EQyIvn/+iN3KEzipByemwM0Dq/F786tEwmXPl+82/o6Rt93H1ojjfMbkpJDm+Rnx1AAjN7Nvi7fnQ==", signature)
+
+	err = VerifyMessage(message, base64.StdEncoding.EncodeToString(pubKey), signature)
+	assert.NoError(t, err)
+
+	hash, err := hex.DecodeString("ddb521e9f8756257e16cbb657feb022ba4c270939990e3bf0194e1330be44082")
+	assert.NoError(t, err)
+	sign, err := base64.StdEncoding.DecodeString(signature)
+	assert.NoError(t, err)
+	err = VerifySign(pubKey, sign, hash)
+	assert.NoError(t, err)
 }
 
 func TestExecute(t *testing.T) {
@@ -426,8 +440,6 @@ func TestGenerate(t *testing.T) {
 func TestExecuteToken(t *testing.T) {
 	b, err := base64.StdEncoding.DecodeString("uemYAwkvsf/a7q2DdoMKNHWP7DlDhLLmgUh6coTtp94=")
 	require.NoError(t, err)
-	addr := NewAddress(hex.EncodeToString(b[0:32]))
-	t.Log(addr)
 	pay := Pay{}
 	err = json.Unmarshal([]byte(txJson2), &pay)
 	require.NoError(t, err)
@@ -435,14 +447,13 @@ func TestExecuteToken(t *testing.T) {
 	require.NoError(t, err)
 	tx, err := SignTransaction(base64.StdEncoding.EncodeToString(data), hex.EncodeToString(b[0:32]))
 	require.NoError(t, err)
-	t.Log("tx : ", tx)
+	assert.Equal(t, "AAADAQBbgAyeCnNRIkTQ+JvtrSyMGj/fZ5nRCtSam8iRZ828q6oxHgAAAAAAIJQq00aqPos3CP2pfPJoCO7VA4whbkbYcgECudT4zZnbAAgBAAAAAAAAAAAgGailyt676PczZMsc5NmqLQ/7YqMJjH/5O9BCaWD1ZAYCAgEAAAEBAQABAQIAAAECABmopcreu+j3M2TLHOTZqi0P+2KjCYx/+TvQQmlg9WQGASbCbSC+mG29mdM/8bOguxZDcDnT3oW0y51Wo/VwZu9UqjEeAAAAAAAgruCeRMC8oChpzsEOEdHLoBl1f12SLj/qPn7rYFx5PlAZqKXK3rvo9zNkyxzk2aotD/tiowmMf/k70EJpYPVkBugDAAAAAAAAAOH1BQAAAAAA", tx.TxBytes)
+	assert.Equal(t, "AIz5cKG2KskS4trV1c8O3WYtKnC2aOWyuQjlwTlSB7ODpwajlJvg8kJaGjqcTzWi1YsjBNAx0owheR30UukPoAWXPl+82/o6Rt93H1ojjfMbkpJDm+Rnx1AAjN7Nvi7fnQ==", tx.Signature)
 }
 
 func TestExecuteToken2(t *testing.T) {
 	b, err := base64.StdEncoding.DecodeString("uemYAwkvsf/a7q2DdoMKNHWP7DlDhLLmgUh6coTtp94=")
 	require.NoError(t, err)
-	addr := NewAddress(hex.EncodeToString(b[0:32]))
-	t.Log(addr)
 	pay := Pay{}
 	err = json.Unmarshal([]byte(txJson3), &pay)
 	require.NoError(t, err)
@@ -455,12 +466,8 @@ func TestExecuteToken2(t *testing.T) {
 }
 
 func TestEqual2(t *testing.T) {
-	b, err := base64.StdEncoding.DecodeString("uemYAwkvsf/a7q2DdoMKNHWP7DlDhLLmgUh6coTtp94=")
-	require.NoError(t, err)
-	addr := NewAddress(hex.EncodeToString(b[0:32]))
-	t.Log(addr)
 	pay := Pay{}
-	err = json.Unmarshal([]byte(txJson3), &pay)
+	err := json.Unmarshal([]byte(txJson3), &pay)
 	require.NoError(t, err)
 	data, err := pay.Build()
 	require.NoError(t, err)
@@ -475,11 +482,6 @@ func TestEqual2(t *testing.T) {
 	data2, err := BuildTokenTx("0x19a8a5cadebbe8f73364cb1ce4d9aa2d0ffb62a3098c7ff93bd0426960f56406", "0x19a8a5cadebbe8f73364cb1ce4d9aa2d0ffb62a3098c7ff93bd0426960f56406", coins, tokens, 1, 0, 3000000, 1000)
 	require.NoError(t, err)
 	require.Equal(t, data2, data)
-}
-
-func TestEncode(t *testing.T) {
-	i := []byte{30, 127, 165, 253, 70, 189, 248, 236, 18, 145, 202, 82, 8, 75, 219, 238, 171, 222, 107, 59, 171, 58, 93, 158, 108, 248, 61, 120, 6, 29, 230, 25}
-	t.Log(hex.EncodeToString(i))
 }
 
 func TestEqualToken2(t *testing.T) {
@@ -497,8 +499,6 @@ func TestEqualToken2(t *testing.T) {
 
 func TestExecuteToken4(t *testing.T) {
 	key := "b9e99803092fb1ffdaeead8376830a34758fec394384b2e681487a7284eda7de"
-	addr := NewAddress(key)
-	t.Log(addr)
 	pay := Pay{}
 	err := json.Unmarshal([]byte(txJson4), &pay)
 	require.NoError(t, err)
@@ -635,7 +635,6 @@ func TestStake(t *testing.T) {
 		[]*SuiObjectRef{{ObjectId: "0x26c26d20be986dbd99d33ff1b3a0bb16437039d3de85b4cb9d56a3f57066ef54", Digest: "AMGM65x2qTfM4kfPjbv7Aqpap6MBiVVa4W8hrakgvPjB", Version: 1978816}},
 		1000000000, 0, 9644512, 820)
 	require.NoError(t, err)
-	fmt.Println(base64.StdEncoding.EncodeToString(data))
 	key := "b9e99803092fb1ffdaeead8376830a34758fec394384b2e681487a7284eda7de"
 	tx, err := SignTransaction(base64.StdEncoding.EncodeToString(data), key)
 	require.NoError(t, err)
@@ -679,15 +678,12 @@ func TestGetAddressByPubKey(t *testing.T) {
 	pri := "31342f041c5b54358074b4579231c8a300be65e687dff020bc7779598b42897a"
 
 	addr1 := NewAddress(pri)
-	fmt.Println(addr1)
 	p, err := ed25519.PublicKeyFromSeed(pri)
 	require.NoError(t, err)
 	pub := hex.EncodeToString(p)
-	//bcc5c3f2165a5ee30e836878d4205fd1023225a176977d1a84d6a422e9e27d2d
-	fmt.Println(pub)
+	assert.Equal(t, "bcc5c3f2165a5ee30e836878d4205fd1023225a176977d1a84d6a422e9e27d2d", pub)
 
 	addr2, err := GetAddressByPubKey("bcc5c3f2165a5ee30e836878d4205fd1023225a176977d1a84d6a422e9e27d2d")
 	require.NoError(t, err)
-	fmt.Println(addr2)
 	assert.Equal(t, addr1, addr2)
 }

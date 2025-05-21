@@ -103,6 +103,24 @@ func AddressFromPrvKey(prvBech string) (addr string, err error) {
 	return bech32.EncodeFromBase256(HRP, pk.PubKey().SerializeCompressed()[1:])
 }
 
+func AddressFromPubKey(pubKey string) (addr string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			addr, err = "", errors.New("invalid public key")
+			return
+		}
+	}()
+	pk, err := hex.DecodeString(pubKey)
+	if err != nil {
+		return "", err
+	}
+	pub, err := schnorr.ParsePubKey(pk)
+	if err != nil {
+		return "", err
+	}
+	return bech32.EncodeFromBase256(HRP, pub.SerializeCompressed()[1:])
+}
+
 type Event struct {
 	Kind      uint64     `json:"kind"`
 	Tags      [][]string `json:"tags"`

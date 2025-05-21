@@ -75,6 +75,19 @@ func NewAddressNone() *Address {
 	}
 }
 
+func (a *Address) Equal(addr string) bool {
+	if a.RawString() == addr {
+		return true
+	}
+	if a.Bounce(false).String() == addr {
+		return true
+	}
+
+	if a.Bounce(true).String() == addr {
+		return true
+	}
+	return false
+}
 func (a *Address) IsAddrNone() bool {
 	return a.addrType == NoneAddress
 }
@@ -288,11 +301,17 @@ func parseFlags(data byte) flags {
 }
 
 func ParseAddr(addr string) (*Address, error) {
-	data, err := base64.RawURLEncoding.DecodeString(addr)
+	data, err := base64.URLEncoding.DecodeString(addr)
 	if err != nil {
 		data, err = base64.StdEncoding.DecodeString(addr)
 		if err != nil {
-			return ParseRawAddr(addr)
+			data, err = base64.RawURLEncoding.DecodeString(addr)
+			if err != nil {
+				data, err = base64.RawStdEncoding.DecodeString(addr)
+				if err != nil {
+					return ParseRawAddr(addr)
+				}
+			}
 		}
 	}
 	if len(data) != 36 {

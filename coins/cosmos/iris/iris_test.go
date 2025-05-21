@@ -2,9 +2,9 @@ package iris
 
 import (
 	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // https://lcd-iris.keplr.app/cosmos/auth/v1beta1/accounts/iaa1rvs5xph4l3px2efynqsthus8p6r4exyrt6k4ya
@@ -31,7 +31,8 @@ func TestTransfer(t *testing.T) {
 	param.CommonParam.TimeoutHeight = 0
 	signedTx, err := cosmos.Transfer(param, privateKeyHex)
 	require.Nil(t, err)
-	t.Log("signedTx : ", signedTx)
+	assert.Equal(t, "CosBCogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKKmlhYTE0NXEwdGNkdXI0dGN4MnlhNWNwaHF4OTZlNTR5ZmxmeTRzcnVmORIqaWFhMTQ1cTB0Y2R1cjR0Y3gyeWE1Y3BocXg5NmU1NHlmbGZ5NHNydWY5Gg4KBXVpcmlzEgUxMDAwMBJmCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAESFAoOCgV1aXJpcxIFMjQwMDAQoI0GGkCxT1vLoGZ2MML6DDJEkHPqnimBiwS6ZiFMsBeUCX8G+2M1tsEAm0oeqlacNO6Pha16NI6t4O63o7M72UqIYmMU", signedTx)
+
 }
 
 func TestIbcTransfer(t *testing.T) {
@@ -51,8 +52,7 @@ func TestIbcTransfer(t *testing.T) {
 	p.Amount = "10000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-3"
-	p.TimeOutInSeconds = uint64(time.Now().UnixMilli()/1000) + 300
-	signedIBCTx, err := cosmos.IbcTransfer(p, privateKeyHex)
-	require.Nil(t, err)
-	t.Log("signedIBCTx : ", signedIBCTx)
+	p.TimeOutInSeconds = 1738641357
+	tt, _ := cosmos.IbcTransfer(p, privateKeyHex)
+	assert.Equal(t, "CrsBCrgBCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKKAQoIdHJhbnNmZXISCWNoYW5uZWwtMxoOCgV1aXJpcxIFMTAwMDAiKmlhYTFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cnQ2azR5YSorb3NtbzFydnM1eHBoNGwzcHgyZWZ5bnFzdGh1czhwNnI0ZXh5cmtyOTVzNzIAOICEp96jo7mQGBJoClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDEFPp7wKV0zS2uyLiDMcX6xoWpUb2klcsiDC0vBTBNnYSBAoCCAEYAxIUCg4KBXVpcmlzEgUyNDAwMBCgjQYaQId2L1kL3AzmKkZdTddhx/nsdlLzUqW3xRPyG1D3RqP1Jb5LKTYg0v7YE6LagkfD+oCpO1Wg0tiee76bzNg/bws=", tt)
 }

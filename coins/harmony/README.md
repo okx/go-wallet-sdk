@@ -38,5 +38,35 @@ go get -u github.com/okx/go-wallet-sdk/coins/harmony
 	}
 ```
 
+### Verify Signed message
+```go
+    p, _ := hex.DecodeString("1790962db820729606cd7b255ace1ac5ebb129ac8e9b2d8534d022194ab25b37")
+    prvKey, _ := btcec.PrivKeyFromBytes(p)
+	
+    bech32Address, err := GetAddress(prvKey.PubKey())
+    ethAddress := ethereum.GetNewAddress(prvKey.PubKey())
+
+    msg := "hello world"
+
+    signature, err := ethereum.SignEthTypeMessage(msg, prvKey, true)
+
+    assert.Nil(t, VerifySignMsg(signature, msg, bech32Address, true))
+    if err != nil {
+        // todo
+    }
+    assert.Nil(t, VerifySignMsg(signature, msg, ethAddress, true))
+    if err != nil {
+		// todo
+	}
+
+```
+
+###  Validate Address
+```go
+    valid := ValidateAddress("0xfd01ba8507367c8a689913ea92a1526dd3893fc1")
+    validOne := ValidateAddress("one1l5qm4pg8xe7g56yez04f9g2jdhfcj07p4xcn0u")
+```
+
+
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/harmony/LICENSE>) licensed, see package or folder for the respective license.

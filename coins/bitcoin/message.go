@@ -525,6 +525,12 @@ func MPCSignedBip0322(message string, address string, publicKey string, signatur
 	return res, nil
 }
 
+func ComputeCommonHash(message string) []byte {
+	var buf bytes.Buffer
+	wire.WriteVarString(&buf, 0, prepareMessage(""))
+	wire.WriteVarString(&buf, 0, message)
+	return chainhash.DoubleHashB(buf.Bytes())
+}
 func SignMessage(wif string, prefix, message string) (string, error) {
 	var buf bytes.Buffer
 	wire.WriteVarString(&buf, 0, prepareMessage(prefix))
@@ -548,14 +554,8 @@ func prepareMessage(prefix string) string {
 
 func MPCUnsignedMessage(prefix string, message string) string {
 	var buf bytes.Buffer
-	err := wire.WriteVarString(&buf, 0, prepareMessage(prefix))
-	if err != nil {
-		return ""
-	}
-	err = wire.WriteVarString(&buf, 0, message)
-	if err != nil {
-		return ""
-	}
+	wire.WriteVarString(&buf, 0, prepareMessage(prefix))
+	wire.WriteVarString(&buf, 0, message)
 	messageHash := chainhash.DoubleHashB(buf.Bytes())
 	return hex.EncodeToString(messageHash)
 }
@@ -628,7 +628,7 @@ func MPCSignedMessage(signature string, publicKeyHex string, network *chaincfg.P
 }
 
 func VerifyMessage(signatureStr, prefix, message, publicKeyHex, address, signType string, network *chaincfg.Params) error {
-	if signType == "bip322-simple" {
+	if signType == "bip322" {
 		return VerifySimpleForBip0322(message, address, signatureStr, publicKeyHex, network)
 	}
 	if network == nil {
@@ -660,7 +660,7 @@ func VerifyMessage(signatureStr, prefix, message, publicKeyHex, address, signTyp
 	if err := checkPublicKeyHex(p, publicKeyHex); err != nil {
 		return err
 	}
-	if err := checkAddr(p, address, network); err != nil {
+	if err := CheckAddr(p, address, network); err != nil {
 		return err
 	}
 	return nil
@@ -718,6 +718,9 @@ func NewPossibleAddrs(pub *btcec.PublicKey, network *chaincfg.Params) ([]string,
 }
 
 func checkPublicKeyHex(pub *btcec.PublicKey, publicKeyHex string) error {
+	if len(publicKeyHex) == 0 {
+		return nil
+	}
 	if ph := hex.EncodeToString(pub.SerializeCompressed()); ph == publicKeyHex {
 		return nil
 	}
@@ -750,7 +753,7 @@ func NewAddressPubKeyHash(pub *btcec.PublicKey, network *chaincfg.Params) (strin
 	return newAddr.EncodeAddress(), nil
 }
 
-func checkAddr(pub *btcec.PublicKey, addr string, network *chaincfg.Params) error {
+func CheckAddr(pub *btcec.PublicKey, addr string, network *chaincfg.Params) error {
 	if len(addr) == 0 {
 		return ErrNonSupportedAddrType
 	}
@@ -769,6 +772,24 @@ func checkAddr(pub *btcec.PublicKey, addr string, network *chaincfg.Params) erro
 		return err
 	}
 	switch a.(type) {
+	case *btcutil.AddressScriptHash:
+		pubBytes := pub.SerializeCompressed()
+		p2wpkh, err := btcutil.NewAddressWitnessPubKeyHash(btcutil.Hash160(pubBytes), network)
+		if err != nil {
+			return err
+		}
+		redeemScript, err := txscript.PayToAddrScript(p2wpkh)
+		if err != nil {
+			return err
+		}
+		p2sh, err := btcutil.NewAddressScriptHash(redeemScript, network)
+		if err != nil {
+			return err
+		}
+		if p2sh.EncodeAddress() == addr {
+			return nil
+		}
+		return ErrInvalidSignature
 	case *btcutil.AddressPubKey:
 		newAddr, err := btcutil.NewAddressPubKey(pub.SerializeUncompressed(), network)
 		if err != nil {
@@ -837,6 +858,14 @@ func checkAddr(pub *btcec.PublicKey, addr string, network *chaincfg.Params) erro
 	}
 }
 
+func PrvKeyHex2PubKeyHex(priKey string) (string, error) {
+	p, err := hex.DecodeString(priKey)
+	if err != nil {
+		return "", err
+	}
+	_, publicKey := btcec.PrivKeyFromBytes(p)
+	return hex.EncodeToString(publicKey.SerializeCompressed()), nil
+}
 func Wif2PubKeyHex(wif string) (string, error) {
 	w, err := btcutil.DecodeWIF(wif)
 	if err != nil {

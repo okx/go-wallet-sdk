@@ -54,7 +54,40 @@ go get -u github.com/okx/go-wallet-sdk/coins/solana
 	if err != nil {
 		// todo
 	}
+    txHash, err:= CalTxHash(tx)
+	if err != nil {
+		// todo
+	}
+
 ```
+
+### Sign and Verify Message
+```go
+    // base58 message
+    sig, err := SignMessage("2nCvHtAjwgpHHuaRMHcq3atYxyLV1oYh2tzUA6N83Xxr3sVEebEPJuY2oAb6ZwfRCYbWkHRkvw1dfsTFmpvjq3T5", "87PYrKY7ewJ25qaivxFzQ4g3fYH2ZT1CuRePJo9jCyEydJQMoVkxtS6pyAbKKBjSTxXT3PVGST3BpTpxvtEGMMQQMbbqeJAgzkF5TMNLkovkcEE7ZPm1qq6S9Ros4ZExAyckimPi8wfQW8rHhmMn9PnNaXS2bv4HJeHXXjEvzn2Ezi3CWbNQRvJs695KKtFfhGTqoabp9URM")
+    if err != nil {
+        // todo
+    }
+    err := VerifySignedMessage("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", "87PYrKY7ewJ25qaivxFzQ4g3fYH2ZT1CuRePJo9jCyEydJQMoVkxtS6pyAbKKBjSTxXT3PVGST3BpTpxvtEGMMQQMbbqeJAgzkF5TMNLkovkcEE7ZPm1qq6S9Ros4ZExAyckimPi8wfQW8rHhmMn9PnNaXS2bv4HJeHXXjEvzn2Ezi3CWbNQRvJs695KKtFfhGTqoabp9URM", sig)
+    if err != nil {
+        // todo
+    }
+
+    // utf-8 message
+    sig, err := SignUtf8Message("2nCvHtAjwgpHHuaRMHcq3atYxyLV1oYh2tzUA6N83Xxr3sVEebEPJuY2oAb6ZwfRCYbWkHRkvw1dfsTFmpvjq3T5", "this is a message to be signed by solana")
+    if err != nil {
+        // todo
+    }
+    err := VerifySignedUtf8Message("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", "this is a message to be signed by solana", sig)
+    if err != nil {
+        // todo
+    }
+```
+
+## Credits  This project includes code adapted from the following sources:  
+- [solana-go](https://github.com/gagliardetto/solana-go) - Solana Go SDK
+
+If you are the original author and would like credit adjusted, please contact us.
 
 ## License
 Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/solana/LICENSE>) licensed, see package or folder for the respective license.

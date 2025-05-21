@@ -278,6 +278,80 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 	return secret
 }
 
+// Verify verifies the validity of the signature for a given message hash using the StarkCurve.
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L217)
+//
+// Parameters:
+// - msgHash: The message hash to be verified
+// - r: The r component of the signature
+// - s: The s component of the signature
+// - pubX: The x-coordinate of the public key used for verification
+// - pubY: The y-coordinate of the public key used for verification
+// Returns:
+// - bool: true if the signature is valid, false otherwise
+func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
+	w := sc.InvModCurveSize(s)
+
+	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
+		return false
+	}
+	if r.Cmp(big.NewInt(0)) != 1 || r.Cmp(sc.Max) != -1 {
+		return false
+	}
+	if w.Cmp(big.NewInt(0)) != 1 || w.Cmp(sc.Max) != -1 {
+		return false
+	}
+	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
+		return false
+	}
+	if !sc.IsOnCurve(pubX, pubY) {
+		return false
+	}
+
+	zGx, zGy, err := sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
+	if err != nil {
+		return false
+	}
+
+	rQx, rQy, err := sc.MimicEcMultAir(r, pubX, pubY, sc.Gx, sc.Gy)
+	if err != nil {
+		return false
+	}
+	inX, inY := sc.Add(zGx, zGy, rQx, rQy)
+	wBx, wBy, err := sc.MimicEcMultAir(w, inX, inY, sc.Gx, sc.Gy)
+	if err != nil {
+		return false
+	}
+
+	outX, _ := sc.Add(wBx, wBy, sc.MinusShiftPointX, sc.MinusShiftPointY)
+	if r.Cmp(outX) == 0 {
+		return true
+	} else {
+		altY := new(big.Int).Neg(pubY)
+
+		zGx, zGy, err = sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
+		if err != nil {
+			return false
+		}
+
+		rQx, rQy, err = sc.MimicEcMultAir(r, pubX, new(big.Int).Set(altY), sc.Gx, sc.Gy)
+		if err != nil {
+			return false
+		}
+		inX, inY = sc.Add(zGx, zGy, rQx, rQy)
+		wBx, wBy, err = sc.MimicEcMultAir(w, inX, inY, sc.Gx, sc.Gy)
+		if err != nil {
+			return false
+		}
+
+		outX, _ = sc.Add(wBx, wBy, sc.MinusShiftPointX, sc.MinusShiftPointY)
+		if r.Cmp(outX) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 /*
 Signs the hash value of contents with the provided private key.
 Secret is generated using a golang implementation of RFC 6979.
@@ -387,6 +461,8 @@ func InitWithConstants(path string) error {
 		if err != nil {
 			return err
 		}
+		defer scFile.Close()
+
 		scBytes, err := ioutil.ReadAll(scFile)
 		if err != nil {
 			return err

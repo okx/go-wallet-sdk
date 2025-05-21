@@ -3,7 +3,6 @@ package stacks
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -248,6 +247,6 @@ func TestContractCallWithPostConditions(t *testing.T) {
 	tx, _ := MakeContractCall(txOption)
 	txSerlize := hex.EncodeToString(Serialize(*tx))
 	txId := Txid(*tx)
-	fmt.Println(txSerlize)
-	fmt.Println(txId)
+	assert.Equal(t, "000000000104006ecfff9cee8ac5367c83ad0819e4c500b6c475d6000000000000000000000000000000000000fce7a87625f9bcc78cc1680a41d5295334402b7c086a88ea2ed04a5c190344c335203263451e56d3d987599aac5a03887c3ea3b06fb5dd24f219fcd5cc34b4480302000000000216e685b016b3b6cd9ebf35f38e5ae29392e2acd51d12616d6d2d737761702d706f6f6c2d76312d310b737761702d68656c70657200000000", txSerlize)
+	assert.Equal(t, "558d7ee1b67d0a7cedd3c061d7b722a1e3a4d136b27d80d4bdca157dbdd3ebcb", txId)
 }

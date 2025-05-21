@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"math/big"
 	"testing"
@@ -296,7 +297,7 @@ func TestDictionary_Make(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	println(sl.MustToCell().Dump())
+	assert.Equal(t, "16[0309]", sl.MustToCell().Dump())
 }
 
 func Test_ReplaceDict(t *testing.T) {
@@ -326,4 +327,5 @@ func Test_ReplaceDict(t *testing.T) {
 	if err := dict.SetIntKey(k2, v); err != nil {
 		panic(err)
 	}
+	assert.Equal(t, "10[CF8_] -> {\n  4[5_],\n  4[4_]\n}", dict.AsCell().Dump())
 }

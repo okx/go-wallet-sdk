@@ -38,16 +38,16 @@ func GetPubKey(curve StarkCurve, privKey string) (string, error) {
 	return BigToHex(publicKey), nil
 }
 
-func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error) {
+func CalculateContractAddressFromHash(starkPub string, accountClass string, proxyAccountClass string) (hash *big.Int, err error) {
 	salt, err := HexToBN(starkPub)
 	if err != nil {
 		return nil, err
 	}
-	classHash, err := HexToBN(ProxyAccountClassHash)
+	classHash, err := HexToBN(proxyAccountClass)
 	if err != nil {
 		return nil, err
 	}
-	accountClassHash, err := HexToBN(AccountClassHash)
+	accountClassHash, err := HexToBN(accountClass)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +56,41 @@ func CalculateContractAddressFromHash(starkPub string) (hash *big.Int, err error
 	calldate := []*big.Int{big.NewInt(2), salt, big.NewInt(0)}
 
 	constructorCallData := []*big.Int{accountClassHash, GetSelectorFromName("initialize")}
+	constructorCallData = append(constructorCallData, calldate...)
+	constructorCalldataHash, err := ComputeHashOnElements(constructorCallData)
+	if err != nil {
+		return nil, err
+	}
+	ContractAddressPrefix, err := HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
+	if err != nil {
+		return nil, err
+	}
+
+	ele := []*big.Int{
+		ContractAddressPrefix,
+		deployerAddress,
+		salt,
+		classHash,
+		constructorCalldataHash,
+	}
+	return ComputeHashOnElements(ele)
+}
+
+func CalculateContractAddressFromHashCairo1(starkPub string, accountClass string) (hash *big.Int, err error) {
+	salt, err := HexToBN(starkPub)
+	if err != nil {
+		return nil, err
+	}
+	classHash, err := HexToBN(accountClass)
+	if err != nil {
+		return nil, err
+	}
+
+	deployerAddress := big.NewInt(0)
+
+	calldate := []*big.Int{salt, big.NewInt(0)}
+
+	constructorCallData := []*big.Int{}
 	constructorCallData = append(constructorCallData, calldate...)
 
 	constructorCalldataHash, err := ComputeHashOnElements(constructorCallData)

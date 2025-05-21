@@ -7,6 +7,7 @@ package tlb
 import (
 	"encoding/hex"
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -24,7 +25,7 @@ func TestBlockMaster(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	println(len(parents))
+	assert.Equal(t, 1, len(parents))
 }
 
 func TestBlockNotMaster(t *testing.T) {
@@ -41,5 +42,5 @@ func TestBlockNotMaster(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	println(len(parents))
+	assert.Equal(t, 1, len(parents))
 }

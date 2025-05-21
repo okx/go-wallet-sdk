@@ -64,3 +64,9 @@ func TestTransferAll(t *testing.T) {
 	expected := "0x2d0284000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a200f30bef08367a97e17cac7b92512d109d2b43d78c3426832ec05467c2debb8fbdf3d8a8b7ef67afc92d68c716c9ddb18b141adcfca66093b39d2ecb9db7be210e151d48000504000c2f3c6dabb4a0600eccae87aeaa39242042f9a576aa8dca01e1b419cf17d7a200"
 	require.Equal(t, expected, signed)
 }
+func TestGetTxHash(t *testing.T) {
+	signedTx := "0x2d028400d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d005b4cf1d210c93eb6e6428a88c1b298e280d761fe50fe02d6c3253075ed23f239bcbc9a4f9bf0494a869f797355daf55ed6de373572328a1f6f4519f48f8f280feb58080004070096074594cccf1cd185fa8a72ceaeefd86648f8d45514f3ce33c31bdd07e4655d30"
+	txHash, err := CalTxHash(signedTx)
+	require.NoError(t, err)
+	require.Equal(t, "50cbe175485736a5284a5758e29608d4e3f95c329ca42b108f7445f9f2ed06bb", txHash)
+}

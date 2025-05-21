@@ -10,9 +10,13 @@ import (
 )
 
 type RegularBuilder interface {
-	BuildMessage(ctx context.Context, isInitialized bool /*_ *ton.BlockIDExt,*/, messages []*Message) (*cell.Cell, error)
+	BuildMessage(ctx context.Context, internal bool, isInitialized bool /*_ *ton.BlockIDExt,*/, messages []*Message) (*cell.Cell, error)
 }
 
+type SpecRegularSetter interface {
+	SetExpireAt(expireAt int64)
+	SetCustomSeqnoFetcher(fetcher func() uint32)
+}
 type SpecRegular struct {
 	wallet *Wallet
 

@@ -1,5 +1,5 @@
 # tezos-sdk
-Tezos SDK is used to interact with the Tezos blockchain, it contains various functions can be used to web3 wallet.
+Tezos SDK is used to interact with the Tezos blockchain, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 
@@ -67,4 +67,4 @@ rawTx, err := SignTransaction(tx, p2, opt)
 If you are the original author and would like credit adjusted, please contact us.
 
 ## License
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.
+Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/tezos/LICENSE>) licensed, see package or folder for the respective license.

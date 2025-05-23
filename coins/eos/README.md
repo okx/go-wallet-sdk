@@ -1,6 +1,6 @@
 # eos-sdk
-EOS SDK is used to interact with the EOS blockchain, it contains various functions can be used to web3 wallet.
-The SDK not only support EOS, it also supports other blockchain forking from EOS such as WAX.
+EOS SDK is used to interact with the EOS blockchain, it contains various functions that can be used for web3 wallet.
+The SDK not only supports EOS, it also supports other blockchains forked from EOS such as WAX.
 
 - EOS
 - REX

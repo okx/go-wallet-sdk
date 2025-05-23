@@ -59,7 +59,7 @@ This structure allows for easy integration and extension of new blockchains.
 
 ## 📦 Installation
 
-To install the OKX Web3 Go Wallet SDK, ensure you have Go 1.22+ installed, such as run:
+To install the OKX Web3 Go Wallet SDK, ensure you have Go 1.22+ installed, then run:
 
 ```shell
 # Install SDK
@@ -84,7 +84,7 @@ The OKX Web3 Go Wallet SDK shares common design principles and usage patterns wi
 
 ## 🔒 Security
 
-If you find security risks, it is recommended to feedback through the following channels and get your reward!
+If you find security risks, it is recommended to report them through the following channels and get your reward!
 Submit on HackerOne platform: [https://hackerone.com/okg](https://hackerone.com/okg) or on our OKX feedback submission page: [https://www.okx.com/feedback/submit](https://www.okx.com/feedback/submit).
 
 ## 📜 License

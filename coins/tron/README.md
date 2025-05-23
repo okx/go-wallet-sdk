@@ -1,5 +1,5 @@
 # tron-sdk
-Tron SDK is used to interact with the Tron blockchain, it contains various functions can be used to web3 wallet.
+Tron SDK is used to interact with the Tron blockchain, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 
@@ -45,4 +45,4 @@ d2, _ := newTransfer(
 If you are the original author and would like credit adjusted, please contact us.
 
 ## License
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/aptos/LICENSE>) licensed, see package or folder for the respective license.
+Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/tron/LICENSE>) licensed, see package or folder for the respective license.

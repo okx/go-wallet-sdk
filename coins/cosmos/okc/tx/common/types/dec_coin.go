@@ -246,7 +246,7 @@ func (coin DecCoin) AminoSize(cdc *amino.Codec) int {
 // DecCoins defines a slice of coins with decimal values
 type DecCoins []DecCoin
 
-// NewDecCoins constructs a new coin set with with decimal values
+// NewDecCoins constructs a new coin set with decimal values
 // from DecCoins.
 func NewDecCoins(decCoins ...DecCoin) DecCoins {
 	// remove zeroes

@@ -174,7 +174,7 @@ func (e *MarshalError) Error() string {
 }
 
 // marshalError creates an error given a set of arguments and will copy byte
-// slices into the Value field since they might otherwise be changed from from
+// slices into the Value field since they might otherwise be changed from
 // the original value.
 func marshalError(f string, c ErrorCode, desc string, v interface{}, err error) *MarshalError {
 	e := &MarshalError{ErrorCode: c, Func: f, Description: desc, Err: err}

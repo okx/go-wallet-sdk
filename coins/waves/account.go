@@ -32,12 +32,12 @@ func GenerateKeyPair() (string, string, error) {
 	return secret.String(), public.String(), nil
 }
 
-// NewAddressFromString creates an WavesAddress from its string representation. This function checks that the address is valid.
+// NewAddressFromString creates a WavesAddress from its string representation. This function checks that the address is valid.
 func NewAddressFromString(s string) (types.WavesAddress, error) {
 	return types.NewAddressFromString(s)
 }
 
-// NewAddressFromBytes creates an WavesAddress from the slice of bytes and checks that the result address is valid address.
+// NewAddressFromBytes creates a WavesAddress from the slice of bytes and checks that the result address is valid address.
 func NewAddressFromBytes(b []byte) (types.WavesAddress, error) {
 	return types.NewAddressFromBytes(b)
 }

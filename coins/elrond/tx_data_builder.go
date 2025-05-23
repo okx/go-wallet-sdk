@@ -23,7 +23,7 @@ type TxDataBuilder interface {
 	IsInterfaceNil() bool
 }
 
-// txDataBuilder can be used to easy construct a transaction's data field for a smart contract call
+// txDataBuilder can be used to easily construct a transaction's data field for a smart contract call
 // can also be used to construct a VmValueRequest instance ready to be used on a VM query
 type txDataBuilder struct {
 	*baseBuilder

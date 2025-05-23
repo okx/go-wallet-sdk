@@ -657,7 +657,7 @@ func (p *TypeTagParser) ParseTypeTag() (TypeTag, error) {
 			return nil, errors.New("can't convert generic type since no typeTags were specified")
 		}
 		// a generic tokenVal has the format of `T<digit>`, for example `T1`.
-		// The digit (i.e 1) indicates the the index of this type in the typeTags array.
+		// The digit (i.e 1) indicates the index of this type in the typeTags array.
 		// For a tokenVal == T1, should be parsed as the type in typeTags[1]
 		idx, err := strconv.Atoi(token.TokenValue[1:])
 		if err != nil {

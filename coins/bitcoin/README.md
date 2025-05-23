@@ -1,6 +1,6 @@
 # bitcoin-sdk
-Bitcoin SDK is used to interact with the Bitcoin Mainnet or Testnet, it contains various functions can be used to web3 wallet.
-The SDK not only support Bitcoin, it also supports following chains:
+Bitcoin SDK is used to interact with the Bitcoin Mainnet or Testnet, it contains various functions that can be used for web3 wallet.
+The SDK not only supports Bitcoin, it also supports the following chains:
 
 - BTC
 - BSV

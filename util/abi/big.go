@@ -78,7 +78,7 @@ func ParseBig256(s string) (*big.Int, bool) {
 	return bigint, ok
 }
 
-// MustParseBig parses s as a 256 bit big integer and panics if the string is invalid.
+// MustParseBig256 parses s as a 256 bit big integer and panics if the string is invalid.
 func MustParseBig256(s string) *big.Int {
 	v, ok := ParseBig256(s)
 	if !ok {

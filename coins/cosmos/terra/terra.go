@@ -26,8 +26,8 @@ type TransactionInput struct {
 	ContractArray []MsgExecuteContract
 }
 
-func (m *TransactionInput) AppendFeeCoin(demon string, amount *big.Int) {
-	feeCoin := types.NewCoin(demon, types.NewIntFromBigInt(amount))
+func (m *TransactionInput) AppendFeeCoin(denom string, amount *big.Int) {
+	feeCoin := types.NewCoin(denom, types.NewIntFromBigInt(amount))
 	if m.Fee == nil {
 		m.Fee = types.NewCoins(feeCoin)
 	} else {
@@ -46,11 +46,11 @@ func (m *TransactionInput) AppendSendMsg(from string, to string, coins *types.Co
 	m.SendArray = append(m.SendArray, msg)
 }
 
-func (m *TransactionInput) AppendSwapMsg(trader string, askDemon string, demon string, amount *big.Int) {
+func (m *TransactionInput) AppendSwapMsg(trader string, askDenom string, denom string, amount *big.Int) {
 	msg := MsgSwap{}
 	msg.Trader = trader
-	msg.AskDenom = askDemon
-	msg.OfferCoin = types.NewCoin(demon, types.NewIntFromBigInt(amount))
+	msg.AskDenom = askDenom
+	msg.OfferCoin = types.NewCoin(denom, types.NewIntFromBigInt(amount))
 	if m.SwapArray == nil {
 		m.SwapArray = make([]MsgSwap, 0)
 	}

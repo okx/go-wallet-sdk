@@ -21,13 +21,13 @@ func TestTransfer(t *testing.T) {
 	param := cosmos.TransferParam{}
 	param.FromAddress = address
 	param.ToAddress = address
-	param.Demon = "ukuji"
+	param.Denom = "ukuji"
 	// 0.01 kuji
 	param.Amount = "10000"
 	param.CommonParam.ChainId = "kaiyo-1"
 	param.CommonParam.Sequence = 0
 	param.CommonParam.AccountNumber = 23140
-	param.CommonParam.FeeDemon = "ukuji"
+	param.CommonParam.FeeDenom = "ukuji"
 	param.CommonParam.FeeAmount = "200"
 	param.CommonParam.GasLimit = 100000
 	param.CommonParam.Memo = ""
@@ -47,14 +47,14 @@ func TestIbcTransfer(t *testing.T) {
 	p.CommonParam.ChainId = "kaiyo-1"
 	p.CommonParam.Sequence = 1
 	p.CommonParam.AccountNumber = 23140
-	p.CommonParam.FeeDemon = "ukuji"
+	p.CommonParam.FeeDenom = "ukuji"
 	p.CommonParam.FeeAmount = "200"
 	p.CommonParam.GasLimit = 100000
 	p.CommonParam.Memo = ""
 	p.CommonParam.TimeoutHeight = 0
 	p.FromAddress = address
 	p.ToAddress = "osmo1rvs5xph4l3px2efynqsthus8p6r4exyrkr95s7"
-	p.Demon = "ukuji"
+	p.Denom = "ukuji"
 	p.Amount = "10000"
 	p.SourcePort = "transfer"
 	p.SourceChannel = "channel-3"

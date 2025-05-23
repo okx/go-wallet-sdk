@@ -30,7 +30,7 @@ type CommonParam struct {
 	ChainId       string
 	Sequence      uint64
 	AccountNumber uint64
-	FeeDemon      string
+	FeeDenom      string
 	FeeAmount     string
 	GasLimit      uint64
 	Memo          string
@@ -41,7 +41,7 @@ type TransferParam struct {
 	CommonParam
 	FromAddress string
 	ToAddress   string
-	Demon       string
+	Denom       string
 	Amount      string
 }
 
@@ -49,7 +49,7 @@ type IbcTransferParam struct {
 	CommonParam
 	FromAddress      string
 	ToAddress        string
-	Demon            string
+	Denom            string
 	Amount           string
 	SourcePort       string
 	SourceChannel    string
@@ -196,7 +196,7 @@ func MakeTransactionWithMessage(p CommonParam, publicKeyCompressed string, messa
 		return "", errors.New("invalid fee amount")
 	}
 
-	feeCoin := types.NewCoin(p.FeeDemon, feeAmount)
+	feeCoin := types.NewCoin(p.FeeDenom, feeAmount)
 	feeCoins := types.NewCoins(feeCoin)
 	fee := tx.Fee{Amount: feeCoins, GasLimit: p.GasLimit}
 	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
@@ -252,7 +252,7 @@ func GetRawTransaction(param interface{}, publicKeyCompressed string) (string, e
 			if !ok {
 				return "", errors.New("invalid  amount")
 			}
-			coin := types.NewCoin(p.Demon, amount)
+			coin := types.NewCoin(p.Denom, amount)
 			coins := types.NewCoins(coin)
 			sendMsg := types.MsgSend{FromAddress: p.FromAddress, ToAddress: p.ToAddress, Amount: coins}
 
@@ -270,7 +270,7 @@ func GetRawTransaction(param interface{}, publicKeyCompressed string) (string, e
 		if !ok {
 			return "", errors.New("invalid  amount")
 		}
-		coin := types.NewCoin(p.Demon, amount)
+		coin := types.NewCoin(p.Denom, amount)
 		sendMsg := ibc.MsgTransfer{
 			SourcePort:       p.SourcePort,
 			SourceChannel:    p.SourceChannel,
@@ -345,7 +345,7 @@ func TransferAction(param TransferParam, privateKeyHex string, useEthSecp256k1 b
 	if !ok {
 		return "", errors.New("invalid  amount")
 	}
-	coin := types.NewCoin(param.Demon, amount)
+	coin := types.NewCoin(param.Denom, amount)
 	coins := types.NewCoins(coin)
 	sendMsg := types.MsgSend{FromAddress: param.FromAddress, ToAddress: param.ToAddress, Amount: coins}
 
@@ -367,7 +367,7 @@ func IbcTransferAction(param IbcTransferParam, privateKeyHex string, useEthSecp2
 	if !ok {
 		return "", errors.New("invalid  amount")
 	}
-	coin := types.NewCoin(param.Demon, amount)
+	coin := types.NewCoin(param.Denom, amount)
 	sendMsg := ibc.MsgTransfer{
 		SourcePort:       param.SourcePort,
 		SourceChannel:    param.SourceChannel,
@@ -447,7 +447,7 @@ func BuildTxAction(param CommonParam, messages []*types.Any, privateKeyHex strin
 	if !ok {
 		return "", errors.New("invalid  fee amount")
 	}
-	feeCoin := types.NewCoin(param.FeeDemon, feeAmount)
+	feeCoin := types.NewCoin(param.FeeDenom, feeAmount)
 	feeCoins := types.NewCoins(feeCoin)
 	fee := tx.Fee{Amount: feeCoins, GasLimit: param.GasLimit}
 	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
@@ -526,7 +526,7 @@ func BuildTxActionForSignMessage(param CommonParam, messages []*types.Any, priva
 
 	// authInfo = signerInfo(publicKey + modeInfo + sequence) + fee(amount + gasLimit)
 	feeAmount, _ := types.NewIntFromString(param.FeeAmount)
-	feeCoin := types.NewCoin(param.FeeDemon, feeAmount)
+	feeCoin := types.NewCoin(param.FeeDenom, feeAmount)
 	feeCoins := types.NewCoins(feeCoin)
 	fee := tx.Fee{Amount: feeCoins, GasLimit: param.GasLimit}
 	authInfo := tx.AuthInfo{SignerInfos: signerInfo, Fee: &fee}
@@ -713,7 +713,7 @@ func SignMessageAction(data string, privateKeyHex string, useEthSecp256k1 bool) 
 	param.Sequence = string2Uint64(messageData.Sequence)
 	param.Memo = messageData.Memo
 	param.TimeoutHeight = 0
-	param.FeeDemon = messageData.Fee.Amount[0].Denom
+	param.FeeDenom = messageData.Fee.Amount[0].Denom
 	param.FeeAmount = messageData.Fee.Amount[0].Amount.String()
 	param.GasLimit = string2Uint64(messageData.Fee.Gas)
 	param.ChainId = messageData.ChainId
@@ -742,7 +742,7 @@ func getJsonSignDoc(p *CommonParam, msg *types.StdAny) (*types.StdSignDoc, error
 	if !ok {
 		return nil, errors.New("invalid fee amount")
 	}
-	feeCoin := types.NewCoin(p.FeeDemon, feeAmount)
+	feeCoin := types.NewCoin(p.FeeDenom, feeAmount)
 	feeCoins := types.NewCoins(feeCoin)
 	signDoc.Fee.Amount = feeCoins
 
@@ -760,7 +760,7 @@ func GetRawJsonTransaction(param interface{}) (string, error) {
 			if !ok {
 				return "", errors.New("invalid  amount")
 			}
-			coin := types.NewCoin(p.Demon, amount)
+			coin := types.NewCoin(p.Denom, amount)
 			coins := types.NewCoins(coin)
 			sendMsg := types.MsgSend{FromAddress: p.FromAddress, ToAddress: p.ToAddress, Amount: coins}
 			signDoc, err := getJsonSignDoc(&p.CommonParam, &types.StdAny{T: "cosmos-sdk/MsgSend", V: sendMsg})
@@ -780,7 +780,7 @@ func GetRawJsonTransaction(param interface{}) (string, error) {
 			if !ok {
 				return "", errors.New("invalid  amount")
 			}
-			coin := types.NewCoin(p.Demon, amount)
+			coin := types.NewCoin(p.Denom, amount)
 			sendMsg := ibc.MsgTransfer{
 				SourcePort:       p.SourcePort,
 				SourceChannel:    p.SourceChannel,
@@ -866,9 +866,9 @@ func GetSignedJsonTransaction(signDoc string, publicKey string, signature string
 
 	feeCoins := make([]types.Coin, 0)
 	for _, coin := range stdDoc.Fee.Amount {
-		demon := coin.Denom
+		denom := coin.Denom
 		amount := coin.Amount
-		feeCoin := types.NewCoin(demon, amount)
+		feeCoin := types.NewCoin(denom, amount)
 		feeCoins = append(feeCoins, feeCoin)
 	}
 	fee := tx.Fee{Amount: feeCoins, GasLimit: string2Uint64(stdDoc.Fee.Gas)}

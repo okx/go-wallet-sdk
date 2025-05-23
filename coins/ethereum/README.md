@@ -1,5 +1,5 @@
 # ethereum-sdk
-Ethereum SDK is used to interact with the Ethereum blockchain or Evm blockchains, it contains various functions can be used to web3 wallet.
+Ethereum SDK is used to interact with the Ethereum blockchain or Evm blockchains, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 

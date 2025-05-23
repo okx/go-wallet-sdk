@@ -43,13 +43,13 @@ This project is maintained by the Stellar Development Foundation.
     )
     if err != nil {
         log.Fatalln(err)
-    )
+    }
     
     // Sign the transaction
     tx, err = tx.Sign(network.TestNetworkPassphrase, kp.(*keypair.Full))
     if err != nil {
         log.Fatalln(err)
-    )
+    }
     
     // Get the base 64 encoded transaction envelope
     txe, err := tx.Base64()

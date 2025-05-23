@@ -32,7 +32,7 @@ SOFTWARE.
 */
 /*
 	Although the library adheres to the 'elliptic/curve' interface.
-	All testing has been done against library function explicity.
+	All testing has been done against library function explicitly.
 	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
 */
@@ -84,7 +84,7 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 
 /*
 Provides the pedersen hash of given array of big integers.
-NOTE: This function assumes the curve has been initialized with contant points
+NOTE: This function assumes the curve has been initialized with constant points
 
 (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */

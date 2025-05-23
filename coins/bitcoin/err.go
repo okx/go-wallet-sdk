@@ -147,7 +147,7 @@ const (
 	ErrBadCoinbaseValue
 
 	// ErrMissingCoinbaseHeight indicates the coinbase transaction for a
-	// block does not start with the serialized block block height as
+	// block does not start with the serialized block height as
 	// required for version 2 and higher blocks.
 	ErrMissingCoinbaseHeight
 

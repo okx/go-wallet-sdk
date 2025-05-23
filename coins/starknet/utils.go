@@ -69,7 +69,7 @@ func HexToBN(hexString string) (*big.Int, error) {
 
 	n, ok := new(big.Int).SetString(numStr, 16)
 	if !ok {
-		return nil, fmt.Errorf("please input a rigth hex string")
+		return nil, fmt.Errorf("please input a right hex string")
 	}
 	return n, nil
 }
@@ -134,7 +134,7 @@ SOFTWARE.
 */
 /*
 	Although the library adheres to the 'elliptic/curve' interface.
-	All testing has been done against library function explicity.
+	All testing has been done against library function explicitly.
 	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
 */
@@ -155,7 +155,7 @@ func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 	}
 
 	if !sc.IsOnCurve(x, y) {
-		return priv, fmt.Errorf("key gen is not on stark cruve")
+		return priv, fmt.Errorf("key gen is not on stark curve")
 	}
 
 	return priv, nil

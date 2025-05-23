@@ -8,9 +8,9 @@ import (
 
 const DefaultAccountIndex = 0
 
-func CreateNewAccountTx(publicKyeHex, payer, referenceBlockIDHex string, payerSequenceNumber, gasLimit uint64) *core.Transaction {
+func CreateNewAccountTx(publicKeyHex, payer, referenceBlockIDHex string, payerSequenceNumber, gasLimit uint64) *core.Transaction {
 	payerAddress := core.HexToAddress(payer)
-	pubKeyBytes, _ := hex.DecodeString(publicKyeHex)
+	pubKeyBytes, _ := hex.DecodeString(publicKeyHex)
 	pubKeyParam := new(core.FlowPublicKey).FromBytes(pubKeyBytes).ToParam()
 	tx := &core.Transaction{
 		Script:           []byte(core.CreateAccountTpl),

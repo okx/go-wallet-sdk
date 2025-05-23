@@ -20,7 +20,7 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/solana/base"
 )
 
-// Drive state of Uninitalized nonce account to Initialized, setting the nonce value
+// Drive state of Uninitialized nonce account to Initialized, setting the nonce value
 type InitializeNonceAccount struct {
 	// The Pubkey parameter specifies the entity authorized to execute nonce instruction on the account.
 	// No signatures are required to execute this instruction, enabling derived nonce account addresses.

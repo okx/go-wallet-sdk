@@ -1,5 +1,5 @@
 # near-sdk
-Near SDK is used to interact with the Near blockchain, it contains various functions can be used to web3 wallet.
+Near SDK is used to interact with the Near blockchain, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 

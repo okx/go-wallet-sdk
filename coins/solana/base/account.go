@@ -18,7 +18,7 @@ type AccountMeta struct {
 	IsSigner   bool
 }
 
-// Meta intializes a new AccountMeta with the provided pubKey.
+// Meta initializes a new AccountMeta with the provided pubKey.
 func Meta(
 	pubKey PublicKey,
 ) *AccountMeta {

@@ -3678,7 +3678,7 @@ type InternalTransaction struct {
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 	// the one send trx (TBD: or token) via function
 	CallerAddress []byte `protobuf:"bytes,2,opt,name=caller_address,json=callerAddress,proto3" json:"caller_address,omitempty"`
-	// the one recieve trx (TBD: or token) via function
+	// the one receive trx (TBD: or token) via function
 	TransferToAddress    []byte                               `protobuf:"bytes,3,opt,name=transferTo_address,json=transferToAddress,proto3" json:"transferTo_address,omitempty"`
 	CallValueInfo        []*InternalTransaction_CallValueInfo `protobuf:"bytes,4,rep,name=callValueInfo,proto3" json:"callValueInfo,omitempty"`
 	Note                 []byte                               `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`

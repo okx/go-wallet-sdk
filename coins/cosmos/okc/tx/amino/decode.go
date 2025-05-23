@@ -199,7 +199,7 @@ func DecodeFloat64(bz []byte) (f float64, n int, err error) {
 // undefined.
 // TODO return error if behavior is undefined.
 func DecodeTime(bz []byte) (t time.Time, n int, err error) {
-	// Defensively set default to to zeroTime (1970, not 0001)
+	// Defensively set default to zeroTime (1970, not 0001)
 	t = zeroTime
 
 	// Read sec and nanosec.

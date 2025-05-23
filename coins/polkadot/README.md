@@ -1,5 +1,5 @@
-# polkdot-sdk
-Polkdot SDK is used to interact with the Polkdot blockchain, it contains various functions can be used to web3 wallet.
+# polkadot-sdk
+Polkadot SDK is used to interact with the Polkadot blockchain, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 
@@ -8,7 +8,7 @@ Polkdot SDK is used to interact with the Polkdot blockchain, it contains various
 To obtain the latest version, simply require the project using :
 
 ```shell
-go get -u github.com/okx/go-wallet-sdk/coins/polkdot
+go get -u github.com/okx/go-wallet-sdk/coins/polkadot
 ```
 
 ## Usage
@@ -51,4 +51,4 @@ go get -u github.com/okx/go-wallet-sdk/coins/polkdot
 If you are the original author and would like credit adjusted, please contact us.
 
 ## License
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/polkdot/LICENSE>) licensed, see package or folder for the respective license.
+Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/polkadot/LICENSE>) licensed, see package or folder for the respective license.

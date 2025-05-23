@@ -17,7 +17,7 @@ const (
 	aliasFixedSize = 4
 )
 
-// Recipient could be an Alias or an WavesAddress.
+// Recipient could be an Alias or a WavesAddress.
 type Recipient struct {
 	Address *WavesAddress
 	Alias   *Alias
@@ -65,7 +65,7 @@ type Alias struct {
 }
 
 // NewAliasFromString creates an Alias from its string representation. Function does not check that the result is a valid Alias.
-// String representation of an Alias should have a following format: "alias:<scheme>:<alias>". Scheme should be represented with a one-byte ASCII symbol.
+// String representation of an Alias should have the following format: "alias:<scheme>:<alias>". Scheme should be represented with a one-byte ASCII symbol.
 func NewAliasFromString(s string) (*Alias, error) {
 	ps := strings.Split(s, ":")
 	if len(ps) != 3 {

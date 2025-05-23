@@ -1,6 +1,6 @@
 # ton-sdk
 
-Ton SDK is used to interact with the Ton blockchain, it contains various functions can be used to web3 wallet.
+Ton SDK is used to interact with the Ton blockchain, it contains various functions that can be used for web3 wallet.
 
 ## Installation
 
@@ -107,7 +107,7 @@ messageAttachedTons := "50000000"
 expireAt := time.Now().Unix() + 600
 //recommended value
 invokeNotificationFee := "1"
-//false means that now it IS  a simulative transaction.
+//true means that now it IS  a simulative transaction.
 simulate := true
 signedTx, err := TransferJetton(seed, pubKey, fromJettonAccount, to, amount, 9, seqno, messageAttachedTons, invokeNotificationFee, customPayload, stateInit, comment, expireAt, 0, simulate, wallet.V4R2)
 assert.Nil(t, err)
@@ -181,7 +181,7 @@ fmt.Println(address)
 assert.NoError(t, err)
 assert.NoError(t, r.Check())
 //simulate means that now it IS  a simulative transaction.and false means that now it is NOT a simulative transaction.
-//whie simulate is true,the result is  Used to estimate gas charges
+//while simulate is true,the result is  Used to estimate gas charges
 simulate := true
 s, err := SignMultiTransfer(seed, nil, nonce, &r, simulate, wallet.V4R2)
 assert.NoError(t, err)
@@ -204,5 +204,5 @@ If you are the original author and would like credit adjusted, please contact us
 
 ## License
 
-Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/polkdot/LICENSE>) licensed, see
+Most packages or folder are [MIT](<https://github.com/okx/go-wallet-sdk/blob/main/coins/ton/LICENSE>) licensed, see
 package or folder for the respective license.

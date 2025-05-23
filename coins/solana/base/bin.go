@@ -69,7 +69,7 @@ func Uint8FromTypeID(vid TypeID) (out uint8) {
 	return vid[0]
 }
 
-// TypeIDFromUint32 converts a uint8 to a TypeID.
+// TypeIDFromUint8 converts a uint8 to a TypeID.
 func TypeIDFromUint8(v uint8) TypeID {
 	return TypeIDFromBytes([]byte{v})
 }

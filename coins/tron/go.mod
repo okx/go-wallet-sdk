@@ -3,7 +3,7 @@ module github.com/okx/go-wallet-sdk/coins/tron
 go 1.19
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/golang/protobuf v1.5.3
 	github.com/okx/go-wallet-sdk/crypto v0.0.1
 	github.com/okx/go-wallet-sdk/util v0.0.1

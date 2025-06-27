@@ -16,7 +16,7 @@ func NewAddressFromPubkey(pubkey []byte) (addr string, err error) {
 	return base58.Encode(pubkey), nil
 }
 
-type TeeTxParams struct {
+type SolanaTxParams struct {
 	FeePayer        string        `json:"feePayer"`
 	RecentBlockHash string        `json:"recentBlockHash"`
 	Instructions    []Instruction `json:"instructions"`
@@ -40,7 +40,7 @@ type LookupTable struct {
 	AddressList  []string `json:"addressList"`
 }
 
-func NewTxFromParams(txParams TeeTxParams) (tx types.Transaction, err error) {
+func NewTxFromParams(txParams SolanaTxParams) (tx types.Transaction, err error) {
 	// handle instructions
 	var ixs []types.Instruction
 	for _, ixParam := range txParams.Instructions {
@@ -93,7 +93,7 @@ func NewTxFromParams(txParams TeeTxParams) (tx types.Transaction, err error) {
 
 // TODO remove
 func NewTxFromJson(txJson string) (tx types.Transaction, err error) {
-	var txParams TeeTxParams
+	var txParams SolanaTxParams
 	err = json.Unmarshal([]byte(txJson), &txParams)
 	if err != nil {
 		return tx, err

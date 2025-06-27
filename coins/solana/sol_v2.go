@@ -40,6 +40,58 @@ type LookupTable struct {
 	AddressList  []string `json:"addressList"`
 }
 
+func NewTxFromParams(txParams TeeTxParams) (tx types.Transaction, err error) {
+	// handle instructions
+	var ixs []types.Instruction
+	for _, ixParam := range txParams.Instructions {
+		var accounts []types.AccountMeta
+		for _, keyParam := range ixParam.Keys {
+			accounts = append(accounts, types.AccountMeta{
+				PubKey:     common.PublicKeyFromString(keyParam.Pubkey),
+				IsSigner:   keyParam.IsSigner,
+				IsWritable: keyParam.IsWritable,
+			})
+		}
+
+		ix := types.Instruction{
+			Accounts:  accounts,
+			ProgramID: common.PublicKeyFromString(ixParam.ProgramId),
+			Data:      base58.Decode(ixParam.Data),
+		}
+		ixs = append(ixs, ix)
+	}
+
+	// handle lookuptables
+	var lookupTables []types.AddressLookupTableAccount
+	for _, lookupTableParam := range txParams.LookupTables {
+		var addresses []common.PublicKey
+		for _, addressParam := range lookupTableParam.AddressList {
+			addresses = append(addresses, common.PublicKeyFromString(addressParam))
+		}
+
+		lookupTables = append(lookupTables, types.AddressLookupTableAccount{
+			Key:       common.PublicKeyFromString(lookupTableParam.TableAccount),
+			Addresses: addresses,
+		})
+	}
+
+	tx, err = types.NewTransaction(
+		types.NewTransactionParam{
+			Message: types.NewMessage(
+				types.NewMessageParam{
+					FeePayer:                   common.PublicKeyFromString(txParams.FeePayer),
+					Instructions:               ixs,
+					RecentBlockhash:            txParams.RecentBlockHash,
+					AddressLookupTableAccounts: lookupTables,
+				},
+			),
+		},
+	)
+
+	return tx, err
+}
+
+// TODO remove
 func NewTxFromJson(txJson string) (tx types.Transaction, err error) {
 	var txParams TeeTxParams
 	err = json.Unmarshal([]byte(txJson), &txParams)

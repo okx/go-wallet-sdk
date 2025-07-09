@@ -23,28 +23,12 @@ func GetNewAddressBytes(pubKey *btcec.PublicKey) []byte {
 	return addressByte[12:]
 }
 
-func GetEthGroupAddress(prefix string, pubKey *btcec.PublicKey) string {
-	addressByte := GetEthGroupPubHash(pubKey)
-	return prefix + util.EncodeHex(addressByte[12:])
-}
-
-func GetEthGroupPubHash(pubKey *btcec.PublicKey) []byte {
-	pubBytes := pubKey.SerializeUncompressed()
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(pubBytes[1:])
-	addressByte := hash.Sum(nil)
-	return addressByte
-}
-
 func PubKeyToAddr(publicKey []byte) (string, error) {
 	pubKey, err := btcec.ParsePubKey(publicKey)
 	if err != nil {
 		return "", err
 	}
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(pubKey.SerializeUncompressed()[1:])
-	addressByte := hash.Sum(nil)
-	return util.EncodeHexWithPrefix(addressByte[12:]), nil
+	return GetNewAddress(pubKey), nil
 }
 
 func ValidateAddress(s string) bool {

@@ -41,7 +41,7 @@ type DynamicFeeTx struct {
 func NewEthDynamicFeeTx(chainId *big.Int, nonce uint64, gasTipCap, gasFeeCap *big.Int, gas uint64, value *big.Int, to,
 	data string, accessList AccessList) *DynamicFeeTx {
 	toBytes := HexToAddress(to)
-	dataBytes := util.RemoveZeroHex(data)
+	dataBytes := util.DecodeHexStringPad(data)
 	return &DynamicFeeTx{
 		ChainID:    chainId,
 		Nonce:      nonce,

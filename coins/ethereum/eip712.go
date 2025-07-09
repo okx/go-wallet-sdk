@@ -76,8 +76,8 @@ func EIP712ParamsHash(typedData TypedData) string {
 }
 
 func EIP712HashWithTypedDataHash(domainSeparatorHex, typedDataHashHex string) string {
-	domainSeparator := util.RemoveZeroHex(domainSeparatorHex)
-	typedDataHash := util.RemoveZeroHex(typedDataHashHex)
+	domainSeparator := util.DecodeHexStringPad(domainSeparatorHex)
+	typedDataHash := util.DecodeHexStringPad(typedDataHashHex)
 	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
 	hash := keccak256(rawData)
 	return "0x" + hex.EncodeToString(hash)

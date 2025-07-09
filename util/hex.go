@@ -2,64 +2,59 @@ package util
 
 import (
 	"encoding/hex"
-	"strings"
+	"regexp"
 )
 
-// delete the 0x from the front
 func RemoveZeroHex(s string) []byte {
-	if len(s) > 1 {
-		if s[0:2] == "0x" || s[0:2] == "0X" {
-			s = s[2:]
-		}
-	}
-	if len(s)%2 == 1 {
-		s = "0" + s
-	}
-	return Hex2Bytes(s)
-}
-
-func Hex2Bytes(str string) []byte {
-	h, err := hex.DecodeString(str)
-	if err != nil {
-		panic(err)
-	}
-	return h
+	return DecodeHexStringPad(s)
 }
 
 func EncodeHex(bytes []byte) string {
 	return hex.EncodeToString(bytes)
 }
 
-func EncodeHexWith0x(bytes []byte) string {
+func EncodeHexWithPrefix(bytes []byte) string {
 	return "0x" + EncodeHex(bytes)
 }
 
-func DecodeHexString(hexString string) ([]byte, error) {
-	if strings.HasPrefix(hexString, "0x") || strings.HasPrefix(hexString, "0X") {
-		hexString = hexString[2:]
-	}
-	if len(hexString)%2 != 0 {
-		hexString = "0" + hexString
-	}
-	return hex.DecodeString(hexString)
+func DecodeHexString(hexString string) []byte {
+	bytes, _ := DecodeHexStringErr(hexString)
+	return bytes
 }
 
-func HasHexPrefix(str string) bool {
-	return len(str) >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
+func DecodeHexStringErr(hexString string) ([]byte, error) {
+	return hex.DecodeString(RemoveHexPrefix(hexString))
 }
 
-func IsHex(str string) bool {
-	if len(str)%2 != 0 {
-		return false
+func DecodeHexStringPad(s string) []byte {
+	bytes, _ := DecodeHexStringPadErr(s)
+	return bytes
+}
+func DecodeHexStringPadErr(hexString string) ([]byte, error) {
+	return hex.DecodeString(RemoveHexPrefixPad(hexString))
+}
+
+func RemoveHexPrefixPad(s string) string {
+	s = RemoveHexPrefix(s)
+	if len(s)%2 == 1 {
+		s = "0" + s
 	}
-	for _, c := range []byte(str) {
-		if !isHexCharacter(c) {
-			return false
+	return s
+}
+
+func RemoveHexPrefix(s string) string {
+	if len(s) > 1 {
+		if s[0:2] == "0x" || s[0:2] == "0X" {
+			s = s[2:]
 		}
 	}
-	return true
+	return s
 }
 
-func isHexCharacter(c byte) bool {
-	return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')
+func IsHexStringRelaxed(s string) bool {
+	res, err := regexp.MatchString(`(?i)^0x[0-9a-f]+$|^[0-9a-fA-F]+$`, s)
+	if err != nil {
+		return false
+	}
+	return res
 }

@@ -2,8 +2,9 @@ package solana
 
 import (
 	"crypto/ed25519"
-	"encoding/json"
 	"errors"
+	"fmt"
+
 	"github.com/blocto/solana-go-sdk/common"
 	"github.com/blocto/solana-go-sdk/types"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
@@ -16,11 +17,12 @@ func NewAddressFromPubkey(pubkey []byte) (addr string, err error) {
 	return base58.Encode(pubkey), nil
 }
 
+// SolanaTxParams represents the parameters needed to construct a Solana transaction
 type SolanaTxParams struct {
-	FeePayer        string        `json:"feePayer"`
-	RecentBlockHash string        `json:"recentBlockHash"`
-	Instructions    []Instruction `json:"instructions"`
-	LookupTables    []LookupTable `json:"lookupTables"`
+	FeePayer        string        `json:"feePayer"`        // The account that will pay for the transaction
+	RecentBlockHash string        `json:"recentBlockHash"` // Recent block hash for transaction validity
+	Instructions    []Instruction `json:"instructions"`    // List of instructions to execute
+	LookupTables    []LookupTable `json:"lookupTables"`    // Address lookup tables for account compression
 }
 
 type Instruction struct {
@@ -40,62 +42,22 @@ type LookupTable struct {
 	AddressList  []string `json:"addressList"`
 }
 
-func NewTxFromParams(txParams SolanaTxParams) (tx types.Transaction, err error) {
-	// handle instructions
-	var ixs []types.Instruction
-	for _, ixParam := range txParams.Instructions {
-		var accounts []types.AccountMeta
-		for _, keyParam := range ixParam.Keys {
-			accounts = append(accounts, types.AccountMeta{
-				PubKey:     common.PublicKeyFromString(keyParam.Pubkey),
-				IsSigner:   keyParam.IsSigner,
-				IsWritable: keyParam.IsWritable,
-			})
-		}
-
-		ix := types.Instruction{
-			Accounts:  accounts,
-			ProgramID: common.PublicKeyFromString(ixParam.ProgramId),
-			Data:      base58.Decode(ixParam.Data),
-		}
-		ixs = append(ixs, ix)
+func ValidateTxParams(params *SolanaTxParams) error {
+	if params.FeePayer == "" {
+		return errors.New("feePayer cannot be empty")
+	}
+	if params.RecentBlockHash == "" {
+		return errors.New("recentBlockHash cannot be empty")
+	}
+	if len(params.Instructions) == 0 {
+		return errors.New("instructions cannot be empty")
 	}
 
-	// handle lookuptables
-	var lookupTables []types.AddressLookupTableAccount
-	for _, lookupTableParam := range txParams.LookupTables {
-		var addresses []common.PublicKey
-		for _, addressParam := range lookupTableParam.AddressList {
-			addresses = append(addresses, common.PublicKeyFromString(addressParam))
-		}
-
-		lookupTables = append(lookupTables, types.AddressLookupTableAccount{
-			Key:       common.PublicKeyFromString(lookupTableParam.TableAccount),
-			Addresses: addresses,
-		})
-	}
-
-	tx, err = types.NewTransaction(
-		types.NewTransactionParam{
-			Message: types.NewMessage(
-				types.NewMessageParam{
-					FeePayer:                   common.PublicKeyFromString(txParams.FeePayer),
-					Instructions:               ixs,
-					RecentBlockhash:            txParams.RecentBlockHash,
-					AddressLookupTableAccounts: lookupTables,
-				},
-			),
-		},
-	)
-
-	return tx, err
+	return nil
 }
 
-// TODO remove
-func NewTxFromJson(txJson string) (tx types.Transaction, err error) {
-	var txParams SolanaTxParams
-	err = json.Unmarshal([]byte(txJson), &txParams)
-	if err != nil {
+func NewTxFromParams(txParams SolanaTxParams) (tx types.Transaction, err error) {
+	if err := ValidateTxParams(&txParams); err != nil {
 		return tx, err
 	}
 
@@ -150,8 +112,21 @@ func NewTxFromJson(txJson string) (tx types.Transaction, err error) {
 }
 
 func NewTxFromRaw(rawTx string) (tx types.Transaction, err error) {
-	tx, err = types.TransactionDeserialize(base58.Decode(rawTx))
-	return tx, err
+	if rawTx == "" {
+		return tx, errors.New("raw transaction cannot be empty")
+	}
+
+	rawBytes := base58.Decode(rawTx)
+	if len(rawBytes) == 0 {
+		return tx, errors.New("invalid base58 encoding")
+	}
+
+	tx, err = types.TransactionDeserialize(rawBytes)
+	if err != nil {
+		return tx, fmt.Errorf("failed to deserialize transaction: %w", err)
+	}
+
+	return tx, nil
 }
 
 func GetSigningData(tx types.Transaction) (data []byte, err error) {

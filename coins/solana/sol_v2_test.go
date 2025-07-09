@@ -1,9 +1,10 @@
 package solana
 
 import (
+	"testing"
+
 	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewAddressFromPubkey(t *testing.T) {
@@ -18,79 +19,6 @@ func TestNewAddressFromPubkey(t *testing.T) {
 	addr2, err := NewAddressFromPubkey(invalidPubkey)
 	assert.Error(t, err, assert.AnError)
 	assert.Equal(t, "", addr2)
-}
-
-func TestNewTxFromJsonForV0(t *testing.T) {
-	txJson := `
-		{
-			"feePayer": "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
-			"recentBlockHash": "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP",
-			"instructions": [
-				{
-					"programId": "11111111111111111111111111111111",
-					"keys": [
-						{
-							"pubkey": "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
-							"isSigner": true,
-							"isWritable": true
-						},
-						{
-							"pubkey": "CEVt1pcoSyC9b3PkARytWey6Bx8cuYxexW8k6hGCrQsr",
-							"isSigner": false,
-							"isWritable": true
-						}
-					],
-					"data": "3Bxs43ZMjSRQLs6o"
-				}
-			],
-			"lookupTables": [
-				{
-					"tableAccount": "GLhDJj8DoKzy7szzsETetjgye2tzTFPS98jKhc9NA2wn",
-					"addressList": [
-						"GPaR84jGe4ARGcfLaNS1XCH4VzWj5aLUhrGhe5sQzoYE",
-						"GqcBjgCXJ1KoXjnpxDE5b7ZkqTDX3yiGvJuyuNQ4V3fL"
-					]
-				}
-			]
-		}
-	`
-	tx, err := NewTxFromJson(txJson)
-	assert.NoError(t, err)
-	assert.Equal(t, string(tx.Message.Version), "v0")
-	assert.Equal(t, tx.Message.RecentBlockHash, "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP")
-	assert.Equal(t, tx.Message.Accounts[0].ToBase58(), "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK")
-}
-
-func TestNewTxFromJsonForLegacy(t *testing.T) {
-	txJson := `
-		{
-			"feePayer": "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
-			"recentBlockHash": "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP",
-			"instructions": [
-				{
-					"programId": "11111111111111111111111111111111",
-					"keys": [
-						{
-							"pubkey": "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
-							"isSigner": true,
-							"isWritable": true
-						},
-						{
-							"pubkey": "CEVt1pcoSyC9b3PkARytWey6Bx8cuYxexW8k6hGCrQsr",
-							"isSigner": false,
-							"isWritable": true
-						}
-					],
-					"data": "3Bxs43ZMjSRQLs6o"
-				}
-			]
-		}
-	`
-	tx, err := NewTxFromJson(txJson)
-	assert.NoError(t, err)
-	assert.Equal(t, string(tx.Message.Version), "legacy")
-	assert.Equal(t, tx.Message.RecentBlockHash, "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP")
-	assert.Equal(t, tx.Message.Accounts[0].ToBase58(), "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK")
 }
 
 func TestNewTxFromRaw(t *testing.T) {
@@ -113,34 +41,103 @@ func TestGetSigningData(t *testing.T) {
 	assert.Equal(t, expected, str)
 }
 
-func TestAddSignature(t *testing.T) {
-	// [2, 160, 134, 1, 0] [3, 64, 13, 3, 0, 0, 0, 0, 0] [2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
-	txJson := `
-		{
-			"feePayer": "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
-			"recentBlockHash": "4fgbdQ4fgDrzyaU2vfZKv6Hvg3ZPRDrrrDnKWHrDfUV5",
-			"instructions": [
-				{
-					"programId": "11111111111111111111111111111111",
-					"keys": [
-						{
-							"pubkey": "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
-							"isSigner": true,
-							"isWritable": true
-						},
-						{
-							"pubkey": "12hXjGwDRu4xWGeWyPwBVkzEcjKCh6KgoC6YnDQGT7U9",
-							"isSigner": false,
-							"isWritable": true
-						}
-					],
-					"data": "3Bxs412MvVNQj175"
-				}
-			]
-		}
-	`
+func TestNewTxFromParamsForV0(t *testing.T) {
+	txParams := SolanaTxParams{
+		FeePayer:        "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
+		RecentBlockHash: "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP",
+		Instructions: []Instruction{
+			{
+				ProgramId: "11111111111111111111111111111111",
+				Keys: []AccountKey{
+					{
+						Pubkey:     "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
+						IsSigner:   true,
+						IsWritable: true,
+					},
+					{
+						Pubkey:     "CEVt1pcoSyC9b3PkARytWey6Bx8cuYxexW8k6hGCrQsr",
+						IsSigner:   false,
+						IsWritable: true,
+					},
+				},
+				Data: "3Bxs43ZMjSRQLs6o",
+			},
+		},
+		LookupTables: []LookupTable{
+			{
+				TableAccount: "GLhDJj8DoKzy7szzsETetjgye2tzTFPS98jKhc9NA2wn",
+				AddressList: []string{
+					"GPaR84jGe4ARGcfLaNS1XCH4VzWj5aLUhrGhe5sQzoYE",
+					"GqcBjgCXJ1KoXjnpxDE5b7ZkqTDX3yiGvJuyuNQ4V3fL",
+				},
+			},
+		},
+	}
 
-	tx, err := NewTxFromJson(txJson)
+	tx, err := NewTxFromParams(txParams)
+	assert.NoError(t, err)
+	assert.Equal(t, string(tx.Message.Version), "v0")
+	assert.Equal(t, tx.Message.RecentBlockHash, "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP")
+	assert.Equal(t, tx.Message.Accounts[0].ToBase58(), "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK")
+}
+
+func TestNewTxFromParamsForLegacy(t *testing.T) {
+	txParams := SolanaTxParams{
+		FeePayer:        "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
+		RecentBlockHash: "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP",
+		Instructions: []Instruction{
+			{
+				ProgramId: "11111111111111111111111111111111",
+				Keys: []AccountKey{
+					{
+						Pubkey:     "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK",
+						IsSigner:   true,
+						IsWritable: true,
+					},
+					{
+						Pubkey:     "CEVt1pcoSyC9b3PkARytWey6Bx8cuYxexW8k6hGCrQsr",
+						IsSigner:   false,
+						IsWritable: true,
+					},
+				},
+				Data: "3Bxs43ZMjSRQLs6o",
+			},
+		},
+	}
+
+	tx, err := NewTxFromParams(txParams)
+	assert.NoError(t, err)
+	assert.Equal(t, string(tx.Message.Version), "legacy")
+	assert.Equal(t, tx.Message.RecentBlockHash, "53tbv2gAF7n4E9sMtEX81E5WPCLPrb3wzQuoyKzWeKAP")
+	assert.Equal(t, tx.Message.Accounts[0].ToBase58(), "UHqRK53fc4sxHnUf8fADkNTU7pP71GZE1bFGFRnipvK")
+}
+
+func TestAddSignatureWithParams(t *testing.T) {
+	// [2, 160, 134, 1, 0] [3, 64, 13, 3, 0, 0, 0, 0, 0] [2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+	txParams := SolanaTxParams{
+		FeePayer:        "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
+		RecentBlockHash: "4fgbdQ4fgDrzyaU2vfZKv6Hvg3ZPRDrrrDnKWHrDfUV5",
+		Instructions: []Instruction{
+			{
+				ProgramId: "11111111111111111111111111111111",
+				Keys: []AccountKey{
+					{
+						Pubkey:     "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
+						IsSigner:   true,
+						IsWritable: true,
+					},
+					{
+						Pubkey:     "12hXjGwDRu4xWGeWyPwBVkzEcjKCh6KgoC6YnDQGT7U9",
+						IsSigner:   false,
+						IsWritable: true,
+					},
+				},
+				Data: "3Bxs412MvVNQj175",
+			},
+		},
+	}
+
+	tx, err := NewTxFromParams(txParams)
 	assert.Nil(t, err)
 
 	sig := "4dHGp38njfNnLDSQaFoJJjP47ZWZgzKYsupaCMzbsRDHUrC4TqhCm63wptPncNzLgqjbPEoLHob2dBbtQ1U7Btk"
@@ -152,44 +149,42 @@ func TestAddSignature(t *testing.T) {
 	assert.Equal(t, sig, txData.TxId)
 }
 
-func TestAddSignatureWithPriorityFee(t *testing.T) {
+func TestAddSignatureWithPriorityFeeAndParams(t *testing.T) {
 	// [2, 160, 134, 1, 0] [3, 64, 13, 3, 0, 0, 0, 0, 0] [2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
-	txJson := `
-		{
-			"feePayer": "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
-			"recentBlockHash": "Bb5oyrmU56gp3Mcs2muqPRFK7cRRhiGvVbkrNJZyeFnJ",
-			"instructions": [
-				{
-					"programId": "ComputeBudget111111111111111111111111111111",
-					"keys": [],
-					"data": "JC3gyu"
+	txParams := SolanaTxParams{
+		FeePayer:        "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
+		RecentBlockHash: "Bb5oyrmU56gp3Mcs2muqPRFK7cRRhiGvVbkrNJZyeFnJ",
+		Instructions: []Instruction{
+			{
+				ProgramId: "ComputeBudget111111111111111111111111111111",
+				Keys:      []AccountKey{},
+				Data:      "JC3gyu",
+			},
+			{
+				ProgramId: "ComputeBudget111111111111111111111111111111",
+				Keys:      []AccountKey{},
+				Data:      "3QAwFKa3MJAs",
+			},
+			{
+				ProgramId: "11111111111111111111111111111111",
+				Keys: []AccountKey{
+					{
+						Pubkey:     "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
+						IsSigner:   true,
+						IsWritable: true,
+					},
+					{
+						Pubkey:     "12hXjGwDRu4xWGeWyPwBVkzEcjKCh6KgoC6YnDQGT7U9",
+						IsSigner:   false,
+						IsWritable: true,
+					},
 				},
-				{
-					"programId": "ComputeBudget111111111111111111111111111111",
-					"keys": [],
-					"data": "3QAwFKa3MJAs"
-				},
-				{
-					"programId": "11111111111111111111111111111111",
-					"keys": [
-						{
-							"pubkey": "7sTwHDmF2GTqPgFS37vXLeu6A2LcqASKM2y1pzz3xxPA",
-							"isSigner": true,
-							"isWritable": true
-						},
-						{
-							"pubkey": "12hXjGwDRu4xWGeWyPwBVkzEcjKCh6KgoC6YnDQGT7U9",
-							"isSigner": false,
-							"isWritable": true
-						}
-					],
-					"data": "3Bxs412MvVNQj175"
-				}
-			]
-		}
-	`
+				Data: "3Bxs412MvVNQj175",
+			},
+		},
+	}
 
-	tx, err := NewTxFromJson(txJson)
+	tx, err := NewTxFromParams(txParams)
 	assert.Nil(t, err)
 
 	sig := []byte{142, 137, 214, 216, 153, 139, 117, 234, 225, 189, 222, 233, 77, 152, 241, 213, 204, 244, 17, 135, 93, 83, 244, 206, 125, 62, 163, 120, 218, 176, 79, 225, 127, 125, 214, 43, 3, 102, 118, 179, 233, 166, 9, 125, 33, 30, 60, 183, 206, 248, 75, 113, 224, 176, 70, 41, 176, 187, 248, 218, 171, 112, 248, 1}

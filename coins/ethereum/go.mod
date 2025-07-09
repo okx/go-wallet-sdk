@@ -2,7 +2,7 @@ module github.com/okx/go-wallet-sdk/coins/ethereum
 
 go 1.23.0
 
-toolchain go1.24.4
+toolchain go1.23.7
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2

@@ -8,7 +8,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/ethereum/go-ethereum v1.16.1
 	github.com/okx/go-wallet-sdk/crypto v0.0.1
-	github.com/okx/go-wallet-sdk/util v0.0.2
+	github.com/okx/go-wallet-sdk/util v0.0.4
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.36.0
 )

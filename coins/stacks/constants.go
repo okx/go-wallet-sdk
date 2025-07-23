@@ -70,3 +70,14 @@ const (
 	Fungible    = 0x01
 	NonFungible = 0x02
 )
+
+const (
+	/** `P` — A single-sig address for mainnet (starting with `SP`) */
+	MainnetSingleSig = 22
+	/** `M` — A multi-sig address for mainnet (starting with `SM`) */
+	MainnetMultiSig = 20
+	/** `T` — A single-sig address for testnet (starting with `ST`) */
+	TestnetSingleSig = 26
+	/** `N` — A multi-sig address for testnet (starting with `SN`) */
+	TestnetMultiSig = 21
+)

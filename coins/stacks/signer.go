@@ -10,11 +10,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
-	ec "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/btcsuite/btcd/btcec/v2"
+	ec "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 )
 
 func addressFromVersionHash(version uint64, hash string) *Signer {
@@ -129,10 +130,7 @@ func sign(privateKey, txHex string) (*ec.Signature, *uint8, error) {
 	}
 	sig := ec.Sign(privKey, txBytes)
 
-	sig2, err := ec.SignCompact(privKey, txBytes, false)
-	if err != nil {
-		return nil, nil, err
-	}
+	sig2 := ec.SignCompact(privKey, txBytes, false)
 	v := sig2[0] - 27
 	copy(sig2, sig2[1:])
 	sig2[64] = v

@@ -1,16 +1,17 @@
 package stacks
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestCreateAddress(t *testing.T) {
 	priKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
 	pubKey, err := GetPublicKey(priKey)
 	require.NoError(t, err)
-	address, err := GetAddressFromPublicKey(pubKey)
+	address, err := GetAddressFromPublicKey(pubKey, MainnetSingleSig)
 	require.NoError(t, err)
 	expected := "SP1QCZZWWXT5CADKWGEPGG6F4RM0BDH3NTTNM86ZG"
 	require.Equal(t, expected, address)
@@ -37,7 +38,7 @@ func TestValidAddress(t *testing.T) {
 
 func TestNewAddress(t *testing.T) {
 	priKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
-	addr, err := NewAddress(priKey)
+	addr, err := NewAddress(priKey, MainnetSingleSig)
 	require.NoError(t, err)
 	assert.Equal(t, "SP1QCZZWWXT5CADKWGEPGG6F4RM0BDH3NTTNM86ZG", addr)
 }

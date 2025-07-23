@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
@@ -29,12 +30,12 @@ func GetPublicKey(privKeyHex string) (string, error) {
 	return hex.EncodeToString(pubBytes), nil
 }
 
-func GetAddressFromPublicKey(pubKey string) (string, error) {
+func GetAddressFromPublicKey(pubKey string, version int) (string, error) {
 	hexStr := hashP2PKH(pubKey)
 	if len(hexStr)%2 != 0 {
 		hexStr = "0" + hexStr
 	}
-	version := 22
+
 	versionHex := fmt.Sprintf("%02x", version)
 	checkSumHex, err := c32checksum(versionHex + hexStr)
 	if err != nil {
@@ -45,12 +46,12 @@ func GetAddressFromPublicKey(pubKey string) (string, error) {
 	return "S" + p + encode, nil
 }
 
-func NewAddress(privKeyHex string) (string, error) {
+func NewAddress(privKeyHex string, version int) (string, error) {
 	public, err := GetPublicKey(privKeyHex)
 	if err != nil {
 		return "", err
 	}
-	return GetAddressFromPublicKey(public)
+	return GetAddressFromPublicKey(public, version)
 }
 
 func GetPoxAddress(poxAddress string) (*TupleCV, error) {

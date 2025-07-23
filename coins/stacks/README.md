@@ -15,7 +15,7 @@ go get -u github.com/okx/go-wallet-sdk/coins/stacks
 ### New Address
 ```go
 	priKey := "598d99970d04be67e8b41ddd5c5453487eeab5345ea1638c9a2849dee377f2a301"
-	addr, err := NewAddress(priKey)
+	addr, err := NewAddress(priKey, stacks.MainnetSingleSig)
 	if err != nil {
 		// todo
 	}

@@ -269,7 +269,7 @@ func NewDecCoins(decCoins ...DecCoin) DecCoins {
 	return newDecCoins
 }
 
-// NewDecCoinsFromCoin constructs a new coin set with decimal values
+// NewDecCoinsFromCoins constructs a new coin set with decimal values
 // from regular Coins.
 func NewDecCoinsFromCoins(coins ...Coin) DecCoins {
 	decCoins := make(DecCoins, len(coins))

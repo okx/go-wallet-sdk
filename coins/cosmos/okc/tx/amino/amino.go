@@ -523,7 +523,7 @@ func (cdc *Codec) MarshalBinaryWithSizer(o MarshalBufferSizer, withLengthPrefix 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalBinaryBareInterfaceWithRegisteredUbmarshaller try to unmarshal the data with custom unmarshaller if it exists
+// UnmarshalBinaryBareWithRegisteredUnmarshaller try to unmarshal the data with custom unmarshaller if it exists
 func (cdc *Codec) UnmarshalBinaryBareWithRegisteredUnmarshaller(bz []byte, ptr interface{}) (interface{}, error) {
 	rv := reflect.ValueOf(ptr)
 	if rv.Kind() != reflect.Ptr {

@@ -144,8 +144,8 @@ func EcRecoverPubKey(signature, message string, addPrefix bool) (*btcec.PublicKe
 	if len(signatureData) < 65 {
 		return nil, errors.New("signature too short")
 	}
-	R := signatureData[:33]
-	S := signatureData[33:64]
+	R := signatureData[:32]
+	S := signatureData[32:64]
 	V := signatureData[64:65]
 	realData := append(append(V, R...), S...)
 	msg := util.RemoveHexPrefix(message)
@@ -177,8 +177,8 @@ func EcRecoverPubKeyBytes(signature, message []byte, addPrefix bool) ([]byte, er
 	if len(signature) < 65 {
 		return nil, errors.New("signature too short")
 	}
-	R := signature[:33]
-	S := signature[33:64]
+	R := signature[:32]
+	S := signature[32:64]
 	V := signature[64:65]
 	realData := append(append(V, R...), S...)
 	hash := CalcSignHash(message, addPrefix)

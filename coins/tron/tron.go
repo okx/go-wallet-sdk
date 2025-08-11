@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"golang.org/x/crypto/sha3"
-	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/golang/protobuf/proto"
@@ -14,6 +15,10 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/tron/pb"
 	"github.com/okx/go-wallet-sdk/coins/tron/token"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
+)
+
+const (
+	tronAddressLen = 34
 )
 
 func GetAddress(publicKey *btcec.PublicKey) string {
@@ -43,8 +48,14 @@ func GetAddressByPublicKey(pubKey string) (string, error) {
 }
 
 func ValidateAddress(address string) bool {
-	_, _, err := base58.CheckDecode(address)
-	return err == nil
+	if len(address) != tronAddressLen {
+		return false
+	}
+	_, version, err := base58.CheckDecode(address)
+	if err != nil {
+		return false
+	}
+	return version == GetNetWork()[0]
 }
 
 func GetAddressHash(address string) ([]byte, error) {

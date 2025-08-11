@@ -4,11 +4,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/stretchr/testify/require"
 
 	"github.com/okx/go-wallet-sdk/coins/tron/token"
 	"github.com/okx/go-wallet-sdk/util/abi"
@@ -27,6 +28,11 @@ func TestTron_Address(t *testing.T) {
 	trxAddress := "TNrEPvnnX7Hwj1z6tb1aTXpMad7z4BxoNW"
 	ret := ValidateAddress(trxAddress)
 	require.True(t, ret)
+	trxAddress2 := "8FZoitmJrt8VPJsU2tFHXJN68d2s8truma"
+	ret = ValidateAddress(trxAddress2)
+	trxAddress3 := "T1234567890ABCDE"
+	ret = ValidateAddress(trxAddress3)
+	require.False(t, ret)
 	ah, err := GetAddressHash("TGpKmWjRRQLuMn2G2PX5yCWJ9HfVsawJjY")
 	require.NoError(t, err)
 	require.Equal(t, "414b1ac901c1e39c904d5f4eaca40e6362357abcdb", hex.EncodeToString(ah))

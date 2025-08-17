@@ -4,9 +4,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/okx/go-wallet-sdk/util"
-	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -105,7 +106,7 @@ func SignEthTypeMessage(message string, prvKey *btcec.PrivateKey, addPrefix bool
 }
 
 func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) *SignatureData {
-	sig, _ := ecdsa.SignCompact(prvKey, value, false)
+	sig := ecdsa.SignCompact(prvKey, value, false)
 
 	V := sig[0]
 	R := sig[1:33]

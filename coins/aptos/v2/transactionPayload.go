@@ -6,64 +6,101 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
 )
 
-// TransactionPayload the actual instructions of which functions to call on chain
-type TransactionPayload struct {
-	Payload bcs.Struct
-}
+type TransactionPayloadVariant uint32
 
 const (
-	TransactionPayloadScript        = 0
-	TransactionPayloadModuleBundle  = 1 // Deprecated
-	TransactionPayloadEntryFunction = 2
-	TransactionPayloadMultisig      = 3 // TODO? defined in aptos-core/types/src/transaction/mod.rs
+	TransactionPayloadVariantScript        TransactionPayloadVariant = 0
+	TransactionPayloadVariantModuleBundle  TransactionPayloadVariant = 1 // Deprecated
+	TransactionPayloadVariantEntryFunction TransactionPayloadVariant = 2
+	TransactionPayloadVariantMultisig      TransactionPayloadVariant = 3
+	TransactionPayloadVariantPayload       TransactionPayloadVariant = 4
 )
 
-func (txn *TransactionPayload) MarshalBCS(bcs *bcs.Serializer) {
-	switch p := txn.Payload.(type) {
-	case *Script:
-		bcs.Uleb128(TransactionPayloadScript)
-		p.MarshalBCS(bcs)
-	case *ModuleBundle:
-		// Deprecated, this never was used in production, and we will just drop it
-		bcs.SetError(fmt.Errorf("module bundle is not supported as a transaction payload"))
-	case *EntryFunction:
-		bcs.Uleb128(TransactionPayloadEntryFunction)
-		p.MarshalBCS(bcs)
-	default:
-		bcs.SetError(fmt.Errorf("bad txn payload, %T", txn.Payload))
-	}
+type TransactionInnerPayloadVariant uint32
+
+const (
+	TransactionInnerPayloadVariantV1 TransactionInnerPayloadVariant = 0
+)
+
+type TransactionExecutableVariant uint32
+
+const (
+	TransactionExecutableVariantScript        TransactionExecutableVariant = 0
+	TransactionExecutableVariantEntryFunction TransactionExecutableVariant = 1
+	TransactionExecutableVariantEmpty         TransactionExecutableVariant = 2
+)
+
+type TransactionExtraConfigVariant uint32
+
+const (
+	TransactionExtraConfigVariantV1 TransactionExtraConfigVariant = 0
+)
+
+type TransactionPayloadImpl interface {
+	bcs.Struct
+	PayloadType() TransactionPayloadVariant // This is specifically to ensure that wrong types don't end up here
 }
-func (txn *TransactionPayload) UnmarshalBCS(bcs *bcs.Deserializer) {
-	kind := bcs.Uleb128()
-	switch kind {
-	case TransactionPayloadScript:
-		xs := &Script{}
-		xs.UnmarshalBCS(bcs)
-		txn.Payload = xs
-	case TransactionPayloadModuleBundle:
+
+// TransactionPayload the actual instructions of which functions to call on chain
+type TransactionPayload struct {
+	Payload TransactionPayloadImpl
+}
+
+//region TransactionPayload bcs.Struct
+
+func (txn *TransactionPayload) MarshalBCS(ser *bcs.Serializer) {
+	if txn == nil || txn.Payload == nil {
+		ser.SetError(fmt.Errorf("nil transaction payload"))
+		return
+	}
+	ser.Uleb128(uint32(txn.Payload.PayloadType()))
+	txn.Payload.MarshalBCS(ser)
+}
+func (txn *TransactionPayload) UnmarshalBCS(des *bcs.Deserializer) {
+	payloadType := TransactionPayloadVariant(des.Uleb128())
+	switch payloadType {
+	case TransactionPayloadVariantScript:
+		txn.Payload = &Script{}
+	case TransactionPayloadVariantModuleBundle:
 		// Deprecated, should never be in production
-		bcs.SetError(fmt.Errorf("module bundle is not supported as a transaction payload"))
-	case TransactionPayloadEntryFunction:
-		xs := &EntryFunction{}
-		xs.UnmarshalBCS(bcs)
-		txn.Payload = xs
+		des.SetError(fmt.Errorf("module bundle is not supported as a transaction payload"))
+		return
+	case TransactionPayloadVariantEntryFunction:
+		txn.Payload = &EntryFunction{}
+	//case TransactionPayloadVariantMultisig:
+	//	txn.Payload = &Multisig{}
 	default:
-		bcs.SetError(fmt.Errorf("bad txn payload kind, %d", kind))
+		des.SetError(fmt.Errorf("bad txn payload kind, %d", payloadType))
+		return
 	}
+
+	txn.Payload.UnmarshalBCS(des)
 }
+
+//endregion
+//endregion
+
+//region ModuleBundle
 
 // ModuleBundle is long deprecated and no longer used, but exist as an enum position in TransactionPayload
-type ModuleBundle struct {
+type ModuleBundle struct{}
+
+func (txn *ModuleBundle) PayloadType() TransactionPayloadVariant {
+	return TransactionPayloadVariantModuleBundle
 }
 
-func (txn *ModuleBundle) MarshalBCS(bcs *bcs.Serializer) {
-	bcs.SetError(errors.New("ModuleBundle unimplemented"))
+func (txn *ModuleBundle) MarshalBCS(ser *bcs.Serializer) {
+	ser.SetError(errors.New("ModuleBundle unimplemented"))
 }
-func (txn *ModuleBundle) UnmarshalBCS(bcs *bcs.Deserializer) {
-	bcs.SetError(errors.New("ModuleBundle unimplemented"))
+func (txn *ModuleBundle) UnmarshalBCS(des *bcs.Deserializer) {
+	des.SetError(errors.New("ModuleBundle unimplemented"))
 }
 
-// EntryFunction call a single published entry function
+//endregion ModuleBundle
+
+//region EntryFunction
+
+// EntryFunction call a single published entry function arguments are ordered BCS encoded bytes
 type EntryFunction struct {
 	Module   ModuleId
 	Function string
@@ -71,26 +108,115 @@ type EntryFunction struct {
 	Args     [][]byte
 }
 
-func (sf *EntryFunction) MarshalBCS(serializer *bcs.Serializer) {
-	sf.Module.MarshalBCS(serializer)
-	serializer.WriteString(sf.Function)
-	bcs.SerializeSequence(sf.ArgTypes, serializer)
-	serializer.Uleb128(uint32(len(sf.Args)))
+//region EntryFunction TransactionPayloadImpl
+
+func (sf *EntryFunction) PayloadType() TransactionPayloadVariant {
+	return TransactionPayloadVariantEntryFunction
+}
+
+func (sf *EntryFunction) ExecutableType() TransactionExecutableVariant {
+	return TransactionExecutableVariantEntryFunction
+}
+
+//endregion
+
+//region EntryFunction bcs.Struct
+
+func (sf *EntryFunction) MarshalBCS(ser *bcs.Serializer) {
+	sf.Module.MarshalBCS(ser)
+	ser.WriteString(sf.Function)
+	bcs.SerializeSequence(sf.ArgTypes, ser)
+	ser.Uleb128(uint32(len(sf.Args)))
 	for _, a := range sf.Args {
-		serializer.WriteBytes(a)
+		ser.WriteBytes(a)
 	}
 }
-func (sf *EntryFunction) UnmarshalBCS(deserializer *bcs.Deserializer) {
-	sf.Module.UnmarshalBCS(deserializer)
-	sf.Function = deserializer.ReadString()
-	sf.ArgTypes = bcs.DeserializeSequence[TypeTag](deserializer)
-	alen := deserializer.Uleb128()
+func (sf *EntryFunction) UnmarshalBCS(des *bcs.Deserializer) {
+	sf.Module.UnmarshalBCS(des)
+	sf.Function = des.ReadString()
+	sf.ArgTypes = bcs.DeserializeSequence[TypeTag](des)
+	alen := des.Uleb128()
 	sf.Args = make([][]byte, alen)
-	// go 1.22
-	//for i := range alen {
-	//	sf.Args[i] = deserializer.ReadBytes()
-	//}
-	for i := uint32(0); i < alen; i++ {
-		sf.Args[i] = deserializer.ReadBytes()
+	for i := range alen {
+		sf.Args[i] = des.ReadBytes()
 	}
+}
+
+//endregion
+//endregion
+
+//region Multisig
+
+// Multisig is an on-chain multisig transaction, that calls an entry function associated
+type Multisig struct {
+	MultisigAddress AccountAddress
+	Payload         *MultisigTransactionPayload // Optional
+}
+
+//region Multisig TransactionPayloadImpl
+
+func (sf *Multisig) PayloadType() TransactionPayloadVariant {
+	return TransactionPayloadVariantMultisig
+}
+
+//endregion
+
+//region Multisig bcs.Struct
+
+func (sf *Multisig) MarshalBCS(ser *bcs.Serializer) {
+	ser.Struct(&sf.MultisigAddress)
+	if sf.Payload == nil {
+		ser.Bool(false)
+	} else {
+		ser.Bool(true)
+		ser.Struct(sf.Payload)
+	}
+}
+func (sf *Multisig) UnmarshalBCS(des *bcs.Deserializer) {
+	des.Struct(&sf.MultisigAddress)
+	if des.Bool() {
+		sf.Payload = &MultisigTransactionPayload{}
+		des.Struct(sf.Payload)
+	}
+}
+
+//endregion
+//endregion
+
+//region MultisigTransactionPayload
+
+type MultisigTransactionPayloadVariant uint32
+
+const (
+	MultisigTransactionPayloadVariantEntryFunction MultisigTransactionPayloadVariant = 0
+)
+
+type MultisigTransactionImpl interface {
+	bcs.Struct
+}
+
+// MultisigTransactionPayload is an enum allowing for multiple types of transactions to be called via multisig
+//
+// Note this does not implement TransactionPayloadImpl
+type MultisigTransactionPayload struct {
+	Variant MultisigTransactionPayloadVariant
+	Payload MultisigTransactionImpl
+}
+
+//region MultisigTransactionPayload bcs.Struct
+
+func (sf *MultisigTransactionPayload) MarshalBCS(ser *bcs.Serializer) {
+	ser.Uleb128(uint32(sf.Variant))
+	ser.Struct(sf.Payload)
+}
+func (sf *MultisigTransactionPayload) UnmarshalBCS(des *bcs.Deserializer) {
+	variant := MultisigTransactionPayloadVariant(des.Uleb128())
+	switch variant {
+	case MultisigTransactionPayloadVariantEntryFunction:
+		sf.Payload = &EntryFunction{}
+	default:
+		des.SetError(fmt.Errorf("bad variant %d for MultisigTransactionPayload", variant))
+		return
+	}
+	des.Struct(sf.Payload)
 }

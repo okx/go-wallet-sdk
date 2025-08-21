@@ -140,50 +140,50 @@ func TestGenerateEd25519Account(t *testing.T) {
 	assert.NoError(t, err)
 	output, err := account.Sign(message)
 	assert.NoError(t, err)
-	assert.Equal(t, crypto.AuthenticatorEd25519, output.Kind)
+	assert.Equal(t, crypto.AccountAuthenticatorEd25519, output.Variant)
 	assert.True(t, output.Auth.Verify(message))
 }
 
 func TestNewAccountFromSigner(t *testing.T) {
 	message := []byte{0x12, 0x34}
-	key, publicKey, err := crypto.GenerateEd5519Keys()
+	key, err := crypto.GenerateEd25519PrivateKey()
 	assert.NoError(t, err)
 
-	account, err := NewAccountFromSigner(&key)
+	account, err := NewAccountFromSigner(key)
 	assert.NoError(t, err)
 	output, err := account.Sign(message)
 	assert.NoError(t, err)
-	assert.Equal(t, crypto.AuthenticatorEd25519, output.Kind)
+	assert.Equal(t, crypto.AccountAuthenticatorEd25519, output.Variant)
 	assert.True(t, output.Auth.Verify(message))
 
 	authKey := crypto.AuthenticationKey{}
-	authKey.FromPublicKey(&publicKey)
+	authKey.FromPublicKey(key.PubKey())
 	assert.Equal(t, authKey[:], account.Address[:])
 }
 
 func TestNewAccountFromSignerWithAddress(t *testing.T) {
 	message := []byte{0x12, 0x34}
-	key, _, err := crypto.GenerateEd5519Keys()
+	key, err := crypto.GenerateEd25519PrivateKey()
 	assert.NoError(t, err)
 
 	authenticationKey := crypto.AuthenticationKey{}
 
-	account, err := NewAccountFromSigner(&key, authenticationKey)
+	account, err := NewAccountFromSigner(key, authenticationKey)
 	assert.NoError(t, err)
 	output, err := account.Sign(message)
 	assert.NoError(t, err)
-	assert.Equal(t, crypto.AuthenticatorEd25519, output.Kind)
+	assert.Equal(t, crypto.AccountAuthenticatorEd25519, output.Variant)
 	assert.True(t, output.Auth.Verify(message))
 
 	assert.Equal(t, AccountZero, account.Address)
 }
 
 func TestNewAccountFromSignerWithAddressMulti(t *testing.T) {
-	key, _, err := crypto.GenerateEd5519Keys()
+	key, err := crypto.GenerateEd25519PrivateKey()
 	assert.NoError(t, err)
 
 	authenticationKey := crypto.AuthenticationKey{}
 
-	_, err = NewAccountFromSigner(&key, authenticationKey, authenticationKey)
+	_, err = NewAccountFromSigner(key, authenticationKey, authenticationKey)
 	assert.Error(t, err)
 }

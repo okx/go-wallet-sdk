@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
 	"math/big"
 	"strconv"
 )
@@ -62,11 +63,21 @@ func (client *FungibleAssetClient) Transfer(sender *Account, senderStore Account
 	}
 
 	// Sign transaction
-	signedTxn, err = rawTxn.Sign(sender)
+	signedTxn, err = rawTxn.SignedTransaction(sender)
 	return signedTxn, err
 }
 
 func (client *FungibleAssetClient) TransferPrimaryStore(sender *Account, receiverAddress AccountAddress, amount uint64, options ...any) (signedTxn *SignedTransaction, err error) {
+	rawTxn, err := client.BuildTransferPrimaryStore(sender.Address, receiverAddress, amount, options...)
+	if err != nil {
+		return nil, err
+	}
+	// Sign transaction
+	signedTxn, err = rawTxn.SignedTransaction(sender)
+	return signedTxn, err
+}
+
+func (client *FungibleAssetClient) BuildTransferPrimaryStore(senderAddress AccountAddress, receiverAddress AccountAddress, amount uint64, options ...any) (txn *RawTransaction, err error) {
 
 	maxGasAmount := uint64(100_000) // Default to 0.001 APT max gas amount
 	gasUnitPrice := uint64(100)     // Default to min gas price
@@ -104,7 +115,7 @@ func (client *FungibleAssetClient) TransferPrimaryStore(sender *Account, receive
 	typeTag := TypeTag{Value: structTag}
 
 	// Build transaction
-	rawTxn, err := client.aptosClient.nodeClient.BuildTransaction(sender.Address, TransactionPayload{Payload: &EntryFunction{
+	rawTxn, err := client.aptosClient.nodeClient.BuildTransaction(senderAddress, TransactionPayload{Payload: &EntryFunction{
 		Module: ModuleId{
 			Address: AccountOne,
 			Name:    "primary_fungible_store",
@@ -122,10 +133,7 @@ func (client *FungibleAssetClient) TransferPrimaryStore(sender *Account, receive
 	if err != nil {
 		return
 	}
-
-	// Sign transaction
-	signedTxn, err = rawTxn.Sign(sender)
-	return signedTxn, err
+	return rawTxn, err
 }
 
 func (client *FungibleAssetClient) SimulateTransferPrimaryStore(publicKey []byte, fromAddress AccountAddress, receiverAddress AccountAddress, amount uint64, options ...any) (signedTxn *SignedTransaction, err error) {
@@ -186,7 +194,18 @@ func (client *FungibleAssetClient) SimulateTransferPrimaryStore(publicKey []byte
 	}
 
 	// Simulate transaction
-	signedTxn, err = rawTxn.SimulateTransaction(publicKey)
+	pubKey := &crypto.Ed25519PublicKey{}
+	if err = pubKey.FromBytes(publicKey); err != nil {
+		return nil, err
+	}
+	auth := &crypto.AccountAuthenticator{
+		Variant: crypto.AccountAuthenticatorEd25519,
+		Auth: &crypto.Ed25519Authenticator{
+			PubKey: pubKey,
+			Sig:    &crypto.Ed25519Signature{},
+		},
+	}
+	signedTxn, err = rawTxn.SignedTransactionWithAuthenticator(auth)
 	return signedTxn, err
 }
 

@@ -1,97 +1,173 @@
 package v2
 
 import (
+	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/okx/go-wallet-sdk/util"
 	"math/big"
 )
 
 // Script A Move script as compiled code as a transaction
 type Script struct {
-	Code     []byte
-	ArgTypes []TypeTag
-	Args     []ScriptArgument
+	Code     []byte           // The compiled script bytes
+	ArgTypes []TypeTag        // The types of the arguments
+	Args     []ScriptArgument // The arguments
 }
 
-func (sc *Script) MarshalBCS(serializer *bcs.Serializer) {
-	serializer.WriteBytes(sc.Code)
-	bcs.SerializeSequence(sc.ArgTypes, serializer)
-	bcs.SerializeSequence(sc.Args, serializer)
+//region Script TransactionPayloadImpl
+
+func (s *Script) PayloadType() TransactionPayloadVariant {
+	return TransactionPayloadVariantScript
 }
 
-func (sc *Script) UnmarshalBCS(deserializer *bcs.Deserializer) {
-	sc.Code = deserializer.ReadBytes()
-	sc.ArgTypes = bcs.DeserializeSequence[TypeTag](deserializer)
-	sc.Args = bcs.DeserializeSequence[ScriptArgument](deserializer)
+func (s *Script) ExecutableType() TransactionExecutableVariant {
+	return TransactionExecutableVariantScript
 }
 
-// ScriptArgument a Move script argument, which encodes its type with it
-// TODO: improve typing
-type ScriptArgument struct {
-	Variant ScriptArgumentVariant
-	Value   any
+//endregion
+
+//region Script bcs.Struct
+
+func (s *Script) MarshalBCS(ser *bcs.Serializer) {
+	ser.WriteBytes(s.Code)
+	bcs.SerializeSequence(s.ArgTypes, ser)
+	bcs.SerializeSequence(s.Args, ser)
 }
 
-type ScriptArgumentVariant uint8
+func (s *Script) UnmarshalBCS(des *bcs.Deserializer) {
+	s.Code = des.ReadBytes()
+	s.ArgTypes = bcs.DeserializeSequence[TypeTag](des)
+	s.Args = bcs.DeserializeSequence[ScriptArgument](des)
+}
+
+//endregion
+//endregion
+
+//region ScriptArgument
+
+// ScriptArgumentVariant the type of the script argument.  If there isn't a value here, it is not supported.
+//
+// Note that the only vector supported is vector<u8>
+type ScriptArgumentVariant uint32
 
 const (
-	ScriptArgumentU8       ScriptArgumentVariant = 0
-	ScriptArgumentU64      ScriptArgumentVariant = 1
-	ScriptArgumentU128     ScriptArgumentVariant = 2
-	ScriptArgumentAddress  ScriptArgumentVariant = 3
-	ScriptArgumentU8Vector ScriptArgumentVariant = 4
-	ScriptArgumentBool     ScriptArgumentVariant = 5
-	ScriptArgumentU16      ScriptArgumentVariant = 6
-	ScriptArgumentU32      ScriptArgumentVariant = 7
-	ScriptArgumentU256     ScriptArgumentVariant = 8
+	ScriptArgumentU8         ScriptArgumentVariant = 0 // u8 type argument
+	ScriptArgumentU64        ScriptArgumentVariant = 1 // u64 type argument
+	ScriptArgumentU128       ScriptArgumentVariant = 2 // u128 type argument
+	ScriptArgumentAddress    ScriptArgumentVariant = 3 // address type argument
+	ScriptArgumentU8Vector   ScriptArgumentVariant = 4 // vector<u8> type argument
+	ScriptArgumentBool       ScriptArgumentVariant = 5 // bool type argument
+	ScriptArgumentU16        ScriptArgumentVariant = 6 // u16 type argument
+	ScriptArgumentU32        ScriptArgumentVariant = 7 //	u32 type argument
+	ScriptArgumentU256       ScriptArgumentVariant = 8 //	u256 type argument
+	ScriptArgumentSerialized ScriptArgumentVariant = 9 //	u256 type argument
 )
 
-func (sa *ScriptArgument) MarshalBCS(bcs *bcs.Serializer) {
-	bcs.U8(uint8(sa.Variant))
+// ScriptArgument a Move script argument, which encodes its type with it
+type ScriptArgument struct {
+	Variant ScriptArgumentVariant // The type of the argument
+	Value   any                   // The value of the argument
+}
+
+//region ScriptArgument bcs.Struct
+// TODO: consider making a separate function to parse the value at input time rather than build time
+
+func (sa *ScriptArgument) MarshalBCS(ser *bcs.Serializer) {
+	ser.Uleb128(uint32(sa.Variant))
 	switch sa.Variant {
 	case ScriptArgumentU8:
-		bcs.U8(sa.Value.(uint8))
+		value, ok := (sa.Value).(uint8)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentU8, must be uint8", sa.Value))
+		}
+		ser.U8(value)
 	case ScriptArgumentU16:
-		bcs.U16(sa.Value.(uint16))
+		value, ok := (sa.Value).(uint16)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentU16, must be uint16", sa.Value))
+		}
+		ser.U16(value)
 	case ScriptArgumentU32:
-		bcs.U32(sa.Value.(uint32))
+		value, ok := (sa.Value).(uint32)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentU32, must be uint32", sa.Value))
+		}
+		ser.U32(value)
 	case ScriptArgumentU64:
-		bcs.U64(sa.Value.(uint64))
+		value, ok := (sa.Value).(uint64)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentU64, must be uint64", sa.Value))
+		}
+		ser.U64(value)
 	case ScriptArgumentU128:
-		bcs.U128(sa.Value.(big.Int))
+		value, ok := (sa.Value).(big.Int)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgument128, must be big.Int", sa.Value))
+		}
+		ser.U128(value)
 	case ScriptArgumentU256:
-		bcs.U256(sa.Value.(big.Int))
+		value, ok := (sa.Value).(big.Int)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgument256, must be big.Int", sa.Value))
+		}
+		ser.U256(value)
 	case ScriptArgumentAddress:
-		addr := sa.Value.(AccountAddress)
-		bcs.Struct(&addr)
+		addr, ok := (sa.Value).(AccountAddress)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentAddress, must be AccountAddress", sa.Value))
+		}
+		ser.Struct(&addr)
 	case ScriptArgumentU8Vector:
-		bcs.WriteBytes(sa.Value.([]byte))
+		bytes, ok := (sa.Value).([]byte)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentU8Vector, must be []byte", sa.Value))
+		}
+		ser.WriteBytes(bytes)
 	case ScriptArgumentBool:
-		bcs.Bool(sa.Value.(bool))
+		value, ok := (sa.Value).(bool)
+		if !ok {
+			ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentBool, must be bool", sa.Value))
+		}
+		ser.Bool(value)
+	case ScriptArgumentSerialized:
+		value, ok := (sa.Value).([]byte)
+		if ok {
+			ser.WriteBytes(value)
+		} else {
+			valueStr, ok := (sa.Value).(string)
+			if !ok {
+				ser.SetError(fmt.Errorf("invalid input type (%T) for ScriptArgumentSerialized, must be string or bytearray", sa.Value))
+			} else {
+				ser.WriteBytes(util.RemoveZeroHex(valueStr))
+			}
+		}
 	}
 }
 
-func (sa *ScriptArgument) UnmarshalBCS(bcs *bcs.Deserializer) {
-	variant := bcs.U8()
-	switch ScriptArgumentVariant(variant) {
+func (sa *ScriptArgument) UnmarshalBCS(des *bcs.Deserializer) {
+	sa.Variant = ScriptArgumentVariant(des.Uleb128())
+	switch sa.Variant {
 	case ScriptArgumentU8:
-		sa.Value = bcs.U8()
+		sa.Value = des.U8()
 	case ScriptArgumentU16:
-		sa.Value = bcs.U16()
+		sa.Value = des.U16()
 	case ScriptArgumentU32:
-		sa.Value = bcs.U32()
+		sa.Value = des.U32()
 	case ScriptArgumentU64:
-		sa.Value = bcs.U64()
+		sa.Value = des.U64()
 	case ScriptArgumentU128:
-		sa.Value = bcs.U128()
+		sa.Value = des.U128()
 	case ScriptArgumentU256:
-		sa.Value = bcs.U256()
+		sa.Value = des.U256()
 	case ScriptArgumentAddress:
 		aa := AccountAddress{}
-		aa.UnmarshalBCS(bcs)
+		aa.UnmarshalBCS(des)
 		sa.Value = aa
 	case ScriptArgumentU8Vector:
-		sa.Value = bcs.ReadBytes()
+		sa.Value = des.ReadBytes()
 	case ScriptArgumentBool:
-		sa.Value = bcs.Bool()
+		sa.Value = des.Bool()
+	case ScriptArgumentSerialized:
+		sa.Value = des.ReadBytes()
 	}
 }

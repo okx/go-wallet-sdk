@@ -3,6 +3,7 @@ package aptos_types
 import (
 	"github.com/okx/go-wallet-sdk/coins/aptos/bcs"
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+	"github.com/okx/go-wallet-sdk/coins/aptos/v2/api"
 )
 
 /**
@@ -73,7 +74,7 @@ type MoveFunctionGenericTypeParam struct {
 
 type MoveFunctionFullName struct {
 	FullName string
-	MoveFunction
+	api.MoveFunction
 }
 type MoveFunction struct {
 	Name              IdentifierWrapper              `json:"name"`
@@ -90,11 +91,11 @@ type MoveModuleBytecode struct {
 }
 
 type MoveModule struct {
-	Address          Address           `json:"address"`
-	Name             IdentifierWrapper `json:"name"`
-	Friends          []MoveModuleId    `json:"friends"`
-	ExposedFunctions []MoveFunction    `json:"exposed_functions"`
-	Structs          []MoveStruct      `json:"structs"`
+	Address          Address            `json:"address"`
+	Name             IdentifierWrapper  `json:"name"`
+	Friends          []MoveModuleId     `json:"friends"`
+	ExposedFunctions []api.MoveFunction `json:"exposed_functions"`
+	Structs          []MoveStruct       `json:"structs"`
 }
 
 type MoveStructGenericTypeParam struct {

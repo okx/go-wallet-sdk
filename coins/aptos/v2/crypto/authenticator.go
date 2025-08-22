@@ -1,96 +1,141 @@
 package crypto
 
 import (
+	"errors"
 	"fmt"
 	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
 )
 
-// Seeds for deriving addresses from addresses
-const (
-	Ed25519Scheme         = uint8(0)
-	MultiEd25519Scheme    = uint8(1)
-	SingleKeyScheme       = uint8(2)
-	MultiKeyScheme        = uint8(3)
-	DeriveObjectScheme    = uint8(252)
-	NamedObjectScheme     = uint8(254)
-	ResourceAccountScheme = uint8(255)
-)
-
-// AuthenticatorType single byte representing the spot in the enum from the Rust implementation
-type AuthenticatorType uint8
-
-const (
-	AuthenticatorEd25519      AuthenticatorType = 0
-	AuthenticatorMultiEd25519 AuthenticatorType = 1
-	AuthenticatorMultiAgent   AuthenticatorType = 2
-	AuthenticatorFeePayer     AuthenticatorType = 3
-	AuthenticatorSingleSender AuthenticatorType = 4
-)
-
-// AuthenticatorImpl an implementation of an authenticator to provide generic verification across multiple types
-type AuthenticatorImpl interface {
+// AccountAuthenticatorImpl an implementation of an authenticator to provide generic verification across multiple types.
+//
+// Types:
+//   - [Ed25519Authenticator]
+//   - [MultiEd25519Authenticator]
+//   - [SingleKeyAuthenticator]
+//   - [MultiKeyAuthenticator]
+type AccountAuthenticatorImpl interface {
 	bcs.Struct
 
-	// Verify Return true if this Authenticator approves
+	// PublicKey is the public key that can be used to verify the signature.  It must be a valid on-chain representation
+	// and cannot be something like [Secp256k1PublicKey] on its own.
+	PublicKey() PublicKey
+
+	// Signature is a typed signature that can be verified by the public key. It must be a valid on-chain representation
+	// and cannot be something like [Secp256k1Signature] on its own.
+	Signature() Signature
+
+	// Verify Return true if the [AccountAuthenticator] can be cryptographically verified
 	Verify(data []byte) bool
 }
 
-// Authenticator a generic authenticator type for a transaction
-type Authenticator struct {
-	Kind AuthenticatorType
-	Auth AuthenticatorImpl
+//region AccountAuthenticator
+
+// AccountAuthenticatorType single byte representing the spot in the enum from the Rust implementation
+type AccountAuthenticatorType uint8
+
+const (
+	AccountAuthenticatorEd25519      AccountAuthenticatorType = 0 // AccountAuthenticatorEd25519 is the authenticator type for ed25519 accounts
+	AccountAuthenticatorMultiEd25519 AccountAuthenticatorType = 1 // AccountAuthenticatorMultiEd25519 is the authenticator type for multi-ed25519 accounts
+	AccountAuthenticatorSingleSender AccountAuthenticatorType = 2 // AccountAuthenticatorSingleSender is the authenticator type for single-key accounts
+	AccountAuthenticatorMultiKey     AccountAuthenticatorType = 3 // AccountAuthenticatorMultiKey is the authenticator type for multi-key accounts
+)
+
+// AccountAuthenticator a generic authenticator type for a transaction
+//
+// Implements:
+//   - [AccountAuthenticatorImpl]
+//   - [bcs.Marshaler]
+//   - [bcs.Unmarshaler]
+//   - [bcs.Struct]
+type AccountAuthenticator struct {
+	Variant AccountAuthenticatorType // Variant is the type of authenticator
+	Auth    AccountAuthenticatorImpl // Auth is the actual authenticator
 }
 
-func (ea *Authenticator) MarshalBCS(bcs *bcs.Serializer) {
-	bcs.Uleb128(uint32(ea.Kind))
-	ea.Auth.MarshalBCS(bcs)
+//region AccountAuthenticator AccountAuthenticatorImpl implementation
+
+// PubKey returns the public key of the authenticator
+func (ea *AccountAuthenticator) PubKey() PublicKey {
+	return ea.Auth.PublicKey()
 }
 
-func (ea *Authenticator) UnmarshalBCS(bcs *bcs.Deserializer) {
-	kindNum := bcs.Uleb128()
-	if bcs.Error() != nil {
-		return
-	}
-	kind := AuthenticatorType(kindNum)
-	switch kind {
-	case AuthenticatorEd25519:
-		auth := &Ed25519Authenticator{}
-		auth.UnmarshalBCS(bcs)
-		ea.Auth = auth
-	default:
-		bcs.SetError(fmt.Errorf("unknown Authenticator kind: %d", kindNum))
-	}
+// Signature returns the signature of the authenticator
+func (ea *AccountAuthenticator) Signature() Signature {
+	return ea.Auth.Signature()
 }
 
-// Verify verifies a message with the public key and signature
-func (ea *Authenticator) Verify(data []byte) bool {
+// Verify returns true if the authenticator can be cryptographically verified
+func (ea *AccountAuthenticator) Verify(data []byte) bool {
 	return ea.Auth.Verify(data)
 }
 
-// AuthenticationKey a hash representing the method for authorizing an account
-type AuthenticationKey [32]byte
+//endregion
 
-// FromPublicKey for private / public key pairs, the authentication key is derived from the public key directly
-func (ak *AuthenticationKey) FromPublicKey(publicKey PublicKey) {
-	bytes := util.Sha3256Hash([][]byte{
-		publicKey.Bytes(),
-		{publicKey.Scheme()},
-	})
-	copy((*ak)[:], bytes)
+//region AccountAuthenticator bcs.Struct implementation
+
+// MarshalBCS serializes the [AccountAuthenticator] to the BCS format
+//
+// Implements:
+//   - [bcs.Marshaler]
+func (ea *AccountAuthenticator) MarshalBCS(ser *bcs.Serializer) {
+	ser.Uleb128(uint32(ea.Variant))
+	ea.Auth.MarshalBCS(ser)
 }
 
-func (ak *AuthenticationKey) MarshalBCS(bcs *bcs.Serializer) {
-	bcs.Uleb128(32)
-	bcs.FixedBytes(ak[:])
-}
-
-func (ak *AuthenticationKey) UnmarshalBCS(bcs *bcs.Deserializer) {
-	length := bcs.Uleb128()
-	if length != 32 {
-		bcs.SetError(fmt.Errorf("authentication key has wrong length %d", length))
+// UnmarshalBCS deserializes the [AccountAuthenticator] from the BCS format
+//
+// Implements:
+//   - [bcs.Unmarshaler]
+func (ea *AccountAuthenticator) UnmarshalBCS(des *bcs.Deserializer) {
+	kindNum := des.Uleb128()
+	if des.Error() != nil {
+		return
 	}
-	bcs.ReadFixedBytesInto(ak[:])
+	ea.Variant = AccountAuthenticatorType(kindNum)
+	switch ea.Variant {
+	case AccountAuthenticatorEd25519:
+		ea.Auth = &Ed25519Authenticator{}
+	//case AccountAuthenticatorMultiEd25519:
+	//	ea.Auth = &MultiEd25519Authenticator{}
+	case AccountAuthenticatorSingleSender:
+		ea.Auth = &SingleKeyAuthenticator{}
+	//case AccountAuthenticatorMultiKey:
+	//	ea.Auth = &MultiKeyAuthenticator{}
+	default:
+		des.SetError(fmt.Errorf("unknown AccountAuthenticator kind: %d", kindNum))
+		return
+	}
+	ea.Auth.UnmarshalBCS(des)
+}
+
+func (ea *AccountAuthenticator) FromKeyAndSignature(key PublicKey, sig Signature) error {
+	switch key.(type) {
+	case *Ed25519PublicKey:
+		switch sig.(type) {
+		case *Ed25519Signature:
+			ea.Variant = AccountAuthenticatorEd25519
+			ea.Auth = &Ed25519Authenticator{
+				PubKey: key.(*Ed25519PublicKey),
+				Sig:    sig.(*Ed25519Signature),
+			}
+		default:
+			return errors.New("invalid signature type for Ed25519PublicKey")
+		}
+	case *AnyPublicKey:
+		switch sig.(type) {
+		case *AnySignature:
+			ea.Variant = AccountAuthenticatorSingleSender
+			ea.Auth = &SingleKeyAuthenticator{
+				PubKey: key.(*AnyPublicKey),
+				Sig:    sig.(*AnySignature),
+			}
+		default:
+			return errors.New("invalid signature type for AnyPublicKey")
+		}
+	default:
+		return errors.New("Invalid key type")
+	}
+	return nil
 }
 
 // TODO: FeePayerAuthenticator, MultiAgentAuthenticator, MultiEd25519Authenticator, SingleSenderAuthenticator, SingleKeyAuthenticator

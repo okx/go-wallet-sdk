@@ -2,11 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-# [0.0.5](https://github.com/okx/go-wallet-sdk) (2025-02-14)
+# [0.0.5](https://github.com/okx/go-wallet-sdk) (2025-09-22)
 
-### Breaking changes
-
--   **solana-sdk:** add `encoding` parameter to `NewTxFromRaw` and `AddSignature` functions to support base64 encoding([117](https://github.com/okx/go-wallet-sdk/pull/117))
+-   **solana-sdk:** add `encoding` parameter to `NewTxFromRaw` and `AddSignature` functions to support base64 encoding([117](https://github.com/okx/go-wallet-sdk/pull/121))
     -   `NewTxFromRaw(rawTx string)` → `NewTxFromRaw(rawTx string, encoding string)`
     -   `AddSignature(tx types.Transaction, sig []byte)` → `AddSignature(tx types.Transaction, sig []byte, encoding string)`
     -   Supported encodings: "base58" (default behavior) and "base64"

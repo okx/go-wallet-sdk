@@ -123,11 +123,13 @@ func NewTxFromRaw(rawTx string, encoding string) (tx types.Transaction, err erro
 		if err != nil {
 			return tx, errors.New("invalid base64 encoding")
 		}
-	} else {
+	} else if encoding == "base58" || encoding == "" {
 		rawBytes = base58.Decode(rawTx)
 		if len(rawBytes) == 0 {
 			return tx, errors.New("invalid base58 encoding")
 		}
+	} else {
+		return tx, errors.New("invalid encoding")
 	}
 
 	tx, err = types.TransactionDeserialize(rawBytes)
@@ -161,8 +163,10 @@ func AddSignature(tx types.Transaction, sig []byte, encoding string) (data TxDat
 	var rawTx string
 	if encoding == "base64" {
 		rawTx = base64.StdEncoding.EncodeToString(rawBytes)
-	} else {
+	} else if encoding == "base58" || encoding == "" {
 		rawTx = base58.Encode(rawBytes)
+	} else {
+		return TxData{}, errors.New("invalid encoding")
 	}
 
 	txHash := base58.Encode(tx.Signatures[0])

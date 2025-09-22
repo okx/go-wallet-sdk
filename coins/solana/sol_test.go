@@ -3,9 +3,10 @@ package solana
 import (
 	"encoding/hex"
 	"encoding/json"
+	"testing"
+
 	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	"github.com/okx/go-wallet-sdk/coins/solana/base"
 	"github.com/okx/go-wallet-sdk/coins/solana/token"
@@ -43,6 +44,13 @@ func TestSignUtf8Message(t *testing.T) {
 
 func TestVerifyUTF8Message(t *testing.T) {
 	err := VerifySignedUtf8Message("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", "this is a message to be signed by solana", `501fd0d2b2742510a9682fe965c054c798d53ff5bd96c720a21055929bfb230bdf624211565b8a20efafbd30f48d5c0f65f565264a8e64b93d3e155face21f08`)
+	require.True(t, err == nil)
+}
+
+func TestVerifyMessageBytes(t *testing.T) {
+	message := base58.Decode("87PYrKY7ewJ25qaivxFzQ4g3fYH2ZT1CuRePJo9jCyEydJQMoVkxtS6pyAbKKBjSTxXT3PVGST3BpTpxvtEGMMQQMbbqeJAgzkF5TMNLkovkcEE7ZPm1qq6S9Ros4ZExAyckimPi8wfQW8rHhmMn9PnNaXS2bv4HJeHXXjEvzn2Ezi3CWbNQRvJs695KKtFfhGTqoabp9URM")
+	sig := base58.Decode(`4q87dkdRhMkLn3TuxVXP1woCTAk2R4EbRP21yWtLaoZtHpgrLFEhuhmrGSZkXtcwMoaGqdgy7wZeayeXNtopDWzv`)
+	err := VerifySignedMessageBytes("2uWejjxZtzuqLrQeCH4gwh3C5TNn2rhHTdvC26dWzKfM", message, sig)
 	require.True(t, err == nil)
 }
 

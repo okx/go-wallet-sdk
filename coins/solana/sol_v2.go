@@ -2,6 +2,7 @@ package solana
 
 import (
 	"crypto/ed25519"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -111,14 +112,24 @@ func NewTxFromParams(txParams SolanaTxParams) (tx types.Transaction, err error) 
 	return tx, err
 }
 
-func NewTxFromRaw(rawTx string) (tx types.Transaction, err error) {
+func NewTxFromRaw(rawTx string, encoding string) (tx types.Transaction, err error) {
 	if rawTx == "" {
 		return tx, errors.New("raw transaction cannot be empty")
 	}
 
-	rawBytes := base58.Decode(rawTx)
-	if len(rawBytes) == 0 {
-		return tx, errors.New("invalid base58 encoding")
+	var rawBytes []byte
+	if encoding == "base64" {
+		rawBytes, err = base64.StdEncoding.DecodeString(rawTx)
+		if err != nil {
+			return tx, errors.New("invalid base64 encoding")
+		}
+	} else if encoding == "base58" || encoding == "" {
+		rawBytes = base58.Decode(rawTx)
+		if len(rawBytes) == 0 {
+			return tx, errors.New("invalid base58 encoding")
+		}
+	} else {
+		return tx, errors.New("invalid encoding")
 	}
 
 	tx, err = types.TransactionDeserialize(rawBytes)
@@ -138,23 +149,30 @@ type TxData struct {
 	TxId  string
 }
 
-func AddSignature(tx types.Transaction, sig []byte) (data TxData, err error) {
+func AddSignature(tx types.Transaction, sig []byte, encoding string) (data TxData, err error) {
 	err = tx.AddSignature(sig)
 	if err != nil {
 		return TxData{}, err
 	}
 
-	rawTx, err := tx.Serialize()
+	rawBytes, err := tx.Serialize()
 	if err != nil {
 		return TxData{}, err
 	}
 
-	rawTxBase58 := base58.Encode(rawTx)
+	var rawTx string
+	if encoding == "base64" {
+		rawTx = base64.StdEncoding.EncodeToString(rawBytes)
+	} else if encoding == "base58" || encoding == "" {
+		rawTx = base58.Encode(rawBytes)
+	} else {
+		return TxData{}, errors.New("invalid encoding")
+	}
 
 	txHash := base58.Encode(tx.Signatures[0])
 
 	return TxData{
-		RawTx: rawTxBase58,
+		RawTx: rawTx,
 		TxId:  txHash,
 	}, nil
 }

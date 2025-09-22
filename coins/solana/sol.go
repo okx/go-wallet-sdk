@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	associatedtokenaccount "github.com/okx/go-wallet-sdk/coins/solana/associated-token-account"
 	computebudget "github.com/okx/go-wallet-sdk/coins/solana/compute-budget"
 	"github.com/tyler-smith/go-bip39"
@@ -693,6 +694,28 @@ func VerifySignedUtf8Message(addr string, msg string, sign string) error {
 	}
 	pubKey := ed25519.PublicKey(pub)
 	if r := ed25519.Verify(pubKey, message, sig); !r {
+		return ErrInvalidSign
+	}
+	return nil
+}
+
+func VerifySignedMessageBytes(addr string, message []byte, sign []byte) error {
+	if len(sign) == 0 {
+		return ErrInvalidSign
+	}
+	if len(message) == 0 {
+		return ErrInvalidMsg
+	}
+	if len(addr) == 0 {
+		return ErrInvalidAddr
+	}
+	pub := base58.Decode(addr)
+	if len(pub) != ed25519.PublicKeySize {
+		return ErrInvalidAddr
+	}
+
+	pubKey := ed25519.PublicKey(pub)
+	if r := ed25519.Verify(pubKey, message, sign); !r {
 		return ErrInvalidSign
 	}
 	return nil

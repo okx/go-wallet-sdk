@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Allocate space for and assign an account at an address derived from a base public key and a seed

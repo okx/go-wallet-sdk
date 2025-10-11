@@ -20,7 +20,7 @@ package ethsecp256k1
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/types"
 	"io"
 	math_bits "math/bits"
 )

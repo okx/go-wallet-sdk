@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/okx/go-wallet-sdk/coins/ton/crc16"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/crc16"
 
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 type AccountStatus string

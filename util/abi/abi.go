@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
 

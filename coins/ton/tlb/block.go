@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 // Deprecated: use ton.BlockIDExt

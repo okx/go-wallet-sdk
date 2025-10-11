@@ -3,8 +3,8 @@ package keypair
 import (
 	"crypto/ed25519"
 	"encoding"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // FromAddress represents a keypair to which only the address is know.  This KP

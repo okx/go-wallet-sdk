@@ -2,8 +2,8 @@ package nervos
 
 import (
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/nervos/crypto"
-	"github.com/okx/go-wallet-sdk/coins/nervos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/nervos/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/nervos/types"
 )
 
 var (

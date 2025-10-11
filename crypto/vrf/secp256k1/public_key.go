@@ -9,9 +9,9 @@ package secp256k1
 import (
 	"database/sql/driver"
 	"fmt"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/vrf/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"go.dedis.ch/kyber/v3"
 )
 

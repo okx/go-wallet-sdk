@@ -1,7 +1,7 @@
 package tendermint
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/amino"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/amino"
 )
 
 // RegisterAmino registers all crypto related types in the given (amino) codec.

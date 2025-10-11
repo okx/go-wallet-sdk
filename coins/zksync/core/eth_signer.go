@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/okx/go-wallet-sdk/coins/ethereum"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ethereum"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"strings"

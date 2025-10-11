@@ -17,7 +17,7 @@ package token
 import (
 	"encoding/binary"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 type Mint struct {

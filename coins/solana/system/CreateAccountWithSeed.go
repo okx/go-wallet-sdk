@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Create a new account at an address derived from a base pubkey and a seed

@@ -1,7 +1,7 @@
 package flow
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/flow/core"
+	"github.com/emresenyuva/go-wallet-sdk/coins/flow/core"
 	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"

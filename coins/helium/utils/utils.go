@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"github.com/shopspring/decimal"
 	"math/big"
 	"strconv"

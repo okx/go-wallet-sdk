@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 )
 
 type TxStruct struct {

@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/types"
 )
 
 // TransactionPayloadVariant is the type of payload represented in JSON

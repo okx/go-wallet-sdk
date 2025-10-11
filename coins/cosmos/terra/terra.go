@@ -7,8 +7,8 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil/bech32"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/tx"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/tx"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/types"
 	"golang.org/x/crypto/ripemd160"
 	"math/big"
 )

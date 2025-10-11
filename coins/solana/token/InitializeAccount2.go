@@ -17,7 +17,7 @@ package token
 import (
 	"errors"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Like InitializeAccount, but the owner pubkey is passed via instruction data

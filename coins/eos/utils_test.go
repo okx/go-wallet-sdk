@@ -1,7 +1,7 @@
 package eos
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/eos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/eos/types"
 	"reflect"
 	"testing"
 )

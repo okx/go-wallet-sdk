@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/common"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/common"
 	"golang.org/x/crypto/sha3"
 	"math"
 	"math/big"

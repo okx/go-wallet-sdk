@@ -3,8 +3,8 @@ package txnbuild
 import (
 	"bytes"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // Deprecated: use SetTrustLineFlags instead.

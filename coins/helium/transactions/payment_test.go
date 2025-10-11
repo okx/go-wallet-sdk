@@ -2,7 +2,7 @@ package transactions
 
 import (
 	"encoding/base64"
-	"github.com/okx/go-wallet-sdk/coins/helium/keypair"
+	"github.com/emresenyuva/go-wallet-sdk/coins/helium/keypair"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

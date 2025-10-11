@@ -2,8 +2,8 @@ package terra
 
 import (
 	"encoding/hex"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
-	"github.com/okx/go-wallet-sdk/crypto/bip32"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/types"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/bip32"
 	"github.com/stretchr/testify/require"
 	"github.com/tyler-smith/go-bip39"
 	"math/big"

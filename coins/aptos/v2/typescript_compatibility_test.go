@@ -1,8 +1,8 @@
 package v2
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

@@ -2,8 +2,8 @@ package helium
 
 import (
 	"encoding/base64"
-	"github.com/okx/go-wallet-sdk/coins/helium/keypair"
-	"github.com/okx/go-wallet-sdk/coins/helium/transactions"
+	"github.com/emresenyuva/go-wallet-sdk/coins/helium/keypair"
+	"github.com/emresenyuva/go-wallet-sdk/coins/helium/transactions"
 )
 
 func Sign(private string, from, to string, amount, fee, nonce uint64, tokenType string, isMax bool) (string, error) {

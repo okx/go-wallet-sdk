@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/serde"
 )
 
 // `serializer` extends `serde.BinarySerializer` to implement `serde.Serializer`.

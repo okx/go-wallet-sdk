@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/amino"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/amino"
 )
 
 // RegisterCodec registers concrete types on the codec

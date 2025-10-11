@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	. "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 )
 
 // testExpectedMRet is a convenience method to test an expected number of bytes

@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

@@ -10,7 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"

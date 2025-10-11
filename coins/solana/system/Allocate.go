@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Allocate space in a (possibly new) account without funding

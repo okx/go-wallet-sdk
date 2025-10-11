@@ -17,7 +17,7 @@ package token
 import (
 	"errors"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Like InitializeAccount2, but does not require the Rent sysvar to be provided.

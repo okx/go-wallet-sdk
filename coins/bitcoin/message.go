@@ -16,7 +16,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/okx/go-wallet-sdk/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/crypto"
 	"io"
 	"math/big"
 	"reflect"

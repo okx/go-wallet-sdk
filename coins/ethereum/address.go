@@ -1,7 +1,7 @@
 package ethereum
 
 import (
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"golang.org/x/crypto/sha3"

@@ -6,10 +6,10 @@ import (
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	btcecEcdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/okx/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
 

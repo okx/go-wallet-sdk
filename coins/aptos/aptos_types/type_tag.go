@@ -3,8 +3,8 @@ package aptos_types
 import (
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/serde"
 	"reflect"
 	"regexp"
 	"strconv"

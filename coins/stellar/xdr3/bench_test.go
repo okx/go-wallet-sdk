@@ -18,7 +18,7 @@ package xdr_test
 
 import (
 	"bytes"
-	xdr "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	xdr "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 	"testing"
 	"unsafe"
 )

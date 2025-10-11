@@ -8,7 +8,7 @@ package types
 
 import (
 	"encoding/binary"
-	"github.com/okx/go-wallet-sdk/coins/waves/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/waves/crypto"
 )
 
 const (

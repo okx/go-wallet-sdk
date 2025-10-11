@@ -3,7 +3,7 @@ package tezos
 import (
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/tezos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/tezos/types"
 )
 
 const GasSafetyMargin int64 = 100

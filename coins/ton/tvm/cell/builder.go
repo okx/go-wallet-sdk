@@ -6,7 +6,7 @@ package cell
 
 import (
 	"encoding/binary"
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
 	"math/big"
 )
 

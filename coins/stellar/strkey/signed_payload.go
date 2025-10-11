@@ -2,8 +2,8 @@ package strkey
 
 import (
 	"bytes"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
-	xdr "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
+	xdr "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 )
 
 type SignedPayload struct {

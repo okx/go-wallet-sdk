@@ -1,6 +1,6 @@
 package v2
 
-import "github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+import "github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 
 // CoinTransferPayload builds an EntryFunction payload for transferring coins
 //

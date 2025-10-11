@@ -3,7 +3,7 @@ package xdr
 import (
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
 )
 
 // Address returns the strkey encoded form of this AccountId.  This method will

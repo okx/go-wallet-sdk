@@ -2,7 +2,7 @@ package ton
 
 import (
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
 	"math/big"
 	"time"
 )

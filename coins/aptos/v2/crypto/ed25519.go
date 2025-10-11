@@ -4,8 +4,8 @@ import (
 	"crypto/ed25519"
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/util"
 	"io"
 )
 

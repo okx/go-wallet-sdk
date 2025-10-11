@@ -5,7 +5,7 @@ package nft_candy_machine_v2
 import (
 	"errors"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // AddConfigLines is the `addConfigLines` instruction.

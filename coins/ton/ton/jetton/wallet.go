@@ -8,9 +8,9 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
-	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tlb"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 type TransferPayload struct {

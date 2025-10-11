@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2"

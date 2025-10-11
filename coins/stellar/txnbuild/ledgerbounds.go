@@ -1,6 +1,6 @@
 package txnbuild
 
-import "github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
+import "github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
 
 // LedgerBounds represent a transaction precondition that controls the ledger
 // range for which a transaction is valid. Setting MaxLedger = 0 indicates there

@@ -6,8 +6,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/okx/go-wallet-sdk/coins/flow/core"
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/flow/core"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
 

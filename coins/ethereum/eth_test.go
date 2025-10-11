@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ethereum/token"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/okx/go-wallet-sdk/coins/ethereum/token"
-	"github.com/okx/go-wallet-sdk/util"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/sha3"
 )

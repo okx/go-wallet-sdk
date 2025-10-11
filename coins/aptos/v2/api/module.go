@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/types"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/util"
 )
 
 // MoveBytecode describes a module, or script, and it's associated ABI as a [MoveModule]

@@ -3,8 +3,8 @@ package xdr
 import (
 	"bytes"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
 )
 
 // Address returns the strkey encoded form of this signer key.  This method will

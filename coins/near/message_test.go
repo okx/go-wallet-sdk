@@ -2,7 +2,7 @@ package near
 
 import (
 	"encoding/hex"
-	"github.com/okx/go-wallet-sdk/coins/near/serialize"
+	"github.com/emresenyuva/go-wallet-sdk/coins/near/serialize"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

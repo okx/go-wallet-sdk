@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/okx/go-wallet-sdk/coins/tron/token"
-	"github.com/okx/go-wallet-sdk/util/abi"
+	"github.com/emresenyuva/go-wallet-sdk/coins/tron/token"
+	"github.com/emresenyuva/go-wallet-sdk/util/abi"
 )
 
 func TestTron_NewAddress(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"crypto/ed25519"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
-	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/address"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tlb"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 const DefaultSubwallet = 698983191

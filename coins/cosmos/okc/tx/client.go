@@ -6,10 +6,10 @@ import (
 	"errors"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/amino"
-	authtypes "github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/auth/types"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/common/ethsecp256k1"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/common/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/amino"
+	authtypes "github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/auth/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/common/ethsecp256k1"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/common/types"
 	"golang.org/x/crypto/sha3"
 )
 

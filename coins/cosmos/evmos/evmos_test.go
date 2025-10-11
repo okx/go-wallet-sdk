@@ -1,7 +1,7 @@
 package evmos
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

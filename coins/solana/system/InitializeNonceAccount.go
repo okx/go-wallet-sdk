@@ -17,7 +17,7 @@ package system
 import (
 	"encoding/binary"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Drive state of Uninitialized nonce account to Initialized, setting the nonce value

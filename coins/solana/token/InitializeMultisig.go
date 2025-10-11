@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/okx/go-wallet-sdk/coins/solana/base"
+	"github.com/emresenyuva/go-wallet-sdk/coins/solana/base"
 )
 
 // Initializes a multisignature account with N provided signers.

@@ -2,10 +2,10 @@ package txnbuild
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/amount"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/amount"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // validateStellarPublicKey returns an error if a public key is invalid. Otherwise, it returns nil.

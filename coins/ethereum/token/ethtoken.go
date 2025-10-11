@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/okx/go-wallet-sdk/util/abi"
+	"github.com/emresenyuva/go-wallet-sdk/util/abi"
 )
 
 func ParseErc20JsonAbi(data string) *abi.ABI {

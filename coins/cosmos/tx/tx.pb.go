@@ -5,7 +5,7 @@ import (
 	"io"
 	math_bits "math/bits"
 
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/types"
 )
 
 // Tx is the standard type used for broadcasting transactions.

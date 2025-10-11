@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/util"
 )
 
 // AccountAddress a 32-byte representation of an on-chain address

@@ -3,7 +3,7 @@ package types
 import (
 	"crypto/sha256"
 	"errors"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"sync"
 )
 

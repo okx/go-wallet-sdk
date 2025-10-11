@@ -5,7 +5,7 @@ Author： https://github.com/xssnick/tonutils-go
 package tlb
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 type TickTock struct {

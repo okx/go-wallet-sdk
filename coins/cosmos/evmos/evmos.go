@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil/bech32"
-	"github.com/okx/go-wallet-sdk/coins/cosmos"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos"
 	"golang.org/x/crypto/sha3"
 )
 

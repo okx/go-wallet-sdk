@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/psbt"
-	"github.com/okx/go-wallet-sdk/coins/bitcoin"
+	"github.com/emresenyuva/go-wallet-sdk/coins/bitcoin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

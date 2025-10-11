@@ -1,7 +1,7 @@
 package tezos
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/tezos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/tezos/types"
 )
 
 func ValidAddress(addr string) (bool, error) {

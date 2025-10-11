@@ -1,7 +1,7 @@
 package strkey_test
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

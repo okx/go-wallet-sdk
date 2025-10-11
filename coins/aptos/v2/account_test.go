@@ -1,7 +1,7 @@
 package v2
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/crypto"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

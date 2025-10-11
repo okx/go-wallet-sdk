@@ -2,7 +2,7 @@ package v2
 
 import (
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 )
 
 type TransactionInnerPayload struct {

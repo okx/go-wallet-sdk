@@ -7,8 +7,8 @@ Copyright (c) 2018 SmartContract ChainLink, Ltd.
 package proof
 
 import (
+	"github.com/emresenyuva/go-wallet-sdk/crypto/vrf/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"math/big"
 )
 

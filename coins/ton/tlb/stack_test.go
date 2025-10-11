@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 func TestStack_ToCell(t *testing.T) {

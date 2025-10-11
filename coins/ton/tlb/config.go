@@ -4,7 +4,7 @@ Author： https://github.com/xssnick/tonutils-go
 
 package tlb
 
-import "github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+import "github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 
 func init() {
 	Register(ValidatorSet{})

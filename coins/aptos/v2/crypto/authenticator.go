@@ -3,7 +3,7 @@ package crypto
 import (
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 )
 
 // AccountAuthenticatorImpl an implementation of an authenticator to provide generic verification across multiple types.

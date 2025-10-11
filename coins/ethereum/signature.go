@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/okx/go-wallet-sdk/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/crypto"
 )
 
 type SignatureData struct {

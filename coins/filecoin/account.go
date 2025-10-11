@@ -14,7 +14,7 @@ import (
 	ecdsa2 "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/dchest/blake2b"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"math"
 	"math/bits"
 	"strconv"

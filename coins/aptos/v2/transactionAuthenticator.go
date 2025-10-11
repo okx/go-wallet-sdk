@@ -2,8 +2,8 @@ package v2
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/crypto"
 )
 
 //region TransactionAuthenticator

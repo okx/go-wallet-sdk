@@ -3,7 +3,7 @@ package xdr
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
 	"regexp"
 	"strconv"
 	"time"

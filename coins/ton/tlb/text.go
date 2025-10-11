@@ -6,7 +6,7 @@ package tlb
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 const MaxTextChunkSize = 127 - 2

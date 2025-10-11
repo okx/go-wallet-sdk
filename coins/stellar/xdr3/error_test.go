@@ -21,7 +21,7 @@ import (
 	"io"
 	"testing"
 
-	. "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	. "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 )
 
 // TestErrorCodeStringer tests the stringized output for the ErrorCode type.

@@ -2,8 +2,8 @@ package txnbuild
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // MemoText is used to send human messages of up to 28 bytes of ASCII/UTF-8.

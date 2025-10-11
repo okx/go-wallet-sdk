@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/near/serialize"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/coins/near/serialize"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"math/big"
 )
 

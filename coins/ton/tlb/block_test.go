@@ -6,7 +6,7 @@ package tlb
 
 import (
 	"encoding/hex"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ton/tvm/cell"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

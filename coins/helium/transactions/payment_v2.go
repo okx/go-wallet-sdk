@@ -5,9 +5,9 @@ Author： https://github.com/hecodev007/block_sign
 package transactions
 
 import (
+	"github.com/emresenyuva/go-wallet-sdk/coins/helium/keypair"
+	"github.com/emresenyuva/go-wallet-sdk/coins/helium/protos"
 	"github.com/golang/protobuf/proto"
-	"github.com/okx/go-wallet-sdk/coins/helium/keypair"
-	"github.com/okx/go-wallet-sdk/coins/helium/protos"
 )
 
 type PaymentV2Tx struct {

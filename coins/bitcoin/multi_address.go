@@ -5,8 +5,8 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 )
 
 func GetRedeemScript(pubKeys []string, minSignNum int) ([]byte, error) {

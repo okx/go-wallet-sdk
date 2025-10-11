@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/common/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/common/types"
 )
 
 // StdSignMsg is a convenience structure for passing along

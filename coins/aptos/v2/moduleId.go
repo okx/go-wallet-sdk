@@ -1,7 +1,7 @@
 package v2
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 )
 
 // ModuleId the identifier for a module e.g. 0x1::coin

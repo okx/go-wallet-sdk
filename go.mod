@@ -1,4 +1,4 @@
-module github.com/okx/go-wallet-sdk
+module github.com/emresenyuva/go-wallet-sdk
 
 go 1.23.0
 

@@ -1,8 +1,8 @@
 package waves
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/waves/crypto"
-	"github.com/okx/go-wallet-sdk/coins/waves/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/waves/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/coins/waves/types"
 )
 
 // NewUnsignedTransferWithSig creates new TransferWithSig transaction without signature and ID.

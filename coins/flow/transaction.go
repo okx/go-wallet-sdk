@@ -3,7 +3,7 @@ package flow
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/flow/core"
+	"github.com/emresenyuva/go-wallet-sdk/coins/flow/core"
 )
 
 const DefaultAccountIndex = 0

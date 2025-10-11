@@ -4,8 +4,8 @@ import (
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey/internal/crc16"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey/internal/crc16"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
 )
 
 // ErrInvalidVersionByte is returned when the version byte from a provided

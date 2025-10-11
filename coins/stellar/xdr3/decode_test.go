@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	. "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	. "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 	"math"
 	"reflect"
 	"testing"

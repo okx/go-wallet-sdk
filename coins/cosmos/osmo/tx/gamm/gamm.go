@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/types"
 )
 
 type MsgJoinPool struct {

@@ -2,7 +2,7 @@ package zksync
 
 import (
 	"encoding/json"
-	"github.com/okx/go-wallet-sdk/coins/zksync/core"
+	"github.com/emresenyuva/go-wallet-sdk/coins/zksync/core"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"

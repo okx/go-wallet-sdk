@@ -1,7 +1,7 @@
 package oasis
 
 import (
-	"github.com/okx/go-wallet-sdk/crypto/bech32"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/bech32"
 	"math/big"
 )
 

@@ -10,11 +10,11 @@ import (
 	"golang.org/x/crypto/sha3"
 
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/emresenyuva/go-wallet-sdk/coins/tron/pb"
+	"github.com/emresenyuva/go-wallet-sdk/coins/tron/token"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/okx/go-wallet-sdk/coins/tron/pb"
-	"github.com/okx/go-wallet-sdk/coins/tron/token"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
 )
 
 func GetAddress(publicKey *btcec.PublicKey) string {

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/internal/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/internal/util"
 	"math/big"
 	"slices"
 )

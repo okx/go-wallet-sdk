@@ -1,9 +1,9 @@
 package txnbuild
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/stellar/amount"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/amount"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // Payment represents the Stellar payment operation. See

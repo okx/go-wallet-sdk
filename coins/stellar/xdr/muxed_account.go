@@ -2,8 +2,8 @@ package xdr
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/strkey"
-	"github.com/okx/go-wallet-sdk/coins/stellar/support/errors"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/strkey"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/support/errors"
 )
 
 func MustMuxedAddress(address string) MuxedAccount {

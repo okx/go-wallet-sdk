@@ -5,8 +5,8 @@ Author： https://github.com/hecodev007/block_sign
 package crypto
 
 import (
-	ed25519_helium "github.com/okx/go-wallet-sdk/coins/helium/crypto/ed25519"
-	nist_p256 "github.com/okx/go-wallet-sdk/coins/helium/crypto/nist-p256"
+	ed25519_helium "github.com/emresenyuva/go-wallet-sdk/coins/helium/crypto/ed25519"
+	nist_p256 "github.com/emresenyuva/go-wallet-sdk/coins/helium/crypto/nist-p256"
 )
 
 type Curves interface {

@@ -3,7 +3,7 @@ package v2
 import (
 	"errors"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 	"net/http"
 	"net/url"
 	"time"

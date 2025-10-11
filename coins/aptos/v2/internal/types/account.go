@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/aptos/common"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/common"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/crypto"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"strings"
 )
 

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil/bech32"
-	"github.com/okx/go-wallet-sdk/coins/ethereum"
-	"github.com/okx/go-wallet-sdk/util"
+	"github.com/emresenyuva/go-wallet-sdk/coins/ethereum"
+	"github.com/emresenyuva/go-wallet-sdk/util"
 	"math/big"
 	"strings"
 )

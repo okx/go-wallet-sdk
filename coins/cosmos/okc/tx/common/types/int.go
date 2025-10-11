@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/amino"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/amino"
 	"math/big"
 	"testing"
 )

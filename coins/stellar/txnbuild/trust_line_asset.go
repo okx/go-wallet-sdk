@@ -1,7 +1,7 @@
 package txnbuild
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // TrustLineAsset represents a Stellar trust line asset.

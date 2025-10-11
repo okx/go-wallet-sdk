@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 )
 
 type Transaction struct {

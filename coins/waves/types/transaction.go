@@ -6,7 +6,7 @@ Copyright (c) 2018 WavesPlatform
 */
 package types
 
-import "github.com/okx/go-wallet-sdk/coins/waves/crypto"
+import "github.com/emresenyuva/go-wallet-sdk/coins/waves/crypto"
 
 // Transaction is a set of common transaction functions.
 type Transaction interface {

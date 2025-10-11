@@ -1,6 +1,6 @@
 package iris
 
-import "github.com/okx/go-wallet-sdk/coins/cosmos"
+import "github.com/emresenyuva/go-wallet-sdk/coins/cosmos"
 
 const (
 	HRP = "iaa"

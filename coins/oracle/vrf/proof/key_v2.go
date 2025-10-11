@@ -10,9 +10,9 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/vrf/secp256k1"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/vrf/utils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/okx/go-wallet-sdk/crypto/vrf/secp256k1"
-	"github.com/okx/go-wallet-sdk/crypto/vrf/utils"
 	"math/big"
 
 	"go.dedis.ch/kyber/v3"

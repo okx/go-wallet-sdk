@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/zksync/core"
+	"github.com/emresenyuva/go-wallet-sdk/coins/zksync/core"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"strings"

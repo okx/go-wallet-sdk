@@ -1,6 +1,6 @@
 package zksync
 
-import "github.com/okx/go-wallet-sdk/coins/zksync/core"
+import "github.com/emresenyuva/go-wallet-sdk/coins/zksync/core"
 
 var RinkebyUSDT = &core.Token{
 	Id:       1,

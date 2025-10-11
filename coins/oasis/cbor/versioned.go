@@ -2,7 +2,7 @@ package cbor
 
 import (
 	"errors"
-	"github.com/okx/go-wallet-sdk/crypto/cbor"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/cbor"
 	"math"
 )
 

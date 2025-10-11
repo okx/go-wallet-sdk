@@ -2,7 +2,7 @@ package txnbuild
 
 import (
 	"fmt"
-	"github.com/okx/go-wallet-sdk/coins/stellar/xdr"
+	"github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr"
 )
 
 // Operation represents the operation types of the Stellar network.

@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"fmt"
 
-	xdr "github.com/okx/go-wallet-sdk/coins/stellar/xdr3"
+	xdr "github.com/emresenyuva/go-wallet-sdk/coins/stellar/xdr3"
 )
 
 // This example demonstrates how to use Marshal to automatically XDR encode

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
+	"github.com/emresenyuva/go-wallet-sdk/coins/aptos/serde"
 )
 
 // MaxSequenceLength Maximum length allowed for sequences (vectors, bytes, strings) and maps.

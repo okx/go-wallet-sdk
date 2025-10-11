@@ -1,6 +1,6 @@
 package crypto
 
-import "github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+import "github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 
 // Signer a generic interface for any kind of signing
 type Signer interface {

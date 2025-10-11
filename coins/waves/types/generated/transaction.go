@@ -6,7 +6,7 @@ Copyright (c) 2018 WavesPlatform
 */
 package generated
 
-import "github.com/okx/go-wallet-sdk/coins/waves/types"
+import "github.com/emresenyuva/go-wallet-sdk/coins/waves/types"
 
 type SignedTransaction struct {
 	// Types that are assignable to Transaction:

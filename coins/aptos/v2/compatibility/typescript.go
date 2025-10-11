@@ -1,6 +1,6 @@
 package compatibility
 
-import "github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+import "github.com/emresenyuva/go-wallet-sdk/coins/aptos/v2/bcs"
 
 // TypeScriptCompatible means the type is able to marshal and unmarshal in BCS to a specific type in TypeScript
 type TypeScriptCompatible interface {

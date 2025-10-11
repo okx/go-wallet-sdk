@@ -1,7 +1,7 @@
 package ethsecp256k1
 
 import (
-	"github.com/okx/go-wallet-sdk/coins/cosmos/okc/tx/amino"
+	"github.com/emresenyuva/go-wallet-sdk/coins/cosmos/okc/tx/amino"
 )
 
 // RegisterCodec registers all the necessary types with amino for the given

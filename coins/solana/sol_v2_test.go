@@ -3,7 +3,7 @@ package solana
 import (
 	"testing"
 
-	"github.com/okx/go-wallet-sdk/crypto/base58"
+	"github.com/emresenyuva/go-wallet-sdk/crypto/base58"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -214,4 +214,3 @@ func TestAddSignatureWithPriorityFeeAndParams(t *testing.T) {
 	assert.Equal(t, expectedRawTx, txData.RawTx)
 	assert.Equal(t, base58.Encode(sig), txData.TxId)
 }
-

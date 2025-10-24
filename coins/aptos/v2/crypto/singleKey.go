@@ -40,6 +40,8 @@ func (key *SingleSigner) SignatureVariant() AnySignatureVariant {
 	switch key.Signer.(type) {
 	case *Ed25519PrivateKey:
 		sigType = AnySignatureVariantEd25519
+	case *Secp256k1PrivateKey:
+		sigType = AnySignatureVariantSecp256k1
 	}
 	return sigType
 }
@@ -103,6 +105,8 @@ func (key *SingleSigner) PubKey() PublicKey {
 	switch key.Signer.(type) {
 	case *Ed25519PrivateKey:
 		keyType = AnyPublicKeyVariantEd25519
+	case *Secp256k1PrivateKey:
+		keyType = AnyPublicKeyVariantSecp256k1
 	}
 	return &AnyPublicKey{
 		Variant: keyType,
@@ -136,6 +140,8 @@ func ToAnyPublicKey(key VerifyingKey) (*AnyPublicKey, error) {
 	switch key.(type) {
 	case *Ed25519PublicKey:
 		out.Variant = AnyPublicKeyVariantEd25519
+	case *Secp256k1PublicKey:
+		out.Variant = AnyPublicKeyVariantSecp256k1
 	case *AnyPublicKey:
 		// Passthrough for conversion
 		return key.(*AnyPublicKey), nil
@@ -246,6 +252,8 @@ func (key *AnyPublicKey) UnmarshalBCS(des *bcs.Deserializer) {
 	switch key.Variant {
 	case AnyPublicKeyVariantEd25519:
 		key.PubKey = &Ed25519PublicKey{}
+	case AnyPublicKeyVariantSecp256k1:
+		key.PubKey = &Secp256k1PublicKey{}
 	default:
 		des.SetError(fmt.Errorf("unknown public key variant: %d", key.Variant))
 		return
@@ -340,6 +348,8 @@ func (e *AnySignature) UnmarshalBCS(des *bcs.Deserializer) {
 	switch e.Variant {
 	case AnySignatureVariantEd25519:
 		e.Signature = &Ed25519Signature{}
+	case AnySignatureVariantSecp256k1:
+		e.Signature = &Secp256k1Signature{}
 	default:
 		des.SetError(fmt.Errorf("unknown signature variant: %d", e.Variant))
 		return

@@ -11,7 +11,7 @@ import (
 	"github.com/okx/go-wallet-sdk/coins/aptos/serde"
 	"github.com/okx/go-wallet-sdk/coins/aptos/transaction_builder"
 	v2 "github.com/okx/go-wallet-sdk/coins/aptos/v2"
-	"github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
+	bcs2 "github.com/okx/go-wallet-sdk/coins/aptos/v2/bcs"
 	"github.com/okx/go-wallet-sdk/coins/aptos/v2/crypto"
 	"github.com/okx/go-wallet-sdk/crypto/ed25519"
 	"github.com/okx/go-wallet-sdk/util"
@@ -37,8 +37,7 @@ func ExpandAddress(address string) string {
 
 func NewAddress(seedHex string, shortEnable bool) string {
 	seedHex = StripAptosPrivateKeyPrefix(seedHex)
-	publicKeyBs, _ := ed25519.PublicKeyFromSeed(seedHex)
-	publicKey := []byte(publicKeyBs)
+	publicKey, _ := ed25519.PublicKeyFromSeed(seedHex)
 	publicKey = append(publicKey, 0x0)
 	address := "0x" + hex.EncodeToString(common.Sha256Hash(publicKey))
 	if shortEnable {
@@ -61,11 +60,11 @@ type AptosTXParam struct {
 }
 
 func NewTxFromParam(txParam *AptosTXParam) (tx *v2.RawTransaction, err error) {
-	txBytes, err := DecodeHexStringErr(txParam.Payload)
+	txBytes, err := util.DecodeHexStringErr(txParam.Payload)
 	if err != nil {
 		return nil, err
 	}
-	der := bcs.NewDeserializer(txBytes)
+	der := bcs2.NewDeserializer(txBytes)
 	payload := &v2.TransactionPayload{}
 	payload.UnmarshalBCS(der)
 	err = der.Error()
@@ -78,11 +77,11 @@ func NewTxFromParam(txParam *AptosTXParam) (tx *v2.RawTransaction, err error) {
 
 // todo
 func NewTxFromRaw(rawTx string, isMultiAgent bool) (tx interface{}, err error) {
-	txBytes, err := DecodeHexStringErr(rawTx)
+	txBytes, err := util.DecodeHexStringErr(rawTx)
 	if err != nil {
 		return nil, err
 	}
-	der := bcs.NewDeserializer(txBytes)
+	der := bcs2.NewDeserializer(txBytes)
 	if isMultiAgent {
 		var rawTx = &v2.RawTransactionWithData{}
 		rawTx.UnmarshalBCS(der)
@@ -224,7 +223,11 @@ func MakeMultiAgentTransactionV2(from string, sequenceNumber uint64, maxGasAmoun
 	rawTxn.Payload = *payload
 	secondarySigners := make([]v2.AccountAddress, 0)
 	for i := 0; i < len(additionalSigners); i++ {
-		secondarySigners = append(secondarySigners, *addr)
+		var signer = &v2.AccountAddress{}
+		if err := signer.ParseStringRelaxed(additionalSigners[i]); err != nil {
+			return nil, err
+		}
+		secondarySigners = append(secondarySigners, *signer)
 	}
 
 	if withFeePayer {
@@ -321,11 +324,11 @@ func SignAsFeePayer(rawTxn, seedHex string, feePayer string) (string, string, er
 	if err != nil {
 		return "", "", err
 	}
-	feePayerBytes, err := bcs.Serialize(auth)
+	feePayerBytes, err := bcs2.Serialize(auth)
 	if err != nil {
 		return "", "", err
 	}
-	data, err := bcs.Serialize(rawTx)
+	data, err := bcs2.Serialize(rawTx)
 	if err != nil {
 		return "", "", err
 	}
@@ -360,11 +363,11 @@ func SignSimpleTx(rawTxn, seedHex string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		signedTxBytes, err := bcs.Serialize(signedTx)
+		signedTxBytes, err := bcs2.Serialize(signedTx)
 		if err != nil {
 			return "", err
 		}
-		authBytes, err := bcs.Serialize(auth)
+		authBytes, err := bcs2.Serialize(auth)
 		if err != nil {
 			return "", err
 		}
@@ -374,7 +377,7 @@ func SignSimpleTx(rawTxn, seedHex string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		authBytes, err := bcs.Serialize(auth)
+		authBytes, err := bcs2.Serialize(auth)
 		if err != nil {
 			return "", err
 		}
@@ -387,7 +390,7 @@ func SignSimpleTx(rawTxn, seedHex string) (string, error) {
 func deserializeSimpleTx(rawTxn string) (*v2.RawTransaction, *v2.RawTransactionWithData, error) {
 	rawTxnBytes := util.RemoveZeroHex(rawTxn)
 	rawTx := &v2.RawTransaction{}
-	des := bcs.NewDeserializer(rawTxnBytes)
+	des := bcs2.NewDeserializer(rawTxnBytes)
 	rawTx.UnmarshalBCS(des)
 	err := des.Error()
 	if err != nil {
@@ -415,7 +418,7 @@ func SignMultiAgentTx(rawTxn, seedHex string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	authBytes, err := bcs.Serialize(auth)
+	authBytes, err := bcs2.Serialize(auth)
 	if err != nil {
 		return "", err
 	}
@@ -433,7 +436,7 @@ func ToFinalMultiAgentTx(txWithAuth *TxWithAuth) (string, error) {
 	if !ok {
 		return "", errors.New("failed to convert raw transaction to signed transaction")
 	}
-	signedTxBytes, err := bcs.Serialize(signedTx)
+	signedTxBytes, err := bcs2.Serialize(signedTx)
 	if err != nil {
 		return "", err
 	}
@@ -444,7 +447,7 @@ func signMultiAgentTx(rawTxn, seedHex string, feePayerAddr *v2.AccountAddress) (
 	seedHex = StripAptosPrivateKeyPrefix(seedHex)
 	rawTxnBytes := util.RemoveZeroHex(rawTxn)
 	var rawTx = &v2.RawTransactionWithData{}
-	des := bcs.NewDeserializer(rawTxnBytes)
+	des := bcs2.NewDeserializer(rawTxnBytes)
 	rawTx.UnmarshalTypeScriptBCS(des)
 	if des.Error() != nil {
 		return nil, nil, des.Error()
@@ -783,7 +786,10 @@ func ClaimNFTTokenPayload(sender string, creator string, collectionName string, 
 func SignRawTransaction(rawTxn *aptos_types.RawTransaction, seedHex string) (string, error) {
 	seedHex = StripAptosPrivateKeyPrefix(seedHex)
 
-	publicKey, _ := ed25519.PublicKeyFromSeed(seedHex)
+	publicKeyBs, err := ed25519.PublicKeyFromSeed(seedHex)
+	if err != nil {
+		return "", err
+	}
 
 	message, err := rawTxn.GetSigningMessage()
 	if err != nil {
@@ -793,7 +799,7 @@ func SignRawTransaction(rawTxn *aptos_types.RawTransaction, seedHex string) (str
 	if err != nil {
 		return "", err
 	}
-	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(publicKey), Signature: signature}
+	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(publicKeyBs), Signature: signature}
 	signedTransaction := aptos_types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
 	txBytes, err := signedTransaction.BcsSerialize()
 	if err != nil {
@@ -812,7 +818,7 @@ func SignRawTransactionV2(rawTxn *v2.RawTransaction, seedHex string) (string, er
 	if err != nil {
 		return "", err
 	}
-	ser := &bcs.Serializer{}
+	ser := &bcs2.Serializer{}
 	signedTx.MarshalBCS(ser)
 	if ser.Error() != nil {
 		return "", ser.Error()
@@ -822,7 +828,10 @@ func SignRawTransactionV2(rawTxn *v2.RawTransaction, seedHex string) (string, er
 
 func SimulateTransaction(rawTxn *aptos_types.RawTransaction, seedHex string) (string, error) {
 	seedHex = StripAptosPrivateKeyPrefix(seedHex)
-	publicKey, _ := ed25519.PublicKeyFromSeed(seedHex)
+	publicKey, err := ed25519.PublicKeyFromSeed(seedHex)
+	if err != nil {
+		return "", err
+	}
 	signature := make([]byte, 64)
 	ed25519Authenticator := aptos_types.TransactionAuthenticatorEd25519{PublicKey: aptos_types.Ed25519PublicKey(publicKey), Signature: signature}
 	signedTransaction := aptos_types.SignedTransaction{RawTxn: *rawTxn, Authenticator: &ed25519Authenticator}
@@ -1229,7 +1238,7 @@ func PayloadFromJsonAndAbi(payload string, abi string) (aptos_types.TransactionP
 	return &aptos_types.TransactionPayloadEntryFunction{Value: scriptFunction}, nil
 }
 
-func PayloadFromJsonAndAbiV2(payload string, abi string) (*v2.TransactionPayload, error) {
+func PayloadFromJsonAndAbiV2(payload string, abi string, options ...any) (*v2.TransactionPayload, error) {
 	moveModules := make([]aptos_types.MoveModuleBytecode, 0)
 	err := json.Unmarshal([]byte(abi), &moveModules)
 	if err != nil {
@@ -1271,7 +1280,8 @@ func PayloadFromJsonAndAbiV2(payload string, abi string) (*v2.TransactionPayload
 	if err != nil {
 		return nil, err
 	}
-	ef, err := v2.EntryFunctionFromAbi(&funcAbi.MoveFunction, moduleAddress, funcParts[1], funcParts[2], stringArrToAnyArr(typeArguments), arguments, v2.CompatibilityMode(true))
+	ef, err := v2.EntryFunctionFromAbi(&funcAbi.MoveFunction, moduleAddress, funcParts[1], funcParts[2],
+		stringArrToAnyArr(typeArguments), arguments, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -1287,7 +1297,12 @@ func PayloadFromSerializedHex(serializedHex string) (*v2.TransactionPayload, err
 		return nil, errors.New("serialized hex empty")
 	}
 	pay := &v2.TransactionPayload{}
-	pay.UnmarshalBCS(bcs.NewDeserializer(data))
+	deserializer := bcs2.NewDeserializer(data)
+
+	pay.UnmarshalBCS(deserializer)
+	if deserializer.Error() != nil {
+		return nil, errors.New("unmarshalBCS payload fail")
+	}
 
 	return pay, nil
 }

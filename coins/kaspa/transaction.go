@@ -6,18 +6,17 @@ import (
 	"errors"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
-	"github.com/kaspanet/go-secp256k1"
-	"github.com/kaspanet/kaspad/domain/consensus/model/externalapi"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/consensushashing"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/constants"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/subnetworks"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/transactionid"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/txscript"
-	"github.com/kaspanet/kaspad/domain/consensus/utils/utxo"
-	"github.com/kaspanet/kaspad/domain/dagconfig"
-	"github.com/kaspanet/kaspad/domain/miningmanager/mempool"
-	"github.com/kaspanet/kaspad/util"
-	"github.com/kaspanet/kaspad/util/txmass"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/model/externalapi"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/consensushashing"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/constants"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/subnetworks"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/transactionid"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/txscript"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/consensus/utils/utxo"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/dagconfig"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/domain/miningmanager/mempool"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/util"
+	"github.com/okx/go-wallet-sdk/coins/kaspa/kaspad/util/txmass"
 	"golang.org/x/crypto/blake2b"
 	"strconv"
 )
@@ -174,10 +173,8 @@ func TransferWithNetParams(txData *TxData, params dagconfig.Params) (string, err
 		if err != nil {
 			return "", err
 		}
-		prvKey, err := secp256k1.DeserializeSchnorrPrivateKeyFromSlice(prvKeyBytes) //*secp256k1.SchnorrKeyPair,not  secp.PrivateKey
-		if err != nil {
-			return "", err
-		}
+		prvKey, _ := btcec.PrivKeyFromBytes(prvKeyBytes)
+
 		signatureScript, err := txscript.SignatureScript(domainTransaction, i, consensushashing.SigHashAll, prvKey,
 			&consensushashing.SighashReusedValues{})
 		if err != nil {
@@ -248,6 +245,99 @@ func serialize(tx *externalapi.DomainTransaction) (string, error) {
 		return "", err
 	}
 	return string(jsonBytes), nil
+}
+
+func deserialize(txJSON string) (*externalapi.DomainTransaction, error) {
+	var transactionMessage TransactionMessage
+	err := json.Unmarshal([]byte(txJSON), &transactionMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := transactionMessage.Transaction
+	if tx == nil {
+		return nil, errors.New("transaction is nil")
+	}
+
+	// Parse inputs
+	inputs := make([]*externalapi.DomainTransactionInput, len(tx.Inputs))
+	for i, input := range tx.Inputs {
+		if input.PreviousOutpoint == nil {
+			return nil, errors.New("previous outpoint is nil")
+		}
+
+		// Parse transaction ID
+		txIDBytes, err := hex.DecodeString(input.PreviousOutpoint.TransactionId)
+		if err != nil {
+			return nil, err
+		}
+		transactionID, err := transactionid.FromBytes(txIDBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		// Parse signature script
+		signatureScript, err := hex.DecodeString(input.SignatureScript)
+		if err != nil {
+			return nil, err
+		}
+
+		inputs[i] = &externalapi.DomainTransactionInput{
+			PreviousOutpoint: externalapi.DomainOutpoint{
+				TransactionID: *transactionID,
+				Index:         input.PreviousOutpoint.Index,
+			},
+			SignatureScript: signatureScript,
+			Sequence:        input.Sequence,
+			SigOpCount:      uint8(input.SigOpCount),
+		}
+	}
+
+	// Parse outputs
+	outputs := make([]*externalapi.DomainTransactionOutput, len(tx.Outputs))
+	for i, output := range tx.Outputs {
+		if output.ScriptPublicKey == nil {
+			return nil, errors.New("script public key is nil")
+		}
+
+		// Parse script public key
+		scriptBytes, err := hex.DecodeString(output.ScriptPublicKey.ScriptPublicKey)
+		if err != nil {
+			return nil, err
+		}
+
+		outputs[i] = &externalapi.DomainTransactionOutput{
+			Value: output.Amount,
+			ScriptPublicKey: &externalapi.ScriptPublicKey{
+				Script:  scriptBytes,
+				Version: uint16(output.ScriptPublicKey.Version),
+			},
+		}
+	}
+
+	// Parse SubnetworkID
+	subnetworkID, err := subnetworks.FromString(tx.SubnetworkId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &externalapi.DomainTransaction{
+		Version:      uint16(tx.Version),
+		Inputs:       inputs,
+		Outputs:      outputs,
+		LockTime:     tx.LockTime,
+		SubnetworkID: *subnetworkID,
+		Gas:          0,
+		Payload:      nil,
+	}, nil
+}
+
+func CalTxHash(rawTx string) (string, error) {
+	tx, err := deserialize(rawTx)
+	if err != nil {
+		return "", err
+	}
+	return consensushashing.TransactionID(tx).String(), nil
 }
 
 func StrToUint64(s string) uint64 {

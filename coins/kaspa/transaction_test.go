@@ -47,3 +47,9 @@ func TestSignMessage(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "a106673fbb90b19f9ff55a0a40ec7ad56933ae0cf0170503886c59564044f93b1fe29233933790c70d4718e448cbe45ae212908b5f62d061feda048c16184964", signature)
 }
+
+func TestCalTxHash(t *testing.T) {
+	txHash, err := CalTxHash(`{"transaction":{"version":0,"inputs":[{"previousOutpoint":{"transactionId":"a60a242270c04521847926113f742b39e6360391a59931d41b6681abc382fbdb","index":0},"signatureScript":"410fc20df875f887e8ae44835043e3b86823784cc4f5696c4b69716d54e577b41992a9c51fba6a19f4236559d4386191b7668b9eee8a48767bf59a3c3fb870d3b1014c572072ce1e7c14c31565c9994d3fc092ca41513fff535dc079b54d8b7b8f40c1ed1dac0063076b6173706c657800287b2270223a226b72632d3230222c226f70223a226d696e74222c227469636b223a2263797075227d68","sequence":0,"sigOpCount":1}],"outputs":[{"amount":12140000000,"scriptPublicKey":{"version":0,"scriptPublicKey":"aa20dc516c53173f51883001dd35a66395aa6ccd8d437172ab75f7f0a5835d318ee787"}}],"lockTime":0,"subnetworkId":"0000000000000000000000000000000000000000"},"allowOrphan":false}`)
+	assert.NoError(t, err)
+	assert.Equal(t, txHash, "3e29c70e0df30cf39e7f32ed83bd23a18003bdefdcd7a7b4d67139c846b16ae0")
+}

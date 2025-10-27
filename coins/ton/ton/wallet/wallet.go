@@ -1,7 +1,3 @@
-/**
-Author： https://github.com/xssnick/tonutils-go
-*/
-
 package wallet
 
 import (
@@ -13,12 +9,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/big"
-	"time"
-
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"math/big"
+	"time"
 )
 
 type Version int
@@ -26,6 +21,7 @@ type Version int
 // Network IDs
 const MainnetGlobalID = -239
 const TestnetGlobalID = -3
+
 const (
 	V1R1               Version = 11
 	V1R2               Version = 12
@@ -258,7 +254,6 @@ func getSpec(w *Wallet) (any, error) {
 			}
 			return uint32(iSeq.Uint64()), nil
 		}*/
-
 		switch x := w.ver.(type) {
 		case ConfigV5R1Final:
 			if x.NetworkGlobalID == 0 {
@@ -514,7 +509,7 @@ func TryParseCell(body string) (*cell.Cell, error) {
 	return bd, nil
 }
 
-func (w *Wallet) BuildTransferByBody(to *address.Address, amount tlb.Coins, body, stateInit string) (*Message, error) {
+func (w *Wallet) BuildTransferByBody(to *address.Address, amount tlb.Coins, body, stateInit string, extraFlags tlb.Coins) (*Message, error) {
 	var err error
 	var bd *cell.Cell
 	if body != "" {
@@ -556,6 +551,7 @@ func (w *Wallet) BuildTransferByBody(to *address.Address, amount tlb.Coins, body
 			Amount:      amount,
 			Body:        bd,
 			StateInit:   in,
+			IHRFee:      extraFlags, // TEP 503
 		},
 	}, nil
 }

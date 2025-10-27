@@ -61,7 +61,14 @@ func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, si
 		if !ok {
 			return nil, err
 		}
-		vv, err := w.BuildTransferByBody(to, tlb.FromNanoTON(toAmount), v.Payload, v.StateInit)
+		if v.ExtraFlags == "" {
+			v.ExtraFlags = "0"
+		}
+		extraFlags, err := tlb.FromDecimal(v.ExtraFlags, 0)
+		if err != nil {
+			return nil, err
+		}
+		vv, err := w.BuildTransferByBody(to, tlb.FromNanoTON(toAmount), v.Payload, v.StateInit, extraFlags)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +83,7 @@ func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, si
 		if err != nil {
 			return nil, err
 		}
-		signedTx.FillTx(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
+		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
 		return signedTx, nil
 	}
 	emCell, err := tlb.ToCell(externalMessage)

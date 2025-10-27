@@ -15,10 +15,10 @@ Copyright (c) 2018 SmartContract ChainLink, Ltd.
 package secp256k1
 
 import (
+	secp256k1BTCD "github.com/okx/go-wallet-sdk/crypto/btcd/btcec"
+	"github.com/okx/go-wallet-sdk/crypto/btcd/v2/btcec"
 	"go.dedis.ch/kyber/v3"
 	"math/big"
-
-	secp256k1BTCD "github.com/btcsuite/btcd/btcec"
 )
 
 // Secp256k1 represents the secp256k1 group.
@@ -27,7 +27,7 @@ import (
 type Secp256k1 struct{}
 
 // s256 is the btcec representation of secp256k1.
-var s256 *secp256k1BTCD.KoblitzCurve = secp256k1BTCD.S256()
+var s256 *btcec.KoblitzCurve = secp256k1BTCD.S256()
 
 // String returns the name of the curve
 func (*Secp256k1) String() string { return "Secp256k1" }

@@ -15,10 +15,9 @@ Copyright (c) 2018 SmartContract ChainLink, Ltd.
 package secp256k1
 
 import (
+	secp256k1BTCD "github.com/okx/go-wallet-sdk/crypto/btcd/btcec"
 	"go.dedis.ch/kyber/v3"
 	"math/big"
-
-	secp256k1BTCD "github.com/btcsuite/btcd/btcec"
 )
 
 // Secp256k1 represents the secp256k1 group.

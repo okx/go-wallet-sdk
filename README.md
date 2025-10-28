@@ -82,6 +82,11 @@ The output will display the build status for each chain. If a module fails, the 
 
 The OKX Web3 Go Wallet SDK shares common design principles and usage patterns with the JS SDK. While each blockchain's specific usage can be found in the corresponding `coins` directory README, users can refer to the [JS SDK demo](https://okx.github.io/wallet-sdk-demo/) and [documentation](https://okx.github.io/js-wallet-sdk/) for additional guidance. If you encounter any issues or have suggestions, please submit them through [GitHub Issues](https://github.com/okx/go-wallet-sdk/issues), and we will address them promptly.
 
+## Change Log
+
+[detail](./CHANGELOG.md)
+
+
 ## 🔒 Security
 
 If you find security risks, it is recommended to report them through the following channels and get your reward!

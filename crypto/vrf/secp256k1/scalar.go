@@ -21,16 +21,16 @@ package secp256k1
 import (
 	"crypto/cipher"
 	"fmt"
-	secp256k1BTCD "github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/btcd/v2/btcec"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/util/random"
 	"io"
 	"math/big"
 )
 
-var GroupOrder = secp256k1BTCD.S256().N
-var FieldSize = secp256k1BTCD.S256().P
+var GroupOrder = btcec.S256().N
+var FieldSize = btcec.S256().P
 
 type secp256k1Scalar big.Int
 

@@ -7,13 +7,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
-	"math/big"
-
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/ton/jetton"
 	"github.com/okx/go-wallet-sdk/coins/ton/ton/wallet"
+	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+	"math/big"
 )
 
 func buildTx(w *wallet.Wallet, withInit bool) (*SignedTx, error) {
@@ -75,7 +74,7 @@ func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, exp
 		if err != nil {
 			return nil, err
 		}
-		signedTx.FillTx(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
+		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
 		return signedTx, nil
 	}
 	emCell, err := tlb.ToCell(externalMessage)
@@ -189,7 +188,7 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 		if err != nil {
 			return nil, err
 		}
-		signedTx.FillTx(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOCWithFlags(false)))
+		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOCWithFlags(false)))
 		return signedTx, nil
 	}
 	emCell, err := tlb.ToCell(externalMessage)
@@ -254,7 +253,25 @@ func VenomTransfer(seed []byte, to, amount, comment string, seqno uint32, bounce
 	return string(result), nil
 }
 
+func getExternalMessageCell(boc string) (*cell.Cell, error) {
+	emCellBytes, err := base64.StdEncoding.DecodeString(boc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cell.FromBOC(emCellBytes)
+}
+
 func CalTxHash(boc string) (string, error) {
+	emCell, err := getExternalMessageCell(boc)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(emCell.Hash()), nil
+}
+
+func CalNormMsgHash(boc string) (string, error) {
 	emCellBytes, err := base64.StdEncoding.DecodeString(boc)
 	if err != nil {
 		return "", err
@@ -265,5 +282,15 @@ func CalTxHash(boc string) (string, error) {
 		return "", err
 	}
 
-	return hex.EncodeToString(emCell.Hash()), nil
+	var message tlb.Message
+	err = tlb.LoadFromCell(&message, emCell.BeginParse())
+	if err != nil {
+		return "", err
+	}
+
+	externalMessage, ok := message.Msg.(*tlb.ExternalMessage)
+	if !ok {
+		return "", errors.New("invalid external message")
+	}
+	return hex.EncodeToString(externalMessage.NormalizedHash()), nil
 }

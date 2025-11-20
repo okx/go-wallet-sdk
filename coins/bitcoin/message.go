@@ -540,10 +540,7 @@ func SignMessage(wif string, prefix, message string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sig, err := ecdsa.SignCompact(w.PrivKey, messageHash, w.CompressPubKey)
-	if err != nil {
-		return "", err
-	}
+	sig := ecdsa.SignCompact(w.PrivKey, messageHash, w.CompressPubKey)
 	return base64.StdEncoding.EncodeToString(sig), nil
 }
 

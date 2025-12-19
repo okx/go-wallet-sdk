@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/blocto/solana-go-sdk v1.27.0
 	github.com/okx/go-wallet-sdk/crypto v0.0.1
+	github.com/okx/go-wallet-sdk/util v0.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip39 v1.1.0
 )

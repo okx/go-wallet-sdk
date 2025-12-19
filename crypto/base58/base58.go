@@ -9,8 +9,6 @@ import (
 	"math/big"
 )
 
-//go:generate go run genalphabet.go
-
 var bigRadix = [...]*big.Int{
 	big.NewInt(0),
 	big.NewInt(58),

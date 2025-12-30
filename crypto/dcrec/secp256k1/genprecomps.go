@@ -23,7 +23,7 @@ import (
 	"math/big"
 	"os"
 
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/dcrec/secp256k1"
+	"github.com/okx/go-wallet-sdk/crypto/dcrec/secp256k1"
 )
 
 // curveParams houses the secp256k1 curve parameters for convenient access.

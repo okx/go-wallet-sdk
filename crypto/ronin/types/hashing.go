@@ -18,10 +18,11 @@ package types
 
 import (
 	"bytes"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"sync"
+
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/crypto"
+	"github.com/okx/go-wallet-sdk/crypto/rlp"
 
 	"golang.org/x/crypto/sha3"
 )

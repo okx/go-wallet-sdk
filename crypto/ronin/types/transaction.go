@@ -24,10 +24,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common/math"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/crypto"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/rlp"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common/math"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/crypto"
+	"github.com/okx/go-wallet-sdk/crypto/rlp"
 )
 
 var (

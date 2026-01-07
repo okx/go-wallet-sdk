@@ -111,7 +111,7 @@ func TestSignMessage(t *testing.T) {
 		}
 
 		k, _ := btcec.PrivKeyFromBytes(pk)
-		s2 := ecdsa.SignCompact(k, msgHash, false)
+		s2, _ := ecdsa.SignCompact(k, msgHash, false)
 		secp256k1Signature2 := hex.EncodeToString(s2)
 		if secp256k1Signature2 != secp256k1Signature {
 			t.Error("secp256k1Signature not match", secp256k1Signature, secp256k1Signature2)

@@ -18,7 +18,7 @@ package types
 
 import (
 	"bytes"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
 	"math/big"
 )
 

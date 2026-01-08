@@ -1,12 +1,12 @@
 package abi
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"reflect"
 	"strings"
 
-	"github.com/okx/go-wallet-sdk/util"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -99,9 +99,23 @@ func (arg Arguments) Pack(params ...interface{}) []byte {
 			addr := reflect.ValueOf(p).String()
 			//addrByte, _ := hex.DecodeString(addr)
 
-			va := new(big.Int).SetBytes(util.RemoveZeroHex(addr))
+			va := new(big.Int).SetBytes(decodeHexString(addr))
 			value = append(value, PaddedBigBytes(U256(va), 32)...)
 		}
 	}
 	return value
+}
+
+// decodeHexString decodes a hex string (with or without 0x prefix) to bytes
+func decodeHexString(s string) []byte {
+	// Remove 0x prefix if present
+	if len(s) > 1 && (s[0:2] == "0x" || s[0:2] == "0X") {
+		s = s[2:]
+	}
+	// Pad with leading zero if odd length
+	if len(s)%2 == 1 {
+		s = "0" + s
+	}
+	bytes, _ := hex.DecodeString(s)
+	return bytes
 }

@@ -1,6 +1,6 @@
 package types
 
-import "github.com/ethereum/go-ethereum/common"
+import "github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
 
 // AccessList is an EIP-2930 access list.
 type AccessList []AccessTuple

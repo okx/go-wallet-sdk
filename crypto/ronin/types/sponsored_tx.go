@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"math/big"
 
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/rlp"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/rlp"
 )
 
 type SponsoredTx struct {

@@ -11,18 +11,19 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
-	"github.com/okx/go-wallet-sdk/crypto/bip32"
-	bip39 "github.com/tyler-smith/go-bip39"
+	"github.com/okx/go-wallet-sdk/crypto/go-bip32"
+	"github.com/okx/go-wallet-sdk/crypto/go-bip39"
 	"golang.org/x/crypto/sha3"
-	"io"
-	"os"
-	"strings"
-	"testing"
 )
 
 func TestNewChildKeyByPathString(t *testing.T) {
@@ -34,7 +35,7 @@ func TestNewChildKeyByPathString(t *testing.T) {
 	rp, _ := bip32.NewMasterKey(seed)
 
 	c, _ := rp.NewChildKeyByPathString("m/44'/118'/0'/0/0")
-	childPrivateKey := hex.EncodeToString(c.Key.Key)
+	childPrivateKey := hex.EncodeToString(c.Key)
 	fmt.Println(childPrivateKey)
 }
 
@@ -67,7 +68,7 @@ func TestSignMessage(t *testing.T) {
 
 		seed := bip39.NewSeed(mnemonic, "")
 		rp, _ := bip32.NewMasterKey(seed)
-		rootPrivateKey2 := hex.EncodeToString(rp.Key.Key)
+		rootPrivateKey2 := hex.EncodeToString(rp.Key)
 		if rootPrivateKey2 != rootPrivateKey {
 			t.Error("rootPrivateKey not match", rootPrivateKey, rootPrivateKey2)
 			fc++
@@ -75,7 +76,7 @@ func TestSignMessage(t *testing.T) {
 		}
 		// m/44'/0'/0'/0/0
 		c, _ := rp.NewChildKeyByPath(bip32.FirstHardenedChild+44, 0|bip32.FirstHardenedChild, bip32.FirstHardenedChild, 0, 0)
-		childPrivateKey2 := hex.EncodeToString(c.Key.Key)
+		childPrivateKey2 := hex.EncodeToString(c.Key)
 		if childPrivateKey2 != childPrivateKey {
 			t.Error("childPrivateKey not match", childPrivateKey, childPrivateKey2)
 			fc++

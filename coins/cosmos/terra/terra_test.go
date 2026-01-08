@@ -1,13 +1,11 @@
 package terra
 
 import (
-	"encoding/hex"
-	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
-	"github.com/okx/go-wallet-sdk/crypto/bip32"
-	"github.com/stretchr/testify/require"
-	"github.com/tyler-smith/go-bip39"
 	"math/big"
 	"testing"
+
+	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
+	"github.com/stretchr/testify/require"
 )
 
 // ///Tx details
@@ -18,31 +16,17 @@ import (
 // curl -X POST -d '{"tx_bytes":"CrUHCqwHCiYvdGVycmEud2FzbS52MWJldGExLk1zZ0V4ZWN1dGVDb250cmFjdBKBBwosdGVycmExeG1rY3prNTl4Z2poemd3aGZnOGw1dGdzMnVmdHB1ajljZ2F6cjQSLHRlcnJhMTR6ODByd3BkMGFsemo0eGR0Z3FkbWNxdDl3ZDl4ajVmZmQ2MHdwGpAGewogICJleGVjdXRlX3N3YXBfb3BlcmF0aW9ucyI6IHsKICAgICJtaW5pbXVtX3JlY2VpdmUiOiAiMzQxMTc0NjgiLAogICAgIm9mZmVyX2Ftb3VudCI6ICIxMDAwMDAwIiwKICAgICJvcGVyYXRpb25zIjogWwogICAgICB7CiAgICAgICAgInRlcnJhX3N3YXAiOiB7CiAgICAgICAgICAiYXNrX2Fzc2V0X2luZm8iOiB7CiAgICAgICAgICAgICJ0b2tlbiI6IHsKICAgICAgICAgICAgICAiY29udHJhY3RfYWRkciI6ICJ0ZXJyYTF1MHQzNWRyenl5MG11amo4cmtkeXpoZTI2NHVsczR1ZzN3ZHAzeCIKICAgICAgICAgICAgfQogICAgICAgICAgfSwKICAgICAgICAgICJvZmZlcl9hc3NldF9pbmZvIjogewogICAgICAgICAgICAibmF0aXZlX3Rva2VuIjogewogICAgICAgICAgICAgICJkZW5vbSI6ICJ1bHVuYSIKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfSwKICAgICAgewogICAgICAgICJ0ZXJyYV9zd2FwIjogewogICAgICAgICAgImFza19hc3NldF9pbmZvIjogewogICAgICAgICAgICAibmF0aXZlX3Rva2VuIjogewogICAgICAgICAgICAgICJkZW5vbSI6ICJ1dXNkIgogICAgICAgICAgICB9CiAgICAgICAgICB9LAogICAgICAgICAgIm9mZmVyX2Fzc2V0X2luZm8iOiB7CiAgICAgICAgICAgICJ0b2tlbiI6IHsKICAgICAgICAgICAgICAiY29udHJhY3RfYWRkciI6ICJ0ZXJyYTF1MHQzNWRyenl5MG11amo4cmtkeXpoZTI2NHVsczR1ZzN3ZHAzeCIKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQogICAgXQogIH0KfSoQCgV1bHVuYRIHMTAwMDAwMBIEdGVzdBJpClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECc7guyn8yqBe5cTB5L5LA9V+uwv+KYQEpb8ScaxbGGmESBAoCCAEYCRIVCg8KBXVsdW5hEgYxMDAwMDAQwIQ9GkADbF62HMSF+RMX/1cAVLExsk/XDvDyjSCNAeWshy5ZsGIUXF/CfaynfZR60Kj3d9n/Ufby/4esG6I9ypXHCNsd","mode":"BROADCAST_MODE_SYNC"}' https://bombay-lcd.terra.dev/cosmos/tx/v1beta1/txs
 // curl -X POST -d '{"tx_bytes":"CrQECrEECiYvdGVycmEud2FzbS52MWJldGExLk1zZ0V4ZWN1dGVDb250cmFjdBKGBAosdGVycmExZnJjZjM2anZxdmo0N2NyOWR5Z2Z4M3ZoNnB1cWY5ZWxtbm5zbDISLHRlcnJhMTR6ODByd3BkMGFsemo0eGR0Z3FkbWNxdDl3ZDl4ajVmZmQ2MHdwGqcDeyJleGVjdXRlX3N3YXBfb3BlcmF0aW9ucyI6eyJtaW5pbXVtX3JlY2VpdmUiOiI1OTk3MTA2NyIsIm9mZmVyX2Ftb3VudCI6IjEwMDAwMDAiLCJvcGVyYXRpb25zIjpbeyJ0ZXJyYV9zd2FwIjp7ImFza19hc3NldF9pbmZvIjp7InRva2VuIjp7ImNvbnRyYWN0X2FkZHIiOiJ0ZXJyYTF1MHQzNWRyenl5MG11amo4cmtkeXpoZTI2NHVsczR1ZzN3ZHAzeCJ9fSwib2ZmZXJfYXNzZXRfaW5mbyI6eyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJ1bHVuYSJ9fX19LHsidGVycmFfc3dhcCI6eyJhc2tfYXNzZXRfaW5mbyI6eyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJ1dXNkIn19LCJvZmZlcl9hc3NldF9pbmZvIjp7InRva2VuIjp7ImNvbnRyYWN0X2FkZHIiOiJ0ZXJyYTF1MHQzNWRyenl5MG11amo4cmtkeXpoZTI2NHVsczR1ZzN3ZHAzeCJ9fX19XX19ElgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQKwapSLujUw96LqDzoNC8IPvknM/CMOrCfQndwqW0esaxIECgIIfxgGEgQQwIQ9GkC1B1CZIxMo9npRaMugwWQysf2HuPkZZw3jy5dhqcSiRmmWn9vqEHmOYltmOLTdkoHt+OdNQAUvM4+P/Xm5/VYL","mode":"BROADCAST_MODE_SYNC"}' https://bombay-lcd.terra.dev/cosmos/tx/v1beta1/txs
 func TestNewAddress(t *testing.T) {
-	mnemonic := "arena special tunnel keen skate chapter media scare injury indoor topic aware autumn lecture depth lava legal raccoon clog pulp renew diagram upper blade"
-	ret := bip39.IsMnemonicValid(mnemonic)
-	require.True(t, ret)
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
-	require.Nil(t, err)
-	masterKey, _ := bip32.NewMasterKey(seed)
-	key, _ := masterKey.NewChildKeyByChainId(330)
-	privateKeyHex := hex.EncodeToString(key.Key.Key)
+	privateKeyHex := "d8e1c3c4e7bdb833ff0d2edf074cd3240ea7f820be75d137d5e8c582099ac99f"
 	address, err := NewAddress(privateKeyHex)
 	require.Nil(t, err)
 	expected := "terra1zu3nyxs7setu9l69ehdf0e9g5yc8uhw4xxjksx"
 	require.Equal(t, expected, address)
-	ret = ValidateAddress(address)
+	ret := ValidateAddress(address)
 	require.True(t, ret)
 }
 
 func TestTransfer(t *testing.T) {
-	mnemonic := "arena special tunnel keen skate chapter media scare injury indoor topic aware autumn lecture depth lava legal raccoon clog pulp renew diagram upper blade"
-	ret := bip39.IsMnemonicValid(mnemonic)
-	require.True(t, ret)
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
-	require.Nil(t, err)
-	masterKey, _ := bip32.NewMasterKey(seed)
-	key, _ := masterKey.NewChildKeyByChainId(330)
-	privateKeyHex := hex.EncodeToString(key.Key.Key)
+	privateKeyHex := "d8e1c3c4e7bdb833ff0d2edf074cd3240ea7f820be75d137d5e8c582099ac99f"
 	input := TransactionInput{}
 	input.ChainId = "bombay-12"
 	input.Memo = "test"
@@ -62,14 +46,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestTokenTransfer(t *testing.T) {
-	mnemonic := "arena special tunnel keen skate chapter media scare injury indoor topic aware autumn lecture depth lava legal raccoon clog pulp renew diagram upper blade"
-	ret := bip39.IsMnemonicValid(mnemonic)
-	require.True(t, ret)
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
-	require.Nil(t, err)
-	masterKey, _ := bip32.NewMasterKey(seed)
-	key, _ := masterKey.NewChildKeyByChainId(330)
-	privateKeyHex := hex.EncodeToString(key.Key.Key)
+	privateKeyHex := "d8e1c3c4e7bdb833ff0d2edf074cd3240ea7f820be75d137d5e8c582099ac99f"
 	input := TransactionInput{}
 	input.ChainId = "bombay-12"
 	input.Memo = "test"

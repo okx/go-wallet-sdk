@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/common"
-	"gitlab.okg.com/wallet-sign-core/go-parent-sdk/crypto/go-ethereum/crypto"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/common"
+	"github.com/okx/go-wallet-sdk/crypto/go-ethereum/crypto"
 )
 
 var (

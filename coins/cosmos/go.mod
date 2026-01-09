@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	cosmossdk.io/math v1.1.2
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/ethereum/go-ethereum v1.12.2
 	github.com/stretchr/testify v1.8.4

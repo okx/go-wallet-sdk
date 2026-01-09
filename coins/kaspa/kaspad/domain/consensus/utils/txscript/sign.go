@@ -41,10 +41,7 @@ func RawTxInSignatureECDSA(tx *externalapi.DomainTransaction, idx int, hashType 
 	if err != nil {
 		return nil, err
 	}
-	signature, err := ecdsa.SignCompact(key, (*hash.ByteArray())[:], true)
-	if err != nil {
-		return nil, errors.Errorf("cannot sign tx input: %s", err)
-	}
+	signature := ecdsa.SignCompact(key, (*hash.ByteArray())[:], true)
 
 	return append(signature[1:], byte(hashType)), nil
 }

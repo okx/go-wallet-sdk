@@ -3,7 +3,7 @@ module github.com/okx/go-wallet-sdk/coins/oracle/vrf
 go 1.23.0
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/ethereum/go-ethereum v1.16.1
 	github.com/okx/go-wallet-sdk/crypto v0.0.3
 	github.com/shopspring/decimal v1.3.1

@@ -63,21 +63,15 @@ func (s *OkEthSigner) GetAddress() string {
 
 func (s *OkEthSigner) SignMessage(msg []byte) ([]byte, error) {
 	prvKey, _ := btcec.PrivKeyFromBytes(s.privKey)
-	prefix := fmt.Sprintf(ethereum.MessagePrefixTmp, len(msg))
+	prefix := fmt.Sprintf("\u0019Ethereum Signed Message:\n%d", len(msg))
 	toSign := append([]byte(prefix), msg...)
-	message, err := ethereum.SignMessage(toSign, prvKey)
-	if err != nil {
-		return nil, err
-	}
+	message := ethereum.SignMessage(toSign, prvKey)
 	return message.ToBytes(), nil
 }
 
 func (s *OkEthSigner) SignHash(msg []byte) ([]byte, error) {
 	prvKey, _ := btcec.PrivKeyFromBytes(s.privKey)
-	message, err := ethereum.SignMessage(msg, prvKey)
-	if err != nil {
-		return nil, err
-	}
+	message := ethereum.SignMessage(msg, prvKey)
 	return message.ToBytes(), nil
 }
 

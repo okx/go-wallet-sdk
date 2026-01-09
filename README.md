@@ -67,32 +67,74 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 
 ## ⚙️ Build and Test
 
-To build and test all blockchain modules, use the `build.sh` script located in the project root. This script automatically discovers all modules under the `coins` directory, runs `go mod tidy` to clean dependencies, executes tests, and verifies successful builds.
+To build and test all blockchain modules, use the `build.sh` script located in the project root. This script automatically discovers all modules under `coins/`, `crypto/`, `util/`, and `example/` directories, then runs a 4-step build process for each module.
+
+### Build Steps
+
+Each module goes through the following steps:
+
+1. **go mod tidy** - Clean and verify dependencies
+2. **go mod edit** - Set toolchain configuration
+3. **go build** - Compile the module and all subpackages
+4. **go test** - Run all tests
+
+If any step fails, subsequent steps are skipped for that module.
 
 ### Basic Usage
 
 ```shell
+# Interactive mode (prompts if previous failures exist)
 sh build.sh
+
+# Run all modules
+sh build.sh all
+
+# Run only previously failed modules
+sh build.sh failed
+
+# Run specific modules only
+sh build.sh bitcoin
+sh build.sh bitcoin,ethereum,ton
+
+# Ignore specific modules
+sh build.sh all -i=zksync,zkspace
+sh build.sh failed -i=zksync,zkspace
+
 ```
 
 ### Command Options
 
 ```
-Usage: ./build.sh [all|failed] [-i=module1,module2,...]
+Usage: ./build.sh [all|failed|mod1,mod2,...] [-i=module1,module2,...]
 ```
 
 | Option                   | Description                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------------- |
 | (no args)                | Interactive mode - prompts to run all or only failed modules if `build_failures.log` exists |
-| `all`                    | Run tests for all modules                                                                   |
-| `failed`                 | Run tests only for previously failed modules                                                |
+| `all`                    | Run all modules                                                                             |
+| `failed`                 | Run only previously failed modules                                                          |
+| `mod1,mod2,...`          | Run only specified modules (comma-separated list)                                           |
 | `-i=module1,module2,...` | Ignore specific modules (comma-separated list of module names to skip)                      |
 
 ### Output
 
--   Build status is displayed for each module (✓ success / ✗ failed)
--   A summary shows total success/failure counts
+Each module displays step-by-step progress:
+
+```
+==========================================
+[coins/bitcoin]
+==========================================
+  [1/4] go mod tidy    ... ✓ PASS
+  [2/4] go mod edit    ... ✓ PASS
+  [3/4] go build       ... ✓ PASS
+  [4/4] go test        ... ✓ PASS
+
+  ✓ bitcoin ALL STEPS PASSED
+```
+
+-   A summary shows total success/failure/ignored counts
 -   Failed modules are logged to `build_failures.log` with detailed output
+-   Ignored modules are also tracked in the log file
 -   Use `sh build.sh failed` to quickly re-run only the failed modules after fixing issues
 
 ## 💬 Feedback and Support

@@ -1,22 +1,19 @@
 package example
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec"
-	btcec2 "github.com/btcsuite/btcd/btcec/v2"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/okx/go-wallet-sdk/coins/ethereum"
-	"github.com/okx/go-wallet-sdk/crypto/bip32"
+	"github.com/okx/go-wallet-sdk/crypto/go-bip32"
+	"github.com/okx/go-wallet-sdk/crypto/go-bip39"
 	"github.com/okx/go-wallet-sdk/util"
-	"github.com/tyler-smith/go-bip39"
-	"math/big"
 )
+
 
 func GenerateMnemonic() (string, error) {
 	entropy, err := bip39.NewEntropy(256)
@@ -41,7 +38,7 @@ func GetDerivedPrivateKey(mnemonic string, hdPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	childPrivateKey := hex.EncodeToString(c.Key.Key)
+	childPrivateKey := hex.EncodeToString(c.Key)
 	return childPrivateKey, nil
 }
 
@@ -50,54 +47,15 @@ func GetNewAddress(prvHex string) string {
 	if err != nil {
 		return ""
 	}
-	prv, pub := btcec.PrivKeyFromBytes(btcec.S256(), prvBytes)
+	prv, pub := btcec.PrivKeyFromBytes(prvBytes)
 	if prv == nil {
 		return ""
 	}
-	return ethereum.GetAddress(hex.EncodeToString(pub.SerializeCompressed()))
+	return ethereum.GetNewAddress(pub)
 }
 
 func ValidAddress(address string) bool {
 	return ethereum.ValidateAddress(address)
-}
-
-type SignParams struct {
-	Type                 int    `json:"type"`
-	ChainId              string `json:"chainId"`
-	Nonce                string `json:"nonce"`
-	MaxPriorityFeePerGas string `json:"maxPriorityFeePerGas"`
-	MaxFeePerGas         string `json:"maxFeePerGas"`
-	GasLimit             string `json:"gasLimit"`
-	To                   string `json:"to"`
-	Value                string `json:"value"`
-	Data                 string `json:"data"`
-	isToken              bool   `json:"isToken"`
-}
-
-func SignEip1559Transaction(chainId *big.Int, tx *types.Transaction, prvKey *ecdsa.PrivateKey) ([]byte, string, error) {
-	signer := types.NewLondonSigner(chainId)
-	signedTx, err := types.SignTx(tx, signer, prvKey)
-	if err != nil {
-		return nil, "", err
-	}
-	rawTx, err := signedTx.MarshalBinary()
-	if err != nil {
-		return nil, "", err
-	}
-	return rawTx, signedTx.Hash().Hex(), nil
-}
-
-func toJson(r interface{}) string {
-	res, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	}
-	return string(res)
-}
-
-type SignedTx struct {
-	Hash string `json:"hash"`
-	Hex  string `json:"hex"`
 }
 
 func SignTransaction(txJson, prvHex string) (string, error) {
@@ -120,7 +78,7 @@ func SignTransaction(txJson, prvHex string) (string, error) {
 	}
 	var data []byte
 	if len(s.Data) != 0 {
-		if data, err = util.DecodeHexString(s.Data); err != nil {
+		if data, err = util.DecodeHexStringErr(s.Data); err != nil {
 			return "", err
 		}
 	}
@@ -128,63 +86,49 @@ func SignTransaction(txJson, prvHex string) (string, error) {
 	if err != nil {
 		return "", errors.New("invalid prvHex")
 	}
-	var jsonTx ethereum.Eip1559Token
-	if err := json.Unmarshal([]byte(txJson), &jsonTx); err != nil {
-		return "", err
-	}
-	if jsonTx.TxType == types.DynamicFeeTxType { // EIP1559 sign
-		prv, _ := btcec.PrivKeyFromBytes(btcec.S256(), prvBytes)
+	prv, _ := btcec.PrivKeyFromBytes(prvBytes)
+
+	var evmTx *ethereum.EVMTx
+
+	if s.Type == ethereum.DynamicFeeTxType {
 		tx := ethereum.NewEip1559Transaction(
 			chainId,
-			util.ConvertToBigInt(jsonTx.Nonce).Uint64(),
-			util.ConvertToBigInt(jsonTx.MaxPriorityFeePerGas),
-			util.ConvertToBigInt(jsonTx.MaxFeePerGas),
-			util.ConvertToBigInt(jsonTx.GasLimit).Uint64(),
+			util.ConvertToBigInt(s.Nonce).Uint64(),
+			util.ConvertToBigInt(s.MaxPriorityFeePerGas),
+			util.ConvertToBigInt(s.MaxFeePerGas),
+			util.ConvertToBigInt(s.GasLimit).Uint64(),
 			to,
-			util.ConvertToBigInt(jsonTx.Value),
+			util.ConvertToBigInt(s.Value),
 			data,
 		)
-		res, hash, err := SignEip1559Transaction(chainId, tx, (*ecdsa.PrivateKey)(prv))
-		if err != nil {
-			return "", err
+		evmTx = &ethereum.EVMTx{
+			TxType:  s.Type,
+			ChainId: chainId,
+			Tx1559:  tx,
 		}
-		return toJson(SignedTx{Hash: hash, Hex: util.EncodeHexWith0x(res)}), nil
 	} else {
-		prv, _ := btcec2.PrivKeyFromBytes(prvBytes)
-		// Token processing
-		var tx *ethereum.EthTransaction
-		if s.isToken {
-			tx = ethereum.NewEthTransaction(util.ConvertToBigInt(jsonTx.Nonce), util.ConvertToBigInt(jsonTx.GasLimit), util.ConvertToBigInt(jsonTx.GasPrice), big.NewInt(0), jsonTx.ContractAddress, util.EncodeHexWith0x(data))
-		} else {
-			tx = ethereum.NewEthTransaction(util.ConvertToBigInt(jsonTx.Nonce), util.ConvertToBigInt(jsonTx.GasLimit), util.ConvertToBigInt(jsonTx.GasPrice), util.ConvertToBigInt(jsonTx.Value), jsonTx.To, util.EncodeHexWith0x(data))
+		tx := ethereum.NewEthTransaction(
+			util.ConvertToBigInt(s.Nonce),
+			util.ConvertToBigInt(s.GasLimit),
+			util.ConvertToBigInt(s.GasPrice),
+			util.ConvertToBigInt(s.Value),
+			to.Hex(),
+			util.EncodeHex(data),
+		)
+		evmTx = &ethereum.EVMTx{
+			TxType:  s.Type,
+			ChainId: chainId,
+			Tx:      tx,
 		}
-		res, err := tx.SignTransaction(chainId, (*secp256k1.PrivateKey)(prv))
-		if err != nil {
-			return "", err
-		}
-		return toJson(SignedTx{Hash: ethereum.CalTxHash(res), Hex: res}), nil
 	}
+
+	return ethereum.SignTx(evmTx, prv)
 }
 
-func MessageHash(data string) string {
-	return ethereum.MessageHash(data)
-}
-
-func GetEthereumMessagePrefix(message string) string {
-	return ethereum.GetEthereumMessagePrefix(message)
-}
-
-func CalTxHash(rawTx string) string {
-	return ethereum.CalTxHash(rawTx)
-}
-
-func GenerateRawTransactionWithSignature(txType int, chainId, unsignedRawTx, r, s, v string) (string, error) {
-	return ethereum.GenerateRawTransactionWithSignature(txType, chainId, unsignedRawTx, r, s, v)
-}
-func DecodeTx(rawTx string) (string, error) {
-	return ethereum.DecodeTx(rawTx)
-}
-
-func EcRecover(signature, message string, addPrefix bool) string {
-	return ethereum.EcRecover(signature, message, addPrefix)
+func CalTxHash(rawTx string) (string, error) {
+	hash, err := ethereum.CalTxHash(rawTx)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hash), nil
 }

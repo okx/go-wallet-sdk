@@ -77,11 +77,16 @@ sh build.sh
 
 ### Command Options
 
-| Option               | Description                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `sh build.sh`        | Interactive mode - prompts to run all or only previously failed modules if `build_failures.log` exist else run all |
-| `sh build.sh all`    | Run tests for all modules                                                                                          |
-| `sh build.sh failed` | Run tests only for previously failed modules                                                                       |
+```
+Usage: ./build.sh [all|failed] [-i=module1,module2,...]
+```
+
+| Option                   | Description                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------- |
+| (no args)                | Interactive mode - prompts to run all or only failed modules if `build_failures.log` exists |
+| `all`                    | Run tests for all modules                                                                   |
+| `failed`                 | Run tests only for previously failed modules                                                |
+| `-i=module1,module2,...` | Ignore specific modules (comma-separated list of module names to skip)                      |
 
 ### Output
 

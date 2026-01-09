@@ -14,6 +14,7 @@ const (
 	TransactionTypeDeployAccount = "DEPLOY_ACCOUNT"
 
 	GOERLI_ID  = "SN_GOERLI"
+	SEPOLIA_ID = "SN_SEPOLIA"
 	MAINNET_ID = "SN_MAIN"
 
 	EXECUTE_SELECTOR = "__execute__"
@@ -22,6 +23,12 @@ const (
 	DEPLOY_ACCOUNT      string = "deploy_account"
 	TRANSACTION_VERSION int64  = 1
 )
+
+type StarknetTransaction interface {
+	SetSignature(*big.Int, *big.Int)
+	GetTxHash() *big.Int
+	GetTxRequestJson() string
+}
 
 type signTx interface {
 	SetSignature(*big.Int, *big.Int)
@@ -660,6 +667,79 @@ func CreateSignedUpgradeTx(curve StarkCurve, from string, nonce, maxFee *big.Int
 	}
 	if err = SignTx(curve, tx, privateKey); err != nil {
 		return nil, err
+	}
+	return tx, nil
+}
+
+func CreateSignedUpgradeCairo1Tx(curve StarkCurve, from string, nonce, maxFee *big.Int, chainId string, accountClass string, privateKey string) (*Transaction, error) {
+	fromBn, err := HexToBN(from)
+	if err != nil {
+		return nil, err
+	}
+	callBn, err := HexToBN(accountClass)
+	if err != nil {
+		return nil, err
+	}
+	transaction := Transaction{
+		ContractAddress:    fromBn,
+		EntryPointSelector: GetSelectorFromName("upgrade"),
+		Calldata:           []*big.Int{callBn, HexToBig("0x1"), HexToBig("0x0")},
+	}
+
+	txs := []Transaction{transaction}
+
+	hash, err := curve.HashMulticall(fromBn, nonce, maxFee, UTF8StrToBig(chainId), txs)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := &Transaction{
+		Type:               TransactionTypeInvoke,
+		MaxFee:             maxFee,
+		ContractAddress:    fromBn,
+		Calldata:           FmtExecuteCalldata(txs),
+		EntryPointSelector: GetSelectorFromName(EXECUTE_SELECTOR),
+		TransactionHash:    hash,
+		SenderAddress:      from,
+		Nonce:              nonce,
+	}
+	if err = SignTx(curve, tx, privateKey); err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func CreateUpgradeCairo1Tx(curve StarkCurve, from string, nonce, maxFee *big.Int, chainId string, accountClass string) (*Transaction, error) {
+	fromBn, err := HexToBN(from)
+	if err != nil {
+		return nil, err
+	}
+	callBn, err := HexToBN(accountClass)
+	if err != nil {
+		return nil, err
+	}
+	transaction := Transaction{
+		ContractAddress:    fromBn,
+		EntryPointSelector: GetSelectorFromName("upgrade"),
+		Calldata:           []*big.Int{callBn, HexToBig("0x1"), HexToBig("0x0")},
+	}
+
+	txs := []Transaction{transaction}
+
+	hash, err := curve.HashMulticall(fromBn, nonce, maxFee, UTF8StrToBig(chainId), txs)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := &Transaction{
+		Type:               TransactionTypeInvoke,
+		MaxFee:             maxFee,
+		ContractAddress:    fromBn,
+		Calldata:           FmtExecuteCalldata(txs),
+		EntryPointSelector: GetSelectorFromName(EXECUTE_SELECTOR),
+		TransactionHash:    hash,
+		SenderAddress:      from,
+		Nonce:              nonce,
 	}
 	return tx, nil
 }

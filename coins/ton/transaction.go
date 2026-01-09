@@ -2,148 +2,142 @@ package ton
 
 import (
 	"context"
-	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
+	"math/big"
+
+	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/ton/jetton"
 	"github.com/okx/go-wallet-sdk/coins/ton/ton/wallet"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
-	"math/big"
 )
 
-func buildTx(w *wallet.Wallet, withInit bool) (*SignedTx, error) {
-	if w == nil {
-		return nil, errors.New("invalid wallet")
-	}
-	if !withInit {
-		return &SignedTx{
-			Address: w.WalletAddress().String(),
-		}, nil
-	}
-	stateInit, err := wallet.GetStateInit(w.PublicKey(), w.GetVersionConfig(), w.GetSubwalletID())
-	if err != nil {
-		return nil, err
-	}
+type TransferParams struct {
+	Seed     []byte
+	PubKey   []byte
+	Seqno    uint32
+	ExpireAt int64
+	Simulate bool
+	To       string
+	Amount   string
+	Comment  string
+	Mode     uint8
 
-	return &SignedTx{
-		Code:    base64.StdEncoding.EncodeToString(stateInit.Code.ToBOC()),
-		Data:    base64.StdEncoding.EncodeToString(stateInit.Data.ToBOC()),
-		Address: w.WalletAddress().String(),
-	}, nil
+	// Jetton only parameters
+	From                  string
+	Decimals              int
+	MessageAttachedTons   string
+	InvokeNotificationFee string
+	CustomPayload         string
+	StateInit             string
+	Rnd                   uint64
+
+	IsToken bool
+	Version wallet.Version
 }
 
-func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, expireAt int64, mode uint8, simulate bool, version wallet.Version) (*SignedTx, error) {
-	w, err := NewWallet(seed, pubKey, version)
+type TonTransferBuilder struct {
+	wallet          *wallet.Wallet
+	params          *TransferParams
+	payload         *cell.Builder
+	messages        []*wallet.Message
+	externalMessage *tlb.ExternalMessage
+}
+
+func NewTonTransferBuilder(params *TransferParams) (*TonTransferBuilder, error) {
+	b := &TonTransferBuilder{
+		params:   params,
+		messages: make([]*wallet.Message, 0),
+	}
+	w, err := NewWallet(b.params.Seed, b.params.PubKey, b.params.Version)
 	if err != nil {
 		return nil, err
 	}
 	spec := w.GetSpec().(wallet.SpecRegularSetter)
 	spec.SetCustomSeqnoFetcher(func() uint32 {
-		return seqno
+		return b.params.Seqno
 	})
-	spec.SetExpireAt(expireAt)
-	toAddr, err := address.ParseAddr(to)
+	if b.params.ExpireAt < 0 {
+		return nil, errors.New("invalid expiration")
+	}
+	spec.SetExpireAt(b.params.ExpireAt)
+	b.wallet = w
+	return b, nil
+}
 
+func (b *TonTransferBuilder) BuildSingleMessage() (*wallet.Message, error) {
+	if b.params.IsToken {
+		return b.BuildJettonMessage()
+	}
+	return b.BuildTonMessage()
+}
+
+func (b *TonTransferBuilder) BuildTonMessage() (*wallet.Message, error) {
+	toAddr, err := address.ParseAddr(b.params.To)
 	if err != nil {
 		return nil, err
 	}
-	toAmount, ok := new(big.Int).SetString(amount, 10)
+	toAmount, ok := new(big.Int).SetString(b.params.Amount, 10)
 	if !ok {
 		return nil, err
 	}
-	message, err := w.BuildTransfer(toAddr, tlb.FromNanoTON(toAmount), false, comment, mode)
+	msg, err := b.wallet.BuildTransfer(toAddr, tlb.FromNanoTON(toAmount), false, b.params.Comment, b.params.Mode)
 	if err != nil {
 		return nil, err
 	}
-	initialized := false
-	if seqno > 0 {
-		initialized = true
-	}
-
-	externalMessage, err := w.BuildExternalMessage(context.Background(), message, initialized)
-	if err != nil {
-		return nil, err
-	}
-
-	if simulate {
-		signedTx, err := buildTx(w, seqno == 0)
-		if err != nil {
-			return nil, err
-		}
-		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
-		return signedTx, nil
-	}
-	emCell, err := tlb.ToCell(externalMessage)
-	if err != nil {
-		return nil, err
-	}
-	signedTx, err := buildTx(w, seqno == 0)
-	if err != nil {
-		return nil, err
-	}
-	signedTx.FillTx(base64.StdEncoding.EncodeToString(emCell.ToBOC()))
-	return signedTx, nil
+	b.messages = append(b.messages, msg)
+	return msg, nil
 }
 
-func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, seqno uint32, messageAttachedTons string, invokeNotificationFee string, customPayload, stateInit, comment string, expireAt int64, rnd uint64, simulate bool, version wallet.Version) (*SignedTx, error) {
-	w, err := NewWallet(seed, pubKey, version)
+func (b *TonTransferBuilder) BuildJettonMessage() (*wallet.Message, error) {
+	fromAddr, err := address.ParseAddr(b.params.From)
 	if err != nil {
 		return nil, err
 	}
-	fromAddr, err := address.ParseAddr(from)
+	toAddr, err := address.ParseAddr(b.params.To)
 	if err != nil {
 		return nil, err
 	}
-	toAddr, err := address.ParseAddr(to)
-	if err != nil {
-		return nil, err
-	}
-	spec := w.GetSpec().(wallet.SpecRegularSetter)
-	spec.SetCustomSeqnoFetcher(func() uint32 {
-		return seqno
-	})
-	spec.SetExpireAt(expireAt)
-	responseToAddress := w.Address()
-	toAmount, ok := new(big.Int).SetString(amount, 10)
+	responseToAddress := b.wallet.Address()
+	toAmount, ok := new(big.Int).SetString(b.params.Amount, 10)
 	if !ok {
 		return nil, err
 	}
 	amountForwardTON := tlb.ZeroCoins
-	if invokeNotificationFee != "" {
-		invokenFee, ok := new(big.Int).SetString(invokeNotificationFee, 10)
+	if b.params.InvokeNotificationFee != "" {
+		invokenFee, ok := new(big.Int).SetString(b.params.InvokeNotificationFee, 10)
 		if !ok {
 			return nil, err
 		}
 		amountForwardTON = tlb.FromNanoTON(invokenFee)
 	}
 	var payloadForward *cell.Cell
-	if comment != "" {
-		payloadForward = cell.BeginCell().MustStoreUInt(0, 32).MustStoreStringSnake(comment).EndCell()
+	if b.params.Comment != "" {
+		payloadForward = cell.BeginCell().MustStoreUInt(0, 32).MustStoreStringSnake(b.params.Comment).EndCell()
 	}
 	jw := &jetton.WalletClient{}
-	toAmountCoins, err := tlb.FromNano(toAmount, decimals)
+	toAmountCoins, err := tlb.FromNano(toAmount, b.params.Decimals)
 	if err != nil {
 		return nil, err
 	}
 	var customPayloadCell *cell.Cell
-	if len(customPayload) > 0 {
-		customPayloadCell, err = wallet.TryParseCell(customPayload)
+	if len(b.params.CustomPayload) > 0 {
+		customPayloadCell, err = wallet.TryParseCell(b.params.CustomPayload)
 		if err != nil {
 			return nil, err
 		}
 	}
-	transferPayload, err := jw.BuildTransferPayloadV2(toAddr, responseToAddress, toAmountCoins, amountForwardTON, payloadForward, customPayloadCell, rnd)
+	transferPayload, err := jw.BuildTransferPayloadV2(toAddr, responseToAddress, toAmountCoins, amountForwardTON, payloadForward, customPayloadCell, b.params.Rnd)
 	if err != nil {
 		return nil, err
 	}
 
 	messageAttachedVal := "50000000"
-	if messageAttachedTons != "" {
-		messageAttachedVal = messageAttachedTons
+	if b.params.MessageAttachedTons != "" {
+		messageAttachedVal = b.params.MessageAttachedTons
 	}
 	messageAttachedValBig, ok := new(big.Int).SetString(messageAttachedVal, 10)
 	if !ok {
@@ -151,8 +145,8 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 	}
 	message := wallet.SimpleMessage(fromAddr, tlb.FromNanoTON(messageAttachedValBig), transferPayload)
 
-	if len(stateInit) > 0 {
-		b, err := wallet.TryParseBase64(stateInit)
+	if len(b.params.StateInit) > 0 {
+		b, err := wallet.TryParseBase64(b.params.StateInit)
 		if err != nil {
 			return nil, err
 		}
@@ -174,83 +168,138 @@ func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, 
 		}
 		message.InternalMessage.StateInit = in
 	}
-	initialized := false
-	if seqno > 0 {
-		initialized = true
-	}
+	b.messages = append(b.messages, message)
+	return message, nil
+}
 
-	externalMessage, err := w.BuildExternalMessage(context.Background(), message, initialized)
+func (b *TonTransferBuilder) BuildTransferSigningHash() ([]byte, error) {
+	if len(b.messages) == 0 {
+		return nil, errors.New("no messages")
+	}
+	payload, err := b.wallet.BuildMessageUnsigned(context.Background(), b.messages, b.params.Seqno > 0)
 	if err != nil {
 		return nil, err
 	}
-	if simulate {
-		signedTx, err := buildTx(w, seqno == 0)
+	b.payload = payload
+	return payload.EndCell().Hash(), nil
+}
+
+func (b *TonTransferBuilder) BuildTransferWithSignature(signature []byte) (*tlb.ExternalMessage, error) {
+	if b.payload == nil {
+		return nil, errors.New("payload is not set")
+	}
+	msg, err := b.wallet.BuildMessageWithSignature(context.Background(), b.payload, signature, b.params.Seqno > 0)
+	if err != nil {
+		return nil, err
+	}
+	b.externalMessage = msg
+	return msg, nil
+}
+
+func (b *TonTransferBuilder) BuildTransferDirect() (*tlb.ExternalMessage, error) {
+	if len(b.messages) == 0 {
+		return nil, errors.New("no messages")
+	}
+	initialized := b.params.Seqno > 0
+	msg, err := b.wallet.BuildExternalMessageForMany(context.Background(), b.messages, initialized)
+	if err != nil {
+		return nil, err
+	}
+	b.externalMessage = msg
+	return msg, nil
+}
+
+func (b *TonTransferBuilder) BuildSignedTx(useBOCWithFlags bool) (*SignedTx, error) {
+	if b.externalMessage == nil {
+		return nil, errors.New("external message is not set")
+	}
+
+	cell := b.externalMessage.Body
+
+	if !b.params.Simulate {
+		emCell, err := tlb.ToCell(b.externalMessage)
 		if err != nil {
 			return nil, err
 		}
-		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOCWithFlags(false)))
-		return signedTx, nil
+		cell = emCell
 	}
-	emCell, err := tlb.ToCell(externalMessage)
+
+	signedTx := NewSignedTx(b.wallet.WalletAddress().String())
+
+	err := signedTx.FillInit(b.wallet, b.params.Seqno)
 	if err != nil {
 		return nil, err
 	}
-	signedTx, err := buildTx(w, seqno == 0)
+	err = signedTx.FillTx(base64.StdEncoding.EncodeToString(cell.ToBOCWithFlags(useBOCWithFlags)), !b.params.Simulate)
 	if err != nil {
 		return nil, err
 	}
-	signedTx.FillTx(base64.StdEncoding.EncodeToString(emCell.ToBOCWithFlags(false)))
-	return signedTx, nil
+	return signedTx, err
 }
 
-// VenomTransfer venom chain use v3 til now
-func VenomTransfer(seed []byte, to, amount, comment string, seqno uint32, bounce bool, globalID uint32, expireAt int64, mode uint8) (string, error) {
-	w, err := wallet.FromPrivateKeyVenom(ed25519.NewKeyFromSeed(seed), wallet.VenomV3)
-	specVenomV3 := w.GetSpec().(*wallet.SpecVenomV3)
-	specVenomV3.SetCustomSeqnoFetcher(func() uint32 {
-		return seqno
-	})
-	specVenomV3.SetExpireAt(expireAt)
-	toAddr, err := address.ParseRawAddr(to)
+// For backward compatibility
+func Transfer(seed, pubKey []byte, to, amount, comment string, seqno uint32, expireAt int64, mode uint8, simulate bool, version wallet.Version) (*SignedTx, error) {
+	params := &TransferParams{
+		Seed:     seed,
+		PubKey:   pubKey,
+		Seqno:    seqno,
+		ExpireAt: expireAt,
+		Simulate: simulate,
+		Version:  version,
+		To:       to,
+		Amount:   amount,
+		Comment:  comment,
+		Mode:     mode,
+		IsToken:  false,
+	}
+	b, err := NewTonTransferBuilder(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	toAmount, ok := new(big.Int).SetString(amount, 10)
-	if !ok {
-		return "", err
-	}
-	message, err := w.BuildTransfer(toAddr, tlb.FromNanoTON(toAmount), bounce, comment, mode)
+	_, err = b.BuildTonMessage()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	// specVenomV3.SetGlobalID(globalID)
+	_, err = b.BuildTransferDirect()
+	if err != nil {
+		return nil, err
+	}
+	return b.BuildSignedTx(true)
+}
 
-	initialized := false
-	if seqno > 0 {
-		initialized = true
+func TransferJetton(seed, pubKey []byte, from, to, amount string, decimals int, seqno uint32, messageAttachedTons string, invokeNotificationFee string, customPayload, stateInit, comment string, expireAt int64, rnd uint64, simulate bool, version wallet.Version) (*SignedTx, error) {
+	params := &TransferParams{
+		Seed:                  seed,
+		PubKey:                pubKey,
+		Seqno:                 seqno,
+		ExpireAt:              expireAt,
+		Simulate:              simulate,
+		Version:               version,
+		From:                  from,
+		To:                    to,
+		Amount:                amount,
+		Decimals:              decimals,
+		MessageAttachedTons:   messageAttachedTons,
+		InvokeNotificationFee: invokeNotificationFee,
+		CustomPayload:         customPayload,
+		StateInit:             stateInit,
+		Comment:               comment,
+		Rnd:                   rnd,
+		IsToken:               true,
 	}
-
-	externalMessage, err := w.BuildExternalMessage(context.Background(), message, initialized)
+	b, err := NewTonTransferBuilder(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	emCell, err := tlb.ToCell(externalMessage)
+	_, err = b.BuildJettonMessage()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
-	result, err := json.Marshal(struct {
-		Id   string `json:"id"`
-		Body string `json:"body"`
-	}{
-		base64.StdEncoding.EncodeToString(emCell.Hash()),
-		base64.StdEncoding.EncodeToString(emCell.ToBOCWithFlags(false)),
-	})
+	_, err = b.BuildTransferDirect()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
-	return string(result), nil
+	return b.BuildSignedTx(false)
 }
 
 func getExternalMessageCell(boc string) (*cell.Cell, error) {
@@ -272,12 +321,7 @@ func CalTxHash(boc string) (string, error) {
 }
 
 func CalNormMsgHash(boc string) (string, error) {
-	emCellBytes, err := base64.StdEncoding.DecodeString(boc)
-	if err != nil {
-		return "", err
-	}
-
-	emCell, err := cell.FromBOC(emCellBytes)
+	emCell, err := getExternalMessageCell(boc)
 	if err != nil {
 		return "", err
 	}

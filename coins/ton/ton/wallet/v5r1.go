@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
-	"time"
 )
 
 // Contract source:
@@ -53,7 +54,7 @@ func (w V5R1ID) Serialized() uint32 {
 	return genContextID(uint8(w.WorkChain), w.WalletVersion, w.SubwalletNumber) ^ uint32(w.NetworkGlobalID)
 }
 
-func (s *SpecV5R1Final) BuildMessage(ctx context.Context, internal bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
+func (s *SpecV5R1Final) BuildMessageUnsigned(ctx context.Context, internal bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Builder, err error) {
 	if len(messages) > 255 {
 		return nil, errors.New("for this type of wallet max 255 messages can be sent at the same time")
 	}
@@ -90,15 +91,26 @@ func (s *SpecV5R1Final) BuildMessage(ctx context.Context, internal bool, _ bool 
 		MustStoreUInt(uint64(seq), 32).                   // seq (block)
 		MustStoreBuilder(actions)                         // Action list
 
+	return payload, nil
+}
+
+func (s *SpecV5R1Final) BuildMessageWithSignature(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, payload *cell.Builder, signature []byte) (_ *cell.Cell, err error) {
+	msg := cell.BeginCell().MustStoreBuilder(payload).MustStoreSlice(signature, 512).EndCell()
+	return msg, nil
+}
+
+func (s *SpecV5R1Final) BuildMessage(ctx context.Context, internal bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
+	payload, err := s.BuildMessageUnsigned(ctx, internal, false /*_ *ton.BlockIDExt,*/, messages)
+	if err != nil {
+		return nil, err
+	}
 	var sign []byte
 	if s.wallet.key == nil {
 		sign = make([]byte, 64)
 	} else {
 		sign = payload.EndCell().Sign(s.wallet.key)
 	}
-	msg := cell.BeginCell().MustStoreBuilder(payload).MustStoreSlice(sign, 512).EndCell()
-
-	return msg, nil
+	return s.BuildMessageWithSignature(ctx, internal, false /*_ *ton.BlockIDExt,*/, payload, sign)
 }
 
 // Validate messages

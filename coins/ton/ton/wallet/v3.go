@@ -1,7 +1,3 @@
-/**
-Author： https://github.com/xssnick/tonutils-go
-*/
-
 package wallet
 
 import (

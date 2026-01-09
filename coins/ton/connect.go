@@ -1,7 +1,6 @@
 package ton
 
 import (
-	"context"
 	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/base64"
@@ -10,10 +9,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/ton/wallet"
-	"math/big"
 )
 
 const (
@@ -32,26 +32,8 @@ type ProofData struct {
 	Payload   string `json:"payload"`
 }
 
-func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, simulate bool, version wallet.Version) (*SignedTx, error) {
-	w, err := NewWallet(seed, pub, version)
-	if err != nil {
-		return nil, err
-	}
-	specV4R2 := w.GetSpec().(*wallet.SpecV4R2)
-	specV4R2.SetCustomSeqnoFetcher(func() uint32 {
-		return seqno
-	})
-	expireAt := request.ValidUntil
-	if expireAt < 0 {
-		return nil, ErrInvalidMultiRequest
-	}
-	specV4R2.SetExpireAt(expireAt)
-	initialized := true
-	if seqno == 0 {
-		initialized = false
-	}
-
-	msgs := make([]*wallet.Message, len(request.Messages))
+func (b *TonTransferBuilder) BuildMultiTransferMessages(request *MultiRequest) ([]*wallet.Message, error) {
+	messages := make([]*wallet.Message, len(request.Messages))
 	for k, v := range request.Messages {
 		to, err := address.ParseAddr(v.Address)
 		if err != nil {
@@ -61,6 +43,7 @@ func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, si
 		if !ok {
 			return nil, err
 		}
+
 		if v.ExtraFlags == "" {
 			v.ExtraFlags = "0"
 		}
@@ -68,41 +51,45 @@ func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, si
 		if err != nil {
 			return nil, err
 		}
-		vv, err := w.BuildTransferByBody(to, tlb.FromNanoTON(toAmount), v.Payload, v.StateInit, extraFlags)
+		message, err := b.wallet.BuildTransferByBody(to, tlb.FromNanoTON(toAmount), v.Payload, v.StateInit, extraFlags)
 		if err != nil {
 			return nil, err
 		}
-		msgs[k] = vv
+		messages[k] = message
 	}
-	externalMessage, err := w.BuildExternalMessageForMany(context.Background(), msgs, initialized)
+
+	b.messages = messages
+	return messages, nil
+}
+func SignMultiTransfer(seed, pub []byte, seqno uint32, request *MultiRequest, simulate bool, version wallet.Version) (*SignedTx, error) {
+	params := &TransferParams{
+		Seed:     seed,
+		PubKey:   pub,
+		Seqno:    seqno,
+		Simulate: simulate,
+		Version:  version,
+		ExpireAt: request.ValidUntil,
+	}
+	b, err := NewTonTransferBuilder(params)
 	if err != nil {
 		return nil, err
 	}
-	if simulate {
-		signedTx, err := buildTx(w, seqno == 0)
-		if err != nil {
-			return nil, err
-		}
-		signedTx.FillTxOnly(base64.StdEncoding.EncodeToString(externalMessage.Body.ToBOC()))
-		return signedTx, nil
-	}
-	emCell, err := tlb.ToCell(externalMessage)
+	_, err = b.BuildMultiTransferMessages(request)
 	if err != nil {
 		return nil, err
 	}
-	signedTx, err := buildTx(w, seqno == 0)
+	_, err = b.BuildTransferDirect()
 	if err != nil {
 		return nil, err
 	}
-	signedTx.FillTx(base64.StdEncoding.EncodeToString(emCell.ToBOC()))
-	return signedTx, nil
+	return b.BuildSignedTx(true)
 }
 
 func SignProof(addr string, seed []byte, payload *ProofData) (string, error) {
 	if payload == nil || len(seed) != ed25519.SeedSize {
 		return "", errors.New("invalid param")
 	}
-	msg, err := createMessage(addr, payload)
+	msg, err := CreateMessage(addr, payload)
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +116,7 @@ func VerifySignProof(addr string, pub, sign []byte, payload *ProofData) error {
 	if payload == nil || len(pub) != ed25519.PublicKeySize || len(sign) == 0 {
 		return ErrInvalidParam
 	}
-	msg, err := createMessage(addr, payload)
+	msg, err := CreateMessage(addr, payload)
 	if err != nil {
 		return err
 	}
@@ -184,7 +171,7 @@ func GetWalletInformation(seed, pubKey []byte, version wallet.Version) (*AccontI
 	}, nil
 }
 
-func createMessage(addr string, message *ProofData) ([]byte, error) {
+func CreateMessage(addr string, message *ProofData) ([]byte, error) {
 	addr2, err := address.ParseAddr(addr)
 	if err != nil {
 		return nil, err

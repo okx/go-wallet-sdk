@@ -1,8 +1,14 @@
 package starknet
 
 import (
+	"bytes"
 	"crypto/elliptic"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"math/big"
+	"os"
 )
 
 /**
@@ -36,14 +42,6 @@ SOFTWARE.
 	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
 */
-import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
-)
 
 var sc StarkCurve
 
@@ -141,6 +139,51 @@ func calculateDeployAccountTransactionHash(contractAddress *big.Int, classHash *
 		nonce,
 	}
 	return ComputeHashOnElements(multiHashData)
+}
+
+func CalculateDeployAccountTransactionHashCairo1(contractAddress *big.Int, classHash *big.Int, constructorCalldata []*big.Int, salt, version, chainId, nonce, maxFee *big.Int) (hash *big.Int, err error) {
+	calldata := []*big.Int{classHash, salt}
+	calldata = append(calldata, constructorCalldata...)
+	calldataHash, err := ComputeHashOnElements(calldata)
+	if err != nil {
+		return nil, err
+	}
+
+	multiHashData := []*big.Int{
+		UTF8StrToBig(DEPLOY_ACCOUNT),
+		version,
+		contractAddress,
+		big.NewInt(0),
+		calldataHash,
+		maxFee,
+		chainId,
+		nonce,
+	}
+	return ComputeHashOnElements(multiHashData)
+}
+
+func (sc StarkCurve) HashMulticallCairo1(addr, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {
+	callArray := FmtExecuteCalldataCairo1(txs)
+	callArray = append(callArray, big.NewInt(int64(len(callArray))))
+	cdHash, err := sc.HashElements(callArray)
+	if err != nil {
+		return hash, err
+	}
+
+	multiHashData := []*big.Int{
+		UTF8StrToBig(TRANSACTION_PREFIX),
+		big.NewInt(TRANSACTION_VERSION),
+		addr,
+		big.NewInt(0),
+		cdHash,
+		maxFee,
+		chainId,
+		nonce,
+	}
+
+	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
+	hash, err = sc.HashElements(multiHashData)
+	return hash, err
 }
 
 func (sc StarkCurve) HashMulticall(addr, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {

@@ -327,6 +327,18 @@ func FmtExecuteCalldata(txs []Transaction) (calldataArray []*big.Int) {
 	return callArray
 }
 
+func FmtExecuteCalldataCairo1(txs []Transaction) []*big.Int {
+	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
+
+	for _, tx := range txs {
+		callArray = append(callArray, tx.ContractAddress, tx.EntryPointSelector)
+		callArray = append(callArray, big.NewInt(int64(len(tx.Calldata))))
+		callArray = append(callArray, tx.Calldata...)
+	}
+
+	return callArray
+}
+
 func OldFmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
 

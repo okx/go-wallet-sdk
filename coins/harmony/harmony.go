@@ -3,12 +3,13 @@ package harmony
 import (
 	"encoding/hex"
 	"errors"
+	"math/big"
+	"strings"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/coins/ethereum"
 	"github.com/okx/go-wallet-sdk/util"
-	"math/big"
-	"strings"
 )
 
 var (
@@ -51,7 +52,7 @@ func GetAddress(pub *btcec.PublicKey) (string, error) {
 }
 
 func Transfer(transaction *ethereum.EthTransaction, chainId *big.Int, prvKey *btcec.PrivateKey) (string, error) {
-	return transaction.SignTransaction(chainId, prvKey)
+	return transaction.SignTransaction(chainId, prvKey), nil
 }
 func VerifySignMsg(signature, message, address string, addPrefix bool) error {
 	pub, err := ethereum.EcRecoverPubKey(signature, message, addPrefix)

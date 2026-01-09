@@ -1,6 +1,6 @@
 module github.com/okx/go-wallet-sdk/coins/kaspa
 
-go 1.19
+go 1.23.0
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2

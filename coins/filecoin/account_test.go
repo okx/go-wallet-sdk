@@ -2,11 +2,12 @@ package filecoin
 
 import (
 	"encoding/json"
+	"math/big"
+	"testing"
+
 	"github.com/okx/go-wallet-sdk/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestNewPrivateKey(t *testing.T) {
@@ -42,7 +43,7 @@ func TestAddressToBytes(t *testing.T) {
 	addr := "f1bh3d2y6xxugpg3ygzxnjhcrs5ffxh5nvqmanbia"
 	addrBytes := AddressToBytes(addr)
 	expected := "0x0109f63d63d7bd0cf36f06cdda938a32e94b73f5b5"
-	require.Equal(t, expected, util.EncodeHexWith0x(addrBytes))
+	require.Equal(t, expected, util.EncodeHexWithPrefix(addrBytes))
 }
 
 func TestSignTx(t *testing.T) {

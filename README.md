@@ -7,12 +7,12 @@ The OKX Web3 Go Wallet SDK is a comprehensive solution for building wallet appli
 
 ## 🚀 Features
 
-- **Multi-chain support:** Seamlessly interact with major blockchains.
-- **Offline transaction signing:** Ensure security with local signing.
-- **Account generation and management:** Derive addresses with ease.
-- **Customizable transaction creation:** Flexible parameters for all supported chains.
-- **BRC20/Atomical/Runes support:** Full Bitcoin token standard compatibility.
-- **Extensible architecture:** Modular design for future blockchain integration.
+-   **Multi-chain support:** Seamlessly interact with major blockchains.
+-   **Offline transaction signing:** Ensure security with local signing.
+-   **Account generation and management:** Derive addresses with ease.
+-   **Customizable transaction creation:** Flexible parameters for all supported chains.
+-   **BRC20/Atomical/Runes support:** Full Bitcoin token standard compatibility.
+-   **Extensible architecture:** Modular design for future blockchain integration.
 
 ## 📚 Documentation
 
@@ -20,8 +20,8 @@ For detailed documentation and API references, please refer to the README files 
 
 Example:
 
-- [Aptos README](https://github.com/okx/go-wallet-sdk/tree/main/coins/aptos)
-- [Bitcoin README](https://github.com/okx/go-wallet-sdk/tree/main/coins/bitcoin)
+-   [Aptos README](https://github.com/okx/go-wallet-sdk/tree/main/coins/aptos)
+-   [Bitcoin README](https://github.com/okx/go-wallet-sdk/tree/main/coins/bitcoin)
 
 ## 🌐 Supported Chains
 
@@ -29,23 +29,22 @@ The OKX Web3 Go Wallet SDK supports a wide range of blockchain networks. EVM-com
 Arbitrum) and Solana-based chains can seamlessly reuse the same code structure for streamlined integration.
 
 | Blockchain | Generate Address | Sign Transaction | Sign Message |
-|------------|------------------|------------------|--------------|
-| Aptos      | ✅                | ✅                | ✅            |
-| Bitcoin    | ✅                | ✅                | ✅            |
-| Cardano    | ✅                | ✅                | ✅            |
-| Cosmos     | ✅                | ✅                | ✅            |
-| Ethereum   | ✅                | ✅                | ✅            |
-| Kaspa      | ✅                | ✅                | ✅            |
-| Near       | ✅                | ✅                | ✅            |
-| Solana     | ✅                | ✅                | ✅            |
-| Starknet   | ✅                | ✅                | ✅            |
-| Stacks     | ✅                | ✅                | ✅            |
-| Sui        | ✅                | ✅                | ✅            |
-| Ton        | ✅                | ✅                | ✅            |
-| Tron       | ✅                | ✅                | ✅            |
+| ---------- | ---------------- | ---------------- | ------------ |
+| Aptos      | ✅               | ✅               | ✅           |
+| Bitcoin    | ✅               | ✅               | ✅           |
+| Cardano    | ✅               | ✅               | ✅           |
+| Cosmos     | ✅               | ✅               | ✅           |
+| Ethereum   | ✅               | ✅               | ✅           |
+| Kaspa      | ✅               | ✅               | ✅           |
+| Near       | ✅               | ✅               | ✅           |
+| Solana     | ✅               | ✅               | ✅           |
+| Starknet   | ✅               | ✅               | ✅           |
+| Stacks     | ✅               | ✅               | ✅           |
+| Sui        | ✅               | ✅               | ✅           |
+| Ton        | ✅               | ✅               | ✅           |
+| Tron       | ✅               | ✅               | ✅           |
 
-
-*Note: Bitcoin support includes BRC20, Atomicals, and Runes-related functions, such as deployment, minting, transfer, and trading.*
+_Note: Bitcoin support includes BRC20, Atomicals, and Runes-related functions, such as deployment, minting, transfer, and trading._
 
 ## 🛠️ Architecture
 
@@ -68,15 +67,28 @@ go get -u github.com/okx/go-wallet-sdk/coins/bitcoin
 
 ## ⚙️ Build and Test
 
-To build and test all blockchain modules, use the `build.sh` script located in the project root. This script iterates through each chain module under the `coins` directory, runs `go mod tidy` to clean dependencies, executes tests, and verifies successful builds.
+To build and test all blockchain modules, use the `build.sh` script located in the project root. This script automatically discovers all modules under the `coins` directory, runs `go mod tidy` to clean dependencies, executes tests, and verifies successful builds.
+
+### Basic Usage
 
 ```shell
 sh build.sh
 ```
 
-The output will display the build status for each chain. If a module fails, the error message will indicate the issue for further debugging.
+### Command Options
 
+| Option               | Description                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `sh build.sh`        | Interactive mode - prompts to run all or only previously failed modules if `build_failures.log` exist else run all |
+| `sh build.sh all`    | Run tests for all modules                                                                                          |
+| `sh build.sh failed` | Run tests only for previously failed modules                                                                       |
 
+### Output
+
+-   Build status is displayed for each module (✓ success / ✗ failed)
+-   A summary shows total success/failure counts
+-   Failed modules are logged to `build_failures.log` with detailed output
+-   Use `sh build.sh failed` to quickly re-run only the failed modules after fixing issues
 
 ## 💬 Feedback and Support
 
@@ -86,7 +98,6 @@ The OKX Web3 Go Wallet SDK shares common design principles and usage patterns wi
 
 [detail](./CHANGELOG.md)
 
-
 ## 🔒 Security
 
 If you find security risks, it is recommended to report them through the following channels and get your reward!
@@ -95,4 +106,3 @@ Submit on HackerOne platform: [https://hackerone.com/okg](https://hackerone.com/
 ## 📜 License
 
 The OKX Web3 Go Wallet SDK is open-source software licensed under the [MIT license](LICENSE).
-

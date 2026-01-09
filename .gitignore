@@ -1,3 +1,5 @@
 go.sum
 .idea/
 .vscode/
+.cursor/
+*.log

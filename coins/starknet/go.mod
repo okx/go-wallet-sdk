@@ -1,8 +1,9 @@
 module github.com/okx/go-wallet-sdk/coins/starknet
 
-go 1.19
+go 1.23.0
 
 require (
+	github.com/bits-and-blooms/bitset v1.24.4
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.12.0
 )

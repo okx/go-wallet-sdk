@@ -1,15 +1,14 @@
-/**
-Author： https://github.com/xssnick/tonutils-go
-*/
-
 package wallet
 
 import (
 	"context"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 type RegularBuilder interface {
+	BuildMessageUnsigned(ctx context.Context, internal bool, isInitialized bool /*_ *ton.BlockIDExt,*/, messages []*Message) (*cell.Builder, error)
+	BuildMessageWithSignature(ctx context.Context, internal bool, isInitialized bool /*_ *ton.BlockIDExt,*/, payload *cell.Builder, signature []byte) (*cell.Cell, error)
 	BuildMessage(ctx context.Context, internal bool, isInitialized bool /*_ *ton.BlockIDExt,*/, messages []*Message) (*cell.Cell, error)
 }
 

@@ -4,11 +4,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math/big"
+	"strings"
+
+	"github.com/okx/go-wallet-sdk/coins/near/utils"
 	"github.com/okx/go-wallet-sdk/crypto/base58"
 	"github.com/okx/go-wallet-sdk/util"
 	"github.com/shopspring/decimal"
-	"math/big"
-	"strings"
 )
 
 const (
@@ -69,11 +71,11 @@ type U128 struct {
 }
 
 func (u *U128) Serialize() ([]byte, error) {
-	data, err := util.BigIntToUintBytes(u.Value, 16)
+	data, err := utils.BigIntToUintBytes(u.Value, 16)
 	if err != nil {
 		return nil, err
 	}
-	util.Reverse(data)
+	utils.Reverse(data)
 	return data, nil
 }
 
@@ -105,7 +107,7 @@ func TryParse(s string) ([]byte, error) {
 		return nil, fmt.Errorf("key decode error, key =%s", s)
 	}
 	if !strings.HasPrefix(s, NearPrefix) {
-		publicKeyByte, err := util.DecodeHexString(s)
+		publicKeyByte, err := util.DecodeHexStringErr(s)
 		if err != nil {
 			return nil, fmt.Errorf("key decode error, key =%s", s)
 		}

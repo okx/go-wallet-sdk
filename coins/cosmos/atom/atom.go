@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/tx"
 	"github.com/okx/go-wallet-sdk/coins/cosmos/types"
-	"math/big"
 )
 
 const (
@@ -89,10 +90,7 @@ func Sign(rawHex string, privateKey *btcec.PrivateKey) (string, error) {
 		return "", err
 	}
 	hash := sha256.Sum256(signDocBytes)
-	signature, err := ecdsa.SignCompact(privateKey, hash[:], false)
-	if err != nil {
-		return "", err
-	}
+	signature := ecdsa.SignCompact(privateKey, hash[:], false)
 	return hex.EncodeToString(signature[1:]), nil
 }
 

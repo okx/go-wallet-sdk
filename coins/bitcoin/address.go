@@ -68,7 +68,15 @@ func PubKeyToAddr(publicKey []byte, addrType string, network *chaincfg.Params) (
 func ValidateAddress(address string) bool {
 	return ValidateUTXOAddress(address, &chaincfg.MainNetParams)
 }
+
+func ValidateTestnetAddress(address string) bool {
+	return ValidateUTXOAddress(address, &chaincfg.TestNet3Params)
+}
+
 func ValidateUTXOAddress(address string, cfg *chaincfg.Params) bool {
 	addr, err := btcutil.DecodeAddress(address, cfg)
-	return addr != nil && addr.IsForNet(cfg) && err == nil
+	if err != nil {
+		return false
+	}
+	return addr.IsForNet(cfg)
 }

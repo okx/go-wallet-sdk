@@ -1,18 +1,19 @@
 module github.com/okx/go-wallet-sdk/coins/polkadot
 
-go 1.19
+go 1.23.0
 
 require (
-	github.com/okx/go-wallet-sdk/crypto v0.0.1
-	github.com/okx/go-wallet-sdk/util v0.0.1
-	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.12.0
+	github.com/okx/go-wallet-sdk/crypto v0.0.3
+	github.com/okx/go-wallet-sdk/util v0.0.6
+	github.com/stretchr/testify v1.10.0
+	golang.org/x/crypto v0.36.0
 )
 
 require (
-	github.com/btcsuite/btcutil v1.0.2 // indirect
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

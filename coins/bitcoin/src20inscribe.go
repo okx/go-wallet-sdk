@@ -92,7 +92,7 @@ func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList PrevOutpu
 	data := make([]byte, total)
 	data[0], data[1] = byte(len(bf)/256), byte(len(bf)%256)
 	copy(data[2:], bf)
-	key, err := util.DecodeHexString(commitTxPrevOutputList[0].TxId)
+	key, err := util.DecodeHexStringErr(commitTxPrevOutputList[0].TxId)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (tool *Src20InscriptionTool) buildCommitTx(commitTxPrevOutputList PrevOutpu
 		pubkeys := []string{"03" + first + "00", "02" + second + "00", "020202020202020202020202020202020202020202020202020202020202020202"}
 		builder := txscript.NewScriptBuilder().AddOp(txscript.OP_1)
 		for _, v := range pubkeys {
-			key, err := util.DecodeHexString(v)
+			key, err := util.DecodeHexStringErr(v)
 			if err != nil {
 				return err
 			}

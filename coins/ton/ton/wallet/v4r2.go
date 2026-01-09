@@ -1,16 +1,13 @@
-/**
-Author： https://github.com/xssnick/tonutils-go
-*/
-
 package wallet
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
-	"time"
 )
 
 // https://github.com/toncenter/tonweb/blob/master/src/contract/wallet/WalletContractV4.js
@@ -24,7 +21,7 @@ type SpecV4R2 struct {
 	SpecSeqno
 }
 
-func (s *SpecV4R2) BuildMessage(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
+func (s *SpecV4R2) BuildMessageUnsigned(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Builder, err error) {
 	// TODO: remove block, now it is here for backwards compatibility
 
 	if len(messages) > 4 {
@@ -52,16 +49,24 @@ func (s *SpecV4R2) BuildMessage(ctx context.Context, _ bool, _ bool /*_ *ton.Blo
 
 		payload.MustStoreUInt(uint64(message.Mode), 8).MustStoreRef(intMsg)
 	}
+	return payload, nil
+}
 
+func (s *SpecV4R2) BuildMessageWithSignature(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, payload *cell.Builder, signature []byte) (_ *cell.Cell, err error) {
+	msg := cell.BeginCell().MustStoreSlice(signature, 512).MustStoreBuilder(payload).EndCell()
+	return msg, nil
+}
+
+func (s *SpecV4R2) BuildMessage(ctx context.Context, _ bool, _ bool /*_ *ton.BlockIDExt,*/, messages []*Message) (_ *cell.Cell, err error) {
+	payload, err := s.BuildMessageUnsigned(ctx, false, false /*_ *ton.BlockIDExt,*/, messages)
+	if err != nil {
+		return nil, err
+	}
 	var sign []byte
 	if s.wallet.key == nil {
 		sign = make([]byte, 64)
 	} else {
 		sign = payload.EndCell().Sign(s.wallet.key)
 	}
-	msg := cell.BeginCell().MustStoreSlice(sign, 512).MustStoreBuilder(payload).EndCell()
-
-	return msg, nil
+	return s.BuildMessageWithSignature(ctx, false, false /*_ *ton.BlockIDExt,*/, payload, sign)
 }
-
-// TODO: implement plugins

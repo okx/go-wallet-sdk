@@ -11,12 +11,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/okx/go-wallet-sdk/util"
-	"strings"
 )
 
 const (
@@ -49,7 +50,7 @@ func NpubEncode(pubHex string) (res string, err error) {
 			return
 		}
 	}()
-	pub, err := util.DecodeHexString(pubHex)
+	pub, err := util.DecodeHexStringErr(pubHex)
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +63,7 @@ func NsecEncode(prvHex string) (res string, err error) {
 			return
 		}
 	}()
-	pub, err := util.DecodeHexString(prvHex)
+	pub, err := util.DecodeHexStringErr(prvHex)
 	if err != nil {
 		return "", err
 	}
@@ -211,7 +212,7 @@ func VerifyEvent(e *Event) (ok bool) {
 		return false
 	}
 
-	sigBytes, err := util.DecodeHexString(e.Sig)
+	sigBytes, err := util.DecodeHexStringErr(e.Sig)
 	if err != nil {
 		return false
 	}
@@ -219,7 +220,7 @@ func VerifyEvent(e *Event) (ok bool) {
 	if err != nil {
 		return false
 	}
-	pubKeyBytes, err := util.DecodeHexString(e.Pubkey)
+	pubKeyBytes, err := util.DecodeHexStringErr(e.Pubkey)
 	if err != nil {
 		return false
 	}
@@ -231,7 +232,7 @@ func VerifyEvent(e *Event) (ok bool) {
 }
 
 func TryGetPubkey(pubkeyHex string) []byte {
-	pub, err := util.DecodeHexString(pubkeyHex)
+	pub, err := util.DecodeHexStringErr(pubkeyHex)
 	if err != nil {
 		return make([]byte, 0)
 	}

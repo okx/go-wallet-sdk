@@ -105,7 +105,7 @@ func SignEthTypeMessage(message string, prvKey *btcec.PrivateKey, addPrefix bool
 }
 
 func SignAsRecoverable(value []byte, prvKey *btcec.PrivateKey) *SignatureData {
-	sig, _ := ecdsa.SignCompact(prvKey, value, false)
+	sig := ecdsa.SignCompact(prvKey, value, false)
 
 	V := sig[0]
 	R := sig[1:33]

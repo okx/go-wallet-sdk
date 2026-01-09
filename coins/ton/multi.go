@@ -2,9 +2,10 @@ package ton
 
 import (
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"math/big"
 	"time"
+
+	"github.com/okx/go-wallet-sdk/coins/ton/address"
 )
 
 const (

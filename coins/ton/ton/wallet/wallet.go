@@ -9,11 +9,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
+	"time"
+
 	"github.com/okx/go-wallet-sdk/coins/ton/address"
 	"github.com/okx/go-wallet-sdk/coins/ton/tlb"
 	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
-	"math/big"
-	"time"
 )
 
 type Version int
@@ -479,6 +480,55 @@ func (w *Wallet) PrepareInternalMessageForMany(ctx context.Context, to *address.
 		},
 	}, nil
 
+}
+
+func (w *Wallet) BuildMessageUnsigned(ctx context.Context, messages []*Message, initialized bool) (payload *cell.Builder, err error) {
+
+	switch v := w.ver.(type) {
+	case Version, ConfigV5R1Final:
+		switch v.(type) {
+		case ConfigV5R1Final:
+			v = V5R1Final
+		}
+		switch v {
+		case V3R2, V3R1, V4R2, V4R1, V5R1Final:
+			payload, err = w.spec.(RegularBuilder).BuildMessageUnsigned(ctx, false, initialized, messages)
+			if err != nil {
+				return nil, fmt.Errorf("build message err: %w", err)
+			}
+		}
+	}
+	return
+}
+
+func (w *Wallet) BuildMessageWithSignature(ctx context.Context, payload *cell.Builder, signature []byte, initialized bool) (_ *tlb.ExternalMessage, err error) {
+	var stateInit *tlb.StateInit
+	if !initialized {
+		stateInit, err = GetStateInit(w.PublicKey(), w.ver, w.subwallet)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get state init: %w", err)
+		}
+	}
+	var msg *cell.Cell
+	switch v := w.ver.(type) {
+	case Version, ConfigV5R1Final:
+		switch v.(type) {
+		case ConfigV5R1Final:
+			v = V5R1Final
+		}
+		switch v {
+		case V3R2, V3R1, V4R2, V4R1, V5R1Final:
+			msg, err = w.spec.(RegularBuilder).BuildMessageWithSignature(ctx, false, initialized /*nil, */, payload, signature)
+			if err != nil {
+				return nil, fmt.Errorf("build message err: %w", err)
+			}
+		}
+	}
+	return &tlb.ExternalMessage{
+		DstAddr:   w.addr,
+		StateInit: stateInit,
+		Body:      msg,
+	}, nil
 }
 
 func TryParseBase64(body string) ([]byte, error) {

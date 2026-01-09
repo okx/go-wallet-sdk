@@ -107,10 +107,7 @@ func SignMessageEIP1559(message []byte, prvKey *btcec.PrivateKey) (*SignatureDat
 	hash256.Write([]byte{DynamicFeeTxType})
 	hash256.Write(message)
 	messageHash := hash256.Sum(nil)
-	sig, err := btcecEcdsa.SignCompact(prvKey, messageHash, false)
-	if err != nil {
-		return nil, err
-	}
+	sig := btcecEcdsa.SignCompact(prvKey, messageHash, false)
 	V := sig[0] - 27
 	R := sig[1:33]
 	S := sig[33:65]

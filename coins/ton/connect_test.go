@@ -4,13 +4,12 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
-	"github.com/okx/go-wallet-sdk/coins/ton/ton/wallet"
-	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/okx/go-wallet-sdk/coins/ton/ton/wallet"
+	"github.com/okx/go-wallet-sdk/coins/ton/tvm/cell"
 )
 
 func TestFromBOC(t *testing.T) {
@@ -55,53 +54,60 @@ func TestParsebase64(t *testing.T) {
 }
 
 func TestSignMultiTransfer(t *testing.T) {
-	var r MultiRequest
-	code := `{
-        "messages":[{
-	"address": "EQARULUYsmJq1RiZ-YiH-IJLcAZUVkVff-KBPwEmmaQGH6aC",
-	"amount": "195000000",
-	"payload":"te6cckEBAgEAigABaw+KfqUAAABqOXlveTmJaAgA7zuZAqJxsqAciTilI8/iTnGEeq62piAAHtRKd6wOcJwQLBuBAwEAnSWThWGAHIXiG4S2uBKfvTnDWV0CiqXAwDzv4KIacQogkCmsj0NuCxykPOZl3QAo0GtsbOJdNcL0J61peOgcvbzLsvXBsnC6HO6YLfLMvtDoIHzZ"
-	}],
-        "from": "0:a341adb1b38974d70bd09eb5a5e3a072f6f32ecbd706c9c2e873ba60b7cb32fb",
- "valid_until": 1730335778,
-        "network": "-239"
-}`
+	r := &MultiRequest{
+		Messages: []*Msg{
+			{
+				Address: "EQARULUYsmJq1RiZ-YiH-IJLcAZUVkVff-KBPwEmmaQGH6aC",
+				Amount:  "195000000",
+				Payload: "te6cckEBAgEAigABaw+KfqUAAABqOXlveTmJaAgA7zuZAqJxsqAciTilI8/iTnGEeq62piAAHtRKd6wOcJwQLBuBAwEAnSWThWGAHIXiG4S2uBKfvTnDWV0CiqXAwDzv4KIacQogkCmsj0NuCxykPOZl3QAo0GtsbOJdNcL0J61peOgcvbzLsvXBsnC6HO6YLfLMvtDoIHzZ",
+			},
+		},
+		From:       "0:a341adb1b38974d70bd09eb5a5e3a072f6f32ecbd706c9c2e873ba60b7cb32fb",
+		ValidUntil: 1730335778,
+		Network:    "-239",
+	}
 	nonce := uint32(180)
-	err := json.Unmarshal([]byte(code), &r)
-	assert.NoError(t, err)
 	seed, _ := hex.DecodeString("11c01440658fce38bfc0a6029a1d5bfc8a34842d836bf00b521016d4aa6adcc1")
 	assert.NoError(t, r.Check())
-	s, err := SignMultiTransfer(seed, nil, nonce, &r, true, wallet.V4R2)
+	s, err := SignMultiTransfer(seed, nil, nonce, r, true, wallet.V4R2)
 	assert.NoError(t, err)
-	tt := &testSignedTx{
-		Address:      s.Address,
-		Body:         s.Tx,
-		InitData:     s.Data,
-		InitCode:     s.Code,
-		IgnoreChksig: true,
-	}
-	assert.Equal(t, `{"address":"UQCjQa2xs4l01wvQnrWl46By9vMuy9cGycLoc7pgt8sy-1jO","body":"te6cckECAwEAAQ8AAZzxZne0gGdYWqMdaGMB/6/YnaQYDmnT/jo6KX9d1qUwcA/XgePUZaPUvA46tanb30NfVIiilog/m7RblGHEU7cKKamjF2ci1CIAAAC0AAMBAdNiAAioWoxZMTVqjEz8xEP8QSW4AyorIq+/8UCfgJNM0gMPoFz7tgAAAAAAAAAAAAAAAAAAD4p+pQAAAGo5eW95OYloCADvO5kConGyoByJOKUjz+JOcYR6rramIAAe1Ep3rA5wnBAsG4EDAgCdJZOFYYAcheIbhLa4Ep+9OcNZXQKKpcDAPO/gohpxCiCQKayPQ24LHKQ85mXdACjQa2xs4l01wvQnrWl46By9vMuy9cGycLoc7pgt8sy+0Ea2hE8=","init_data":"","init_code":"","ignore_chksig":true}`, tt.Str())
+	expectedAddress := "UQCjQa2xs4l01wvQnrWl46By9vMuy9cGycLoc7pgt8sy-1jO"
+	expectedBody := "te6cckECAwEAAQ8AAZzxZne0gGdYWqMdaGMB/6/YnaQYDmnT/jo6KX9d1qUwcA/XgePUZaPUvA46tanb30NfVIiilog/m7RblGHEU7cKKamjF2ci1CIAAAC0AAMBAdNiAAioWoxZMTVqjEz8xEP8QSW4AyorIq+/8UCfgJNM0gMPoFz7tgAAAAAAAAAAAAAAAAAAD4p+pQAAAGo5eW95OYloCADvO5kConGyoByJOKUjz+JOcYR6rramIAAe1Ep3rA5wnBAsG4EDAgCdJZOFYYAcheIbhLa4Ep+9OcNZXQKKpcDAPO/gohpxCiCQKayPQ24LHKQ85mXdACjQa2xs4l01wvQnrWl46By9vMuy9cGycLoc7pgt8sy+0Ea2hE8="
+	expectedInitData := ""
+	expectedInitCode := ""
+	assert.Equal(t, expectedAddress, s.Address)
+	assert.Equal(t, expectedBody, s.Tx)
+	assert.Equal(t, expectedInitData, s.Data)
+	assert.Equal(t, expectedInitCode, s.Code)
 }
 
-type testSignedTx struct {
-	Address      string `json:"address"`
-	Body         string `json:"body"`
-	InitData     string `json:"init_data"`
-	InitCode     string `json:"init_code"`
-	IgnoreChksig bool   `json:"ignore_chksig"`
-}
-
-func (t *testSignedTx) Str() string {
-	if t == nil {
-		return ""
+func TestSignMultiTransferWithExtraFlags(t *testing.T) {
+	r := &MultiRequest{
+		Messages: []*Msg{
+			{
+				Address:    "EQAHxgkOidVwrDMsGmmf3m5y8752Z55rf-iu3ktN6xR8rx99",
+				Amount:     "100000000",
+				Payload:    "te6cckEBBAEAowABoXNpbnR///8RaO9fgAAAABKqAtOfR8Sau3JMYfCRQcYJyYHW5oJjdeDCNaWEmoKHmGv4Lh2UoSvCAix84WLSLK4EX6vLsv/SLu0FqZ8DrPpAoAECCg7DyG0DAgMAAACEQgAD4wSHROq4VhmWDTTP7zc5ed87M881v/RXbyWm9Yo+V6Hc1lAAAAAAAAAAAAAAAAAAAAAAAAB2NCB3cmFwIHY1SQmJyA==",
+				ExtraFlags: "3",
+			},
+		},
+		From:       "UQCd7tJX0EgL0y7kRy8HtMQCCiNinFPdS722ksDGRKK_pS8V",
+		ValidUntil: 1719309177,
+		Network:    "-239",
 	}
-	j, err := json.Marshal(t)
-	if err != nil {
-		return ""
-	}
-	return string(j)
-}
 
+	nonce := uint32(17)
+	seed, _ := hex.DecodeString("87bfafe77b75a8bfbb95ace9d997798956b01c0a31a269daa83a73e2122e6fe7")
+	assert.NoError(t, r.Check())
+	s, err := SignMultiTransfer(seed, nil, nonce, r, false, wallet.V4R2)
+	assert.NoError(t, err)
+
+	expectedTx := `te6cckECBgEAAU8AAeGIATvdpK+gkBemXciOXg9piAQURsU4p7qXe20lgYyJRX9KBZL8tmyZZ17VHmu1fHQ2EZtGaMFs2PFG/dvA6hZWt5XreHGq+OxqNs3V2fcx8se9QHJ8DQK1Y0kdZsX/gsYE2GlNTRi7M9SbyAAAAIgAHAEBamIAA+MEh0TquFYZlg00z+83OXnfOzPPNb/0V28lpvWKPlegL68IAEDAAAAAAAAAAAAAAAABAgGhc2ludH///xFo71+AAAAAEqoC059HxJq7ckxh8JFBxgnJgdbmgmN14MI1pYSagoeYa/guHZShK8ICLHzhYtIsrgRfq8uy/9Iu7QWpnwOs+kCgAwIKDsPIbQMEBQAAAIRCAAPjBIdE6rhWGZYNNM/vNzl53zszzzW/9FdvJab1ij5XodzWUAAAAAAAAAAAAAAAAAAAAAAAAHY0IHdyYXAgdjVn1oM6`
+	expectedHash := `6d882d17d483a0330ec2a4c8ca5c84d1d6ee4a76ca900b7823abf43dff441c62`
+	assert.Equal(t, expectedTx, s.Tx)
+	assert.Equal(t, expectedHash, s.Hash)
+
+}
 func TestGetAccontInfo(t *testing.T) {
 	seed, _ := hex.DecodeString("fc81e6f42150458f53d8c42551a8ab91978a55d0e22b1fd890b85139086b93f8")
 	pubKey := ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)
@@ -150,34 +156,4 @@ func TestVerify(t *testing.T) {
 	expect := "tkrepSlC/7RMdGmtqNQ/OKRkxtdzvwF6GYBP6sgKWI/9mP0KcqyUwpFHAEGF6xeNOrwwoxIce8KJuEHLxuIgDw=="
 	assert.Equal(t, r, expect)
 	assert.NoError(t, VerifySignProofStr(addr, hex.EncodeToString(pub), r, proof))
-}
-
-func TestSignMultiTransferWithExtraFlags(t *testing.T) {
-	r := &MultiRequest{
-		Messages: []*Msg{
-			{
-				Address:    "EQAHxgkOidVwrDMsGmmf3m5y8752Z55rf-iu3ktN6xR8rx99",
-				Amount:     "100000000",
-				Payload:    "te6cckEBBAEAowABoXNpbnR///8RaO9fgAAAABKqAtOfR8Sau3JMYfCRQcYJyYHW5oJjdeDCNaWEmoKHmGv4Lh2UoSvCAix84WLSLK4EX6vLsv/SLu0FqZ8DrPpAoAECCg7DyG0DAgMAAACEQgAD4wSHROq4VhmWDTTP7zc5ed87M881v/RXbyWm9Yo+V6Hc1lAAAAAAAAAAAAAAAAAAAAAAAAB2NCB3cmFwIHY1SQmJyA==",
-				ExtraFlags: "3",
-			},
-		},
-		From:       "UQCd7tJX0EgL0y7kRy8HtMQCCiNinFPdS722ksDGRKK_pS8V",
-		ValidUntil: 1719309177,
-		Network:    "-239",
-	}
-
-	nonce := uint32(17)
-	seed, _ := hex.DecodeString("87bfafe77b75a8bfbb95ace9d997798956b01c0a31a269daa83a73e2122e6fe7")
-	assert.NoError(t, r.Check())
-	s, err := SignMultiTransfer(seed, nil, nonce, r, false, wallet.V4R2)
-	assert.NoError(t, err)
-
-	expectedTx := `te6cckECBgEAAU8AAeGIATvdpK+gkBemXciOXg9piAQURsU4p7qXe20lgYyJRX9KBZL8tmyZZ17VHmu1fHQ2EZtGaMFs2PFG/dvA6hZWt5XreHGq+OxqNs3V2fcx8se9QHJ8DQK1Y0kdZsX/gsYE2GlNTRi7M9SbyAAAAIgAHAEBamIAA+MEh0TquFYZlg00z+83OXnfOzPPNb/0V28lpvWKPlegL68IAEDAAAAAAAAAAAAAAAABAgGhc2ludH///xFo71+AAAAAEqoC059HxJq7ckxh8JFBxgnJgdbmgmN14MI1pYSagoeYa/guHZShK8ICLHzhYtIsrgRfq8uy/9Iu7QWpnwOs+kCgAwIKDsPIbQMEBQAAAIRCAAPjBIdE6rhWGZYNNM/vNzl53zszzzW/9FdvJab1ij5XodzWUAAAAAAAAAAAAAAAAAAAAAAAAHY0IHdyYXAgdjVn1oM6`
-	expectedTxHash := `2bcc71ab22a9aa3580cf46636f6c9c0d08a12710696ec7dabf7821861cdf9eaa`
-	expectedNormHash := `6d882d17d483a0330ec2a4c8ca5c84d1d6ee4a76ca900b7823abf43dff441c62`
-	assert.Equal(t, expectedTx, s.Tx)
-	assert.Equal(t, expectedTxHash, s.Hash)
-	assert.Equal(t, expectedNormHash, s.NormHash)
-
 }
